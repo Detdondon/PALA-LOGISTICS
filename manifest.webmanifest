@@ -1,0 +1,25 @@
+{
+  "name": "PALA",
+  "short_name": "PALA",
+  "description": "PALA Logistics – kalender, bemanding, lager, pakning og systue",
+  "lang": "da",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f6f7",
+  "theme_color": "#42688f",
+  "icons": [
+    {
+      "src": "pala-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "pala-icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
