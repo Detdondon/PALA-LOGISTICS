@@ -1,4 +1,4 @@
-const CACHE='pala-v98';
+const CACHE='pala-v100';
 const CORE=['./','./index.html','./Logo.png','./manifest.webmanifest','./pala-icon.svg','./pala-icon-180.png'];
 
 self.addEventListener('install',event=>{
