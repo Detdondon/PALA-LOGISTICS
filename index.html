@@ -5737,7 +5737,8 @@ function renderOpenWorkshopDamageOnlyV127(){
     ?`<section class="view-list-group workshop-undated-tasks"><div class="small muted">SYSTUEOPGAVER</div><h3 class="view-list-date">Åbne skader</h3>${openTasks.map(workshopTaskCard).join('')}</section>`
     :'<p class="muted">Ingen åbne skader.</p>';
 }
-showOpenWorkshopDamageListV122=function(){
+/* PALA v128 · wait for unified calendar before rendering open damages */
+showOpenWorkshopDamageListV122=async function(){
   if(!requireEmployee())return;
   workshopFilter='open';
   workshopSelectedDate='';
@@ -5748,7 +5749,7 @@ showOpenWorkshopDamageListV122=function(){
   localStorage.setItem('pala_calendar_type_filter','workshop');
   localStorage.setItem('pala_calendar_status_filter','open');
   localStorage.setItem('pala_calendar_view','list');
-  showCalendar();
+  await showCalendar();
   renderOpenWorkshopDamageOnlyV127();
 };
 
