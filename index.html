@@ -1847,9 +1847,9 @@ function tentGroupName(tent){let root=tentRoot(tent),name=root?.name||tent?.name
 function allHardwareRows(){return Object.values(tents).flatMap(t=>t.hardware||[])}
 function hardwareRoot(item){let rows=allHardwareRows(),byId=new Map(rows.map(row=>[+row.id,row])),current=item,seen=new Set();while(current?.parent_hardware_id&&!seen.has(+current.id)){seen.add(+current.id);current=byId.get(+current.parent_hardware_id)||current;if(seen.has(+current.id))break}return current||item}
 function hardwareFamilyName(item){let root=hardwareRoot(item);return root?.name||item?.name||'Hardware'}
-function warehouseGroupedRows(rows,keyFn,cardFn){
+function warehouseGroupedRows(rows,keyFn,cardFn,flatSingles=false){
   let groups=new Map();rows.forEach(row=>{let key=keyFn(row);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row)});
-  return `<div class="warehouse-groups">${[...groups.entries()].sort((a,b)=>alpha(a[0],b[0])).map(([name,items])=>`<details class="warehouse-group"><summary><span>${esc(name)}</span><span class="warehouse-group-count">${items.length}</span></summary><div class="warehouse-list">${items.sort((a,b)=>alpha(a.name,b.name)).map(cardFn).join('')}</div></details>`).join('')}</div>`;
+  return `<div class="warehouse-groups">${[...groups.entries()].sort((a,b)=>alpha(a[0],b[0])).map(([name,items])=>{items.sort((a,b)=>alpha(a.name,b.name));return flatSingles&&items.length===1?`<div class="warehouse-list">${cardFn(items[0])}</div>`:`<details class="warehouse-group"><summary><span>${esc(name)}</span><span class="warehouse-group-count">${items.length}</span></summary><div class="warehouse-list">${items.map(cardFn).join('')}</div></details>`}).join('')}</div>`;
 }
 function hardwareMaterial(item){return String(item?.material||'Ikke angivet').trim()||'Ikke angivet'}
 function hardwareCategoryGroup(category,rows,cardFn){
@@ -2225,7 +2225,7 @@ async function showTents(filter='all',keepFocus=false){
     let z=inventoryQuantityKnown(i)?warehouseNumbers('inventory',i.id,i.quantity_total):null;
     return `<button class="warehouse-item" onclick="openInventoryNfc(${i.id})"><span class="warehouse-item-icon">${uiIcon('box')}</span><span class="warehouse-item-body"><strong>${esc(i.name)}</strong><small>${esc(i.description||'Inventar')}</small><span class="warehouse-stock ${z?.available?'available':'empty'}">${esc(z?`${z.available}/${z.owned} klar${z.out?` · ${z.out} ude`:''}`:inventoryQuantityLabel(i))}</span></span>${uiIcon('chevronRight')}</button>`;
   }).join('');
-  let tentGroups=tentRows.length?warehouseGroupedRows(tentRows,t=>tentGroupName(t),tentCard):'<p class="muted" style="padding:14px">Ingen telte matcher søgningen.</p>',
+  let tentGroups=tentRows.length?warehouseGroupedRows(tentRows,t=>tentGroupName(t),tentCard,true):'<p class="muted" style="padding:14px">Ingen telte matcher søgningen.</p>',
       hardwareGroups=`<div class="warehouse-groups">${HARDWARE_CATEGORIES.map(category=>hardwareCategoryGroup(category,hardwareRows.filter(h=>!h.is_special&&hardwareCategory(h)===category),hardwareCard)).join('')}<details class="warehouse-group"><summary><span>Special hardware</span><span class="warehouse-group-count">${specialRows.length+hardwareRows.filter(h=>h.is_special).length}</span></summary><div class="warehouse-list">${specialRows.length||hardwareRows.some(h=>h.is_special)?specialRows.map(specialCard).join('')+hardwareRows.filter(h=>h.is_special).map(hardwareCard).join(''):'<p class="muted" style="padding:12px">Ingen specialhardware matcher søgningen.</p>'}</div></details></div>`;
   app.innerHTML=`<div class="card warehouse-hero">
     <div class="row"><div><div class="small muted">DRIFTSOVERBLIK</div><h2>Lager</h2><p class="muted">Alt udstyr samlet ét sted. Lagerstatus tager højde for udlevering og tørring.</p></div>${isAdminLoggedIn()?`<button class="btn" onclick="showAdmin()">${uiIcon('settings')} Redigér lager</button>`:''}</div>
@@ -4623,7 +4623,7 @@ showTents=async function(filter='all',keepFocus=false){
   let heading=(name,count,action)=>`<div class="warehouse-section-head"><h3>${name} <span class="small muted">${count}</span></h3>${isAdminLoggedIn()?`<button type="button" class="btn" onclick="${action}">${uiIcon('plus')} Tilføj</button>`:''}</div>`;
   app.innerHTML=`<section class="card warehouse-hero"><div class="row"><div><span class="small muted">UDSTYR OG BEHOLDNING</span><h2>Lager</h2></div></div><div class="warehouse-search">${uiIcon('search')}<input id="warehouseSearchInput" type="search" value="${esc(warehouseSearch)}" placeholder="Søg telt, hardware eller inventar" aria-label="Søg i lageret" oninput="setWarehouseSearch(this.value)"></div>${packTabs(warehouseViewFilter)}</section>
   ${!v106Ready?'<section class="card"><p role="alert">Det fælles hardwarekatalog kunne ikke hentes. Prøv at genindlæse appen. Der vises ikke gættede lagerantal.</p><button class="btn" onclick="reloadData().then(()=>showTents())">Prøv igen</button></section>':''}
-  ${show('tents')?`<section class="card warehouse-section">${heading('Telte',tr.length,'editTentBasics(null)')}${tr.length?warehouseGroupedRows(tr,tentGroupName,tc):'<p class="muted">Ingen telte matcher søgningen.</p>'}</section>`:''}
+  ${show('tents')?`<section class="card warehouse-section">${heading('Telte',tr.length,'editTentBasics(null)')}${tr.length?warehouseGroupedRows(tr,tentGroupName,tc,true):'<p class="muted">Ingen telte matcher søgningen.</p>'}</section>`:''}
   ${show('hardware')?`<section class="card warehouse-section">${heading('Hardware',hr.length,'editCatalogHardware(null)')}<p class="small muted">Fælles beholdning. Antal til et bestemt telt står under teltets pakkebehov.</p><div class="warehouse-groups">${['Master','Pløkker','Rigge','Sidestænger','Øvrigt'].filter(c=>hr.some(h=>h.category===c)).map(c=>`<details class="warehouse-group"><summary><span>${esc(c)}</span><span class="warehouse-group-count">${hr.filter(h=>h.category===c).length}</span></summary>${warehouseGroupedRows(hr.filter(h=>h.category===c),h=>h.name,hc)}</details>`).join('')||'<p class="muted">Ingen hardware matcher søgningen.</p>'}</div></section>`:''}
   ${show('inventory')?`<section class="card warehouse-section">${heading('Inventar',ir.length,'editInventoryBasics(null)')}${ir.length?warehouseGroupedRows(ir,i=>i.name,ic):'<p class="muted">Intet inventar matcher søgningen.</p>'}</section>`:''}`;
   if(warehouseSearch.trim())app.querySelectorAll('details').forEach(d=>d.open=true);
@@ -4798,7 +4798,7 @@ showTents=async function(filter='all',keepFocus=false){
     section.querySelectorAll(':scope>.warehouse-groups').forEach(n=>n.remove());
     let grouped=new Map();rows.forEach(i=>{let key=categoryName(kind,i);if(!grouped.has(key))grouped.set(key,[]);grouped.get(key).push(i)});
     let content=[...grouped].sort((a,b)=>alpha(a[0],b[0])).map(([category,items])=>{
-      let inner=kind==='tent'?warehouseGroupedRows(items,tentGroupName,render):kind==='hardware'?warehouseGroupedRows(items,i=>i.name,render):warehouseGroupedRows(items,i=>i.name,render);
+      let inner=kind==='tent'?warehouseGroupedRows(items,tentGroupName,render,true):kind==='hardware'?warehouseGroupedRows(items,i=>i.name,render):warehouseGroupedRows(items,i=>i.name,render);
       // Avoid redundant single-category nesting for tents and inventory.
       if(grouped.size===1&&categoriesFor(kind).length===1&&kind!=='hardware')return inner;
       return `<details class="warehouse-group"><summary><span>${esc(category)}</span><span class="warehouse-group-count">${items.length} ${items.length===1?'post':'poster'}</span></summary><div class="category-items">${inner}</div></details>`;
