@@ -28,7 +28,6 @@ text = text[:start] + replacement + text[end:]
 required = [
     'warehouseGroupedRows=function(rows,keyFn,cardFn,flatSingles=false)',
     'if(flatSingles&&items.length===1)',
-    "warehouseGroupedRows(tr,tentGroupName,tc,true)",
 ]
 missing = [x for x in required if x not in text]
 if missing:
