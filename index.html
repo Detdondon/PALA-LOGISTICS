@@ -4220,15 +4220,415 @@ warehouseGroupedRows=function(rows,keyFn,cardFn,flatSingles=false){
   let groups=new Map();
   rows.forEach(function(row){let key=keyFn(row);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(row)});
   let entries=[...groups.entries()].sort(function(a,b){
-    let ao=Math.min(...a[1].map(function(row){return Number(row?.sort_order??999999)})),
-        bo=Math.min(...b[1].map(function(row){return Number(row?.sort_order??999999)}));
+    let ao=Math.min(...a[1].map(function(row){return Number(row.sort_order??999999)})),
+        bo=Math.min(...b[1].map(function(row){return Number(row.sort_order??999999)}));
     return ao-bo||alpha(a[0],b[0]);
   });
-  return `<div class="warehouse-groups">${entries.map(function(entry){
-    let name=entry[0],items=entry[1];items.sort(warehouseDisplaySort);
-    if(flatSingles&&items.length===1)return `<div class="warehouse-list">${cardFn(items[0])}</div>`;
-    return `<details class="warehouse-group"><summary><span>${esc(name)}</span><span class="warehouse-group-count">${items.length}</span></summary><div class="warehouse-list">${items.map(cardFn).join('')}</div></details>`;
-  }).join('')}</div>`;
+  return '<div class="warehouse-groups">'+entries.map(function(entry){
+    let name=entry[0],items=entry[1].sort(warehouseDisplaySort);
+    if(flatSingles&&items.length===1)return '<div class="warehouse-list">'+cardFn(items[0])+'</div>';
+    return '<details class="warehouse-group"><summary><span>'+esc(name)+'</span><span class="warehouse-group-count">'+items.length+'</span></summary><div class="warehouse-list">'+items.map(cardFn).join('')+'</div></details>';
+  }).join('')+'</div>';
+};
+
+function warehouseStateMarkup(kind,label){
+  let icon=kind==='wet'?'drop':kind==='out'?'box':'check';
+  return '<span class="warehouse-state '+kind+'">'+uiIcon(icon)+' '+esc(label)+'</span>';
+}
+function enhanceWarehouseStatuses(root=document){
+  root.querySelectorAll('.warehouse-item .warehouse-stock').forEach(function(stock){
+    if(stock.parentElement.querySelector('.warehouse-state-row'))return;
+    let text=(stock.textContent||'').toLowerCase(),row=document.createElement('span');row.className='warehouse-state-row';
+    if(text.includes('tørrer')||text.includes('afventer tørring'))row.insertAdjacentHTML('beforeend',warehouseStateMarkup('wet','Vådt'));
+    if(text.includes(' ude'))row.insertAdjacentHTML('beforeend',warehouseStateMarkup('out','Ude'));
+    if(!row.children.length){
+      let empty=/^0(?:\/|\s+på lager)/.test(text);
+      row.insertAdjacentHTML('beforeend',warehouseStateMarkup(empty?'out':'in-stock',empty?'Ikke på lager':'På lager'));
+    }
+    stock.insertAdjacentElement('afterend',row);
+  });
+}
+function warehouseSectionType(section){
+  let title=(section.querySelector('.warehouse-section-head h3')?.textContent||'').toLowerCase();
+  if(title.includes('inventar'))return 'inventory';if(title.includes('hardware'))return 'hardware';return 'tent';
+}
+function enhanceWarehouseSectionActions(){
+  if(!isAdminLoggedIn())return;
+  document.querySelectorAll('.warehouse-section').forEach(function(section){
+    let head=section.querySelector('.warehouse-section-head');if(!head||head.querySelector('.warehouse-section-actions'))return;
+    let type=warehouseSectionType(section),actions=document.createElement('div');actions.className='warehouse-section-actions';
+    let editAction=type==='inventory'?'showAdminInventory()':'showAdmin()';
+    actions.innerHTML='<button type="button" class="btn" onclick="'+editAction+'">'+uiIcon('edit')+' <span>Redigér</span></button><button type="button" class="btn" onclick="showWarehouseOrderManager(\''+type+'\')">'+uiIcon('list')+' <span>Rækkefølge</span></button>';
+    head.appendChild(actions);
+  });
+}
+function groupInventoryLikeWarehouse(){
+  let section=[...document.querySelectorAll('.warehouse-section')].find(function(node){return warehouseSectionType(node)==='inventory'});
+  if(!section)return;let list=[...section.children].find(function(node){return node.classList&&node.classList.contains('warehouse-list')});
+  if(!list||!list.querySelector('.warehouse-item'))return;
+  let groups=new Map();
+  [...list.querySelectorAll('.warehouse-item')].forEach(function(button){
+    let match=String(button.getAttribute('onclick')||'').match(/openInventoryNfc\((\d+)\)/),item=match?inventory.find(function(row){return +row.id===+match[1]}):null,key=(item&&item.category)||'Inventar';
+    if(!groups.has(key))groups.set(key,[]);groups.get(key).push({button:button,item:item});
+  });
+  let host=document.createElement('div');host.className='warehouse-groups inventory-category-groups';
+  [...groups.entries()].sort(function(a,b){return alpha(a[0],b[0])}).forEach(function(entry){
+    let details=document.createElement('details');details.className='warehouse-group';
+    let summary=document.createElement('summary');summary.innerHTML='<span>'+esc(entry[0])+'</span><span class="warehouse-group-count">'+entry[1].length+'</span>';details.appendChild(summary);
+    let rows=document.createElement('div');rows.className='warehouse-list';
+    entry[1].sort(function(a,b){return warehouseDisplaySort(a.item,b.item)}).forEach(function(entryRow){rows.appendChild(entryRow.button)});
+    details.appendChild(rows);host.appendChild(details);
+  });
+  list.replaceWith(host);
+}
+const showTentsV103=showTents;
+showTents=async function(){
+  await showTentsV103.apply(this,arguments);
+  document.querySelectorAll('.warehouse-section-head h3').forEach(function(title){if(title.textContent.trim()==='Telte efter serie')title.textContent='Telte og versioner'});
+  groupInventoryLikeWarehouse();enhanceWarehouseStatuses(app);enhanceWarehouseSectionActions();
+};
+
+const nfcLinkToolsV103=nfcLinkTools;
+nfcLinkTools=function(value){
+  return '<div class="nfc-link-tools"><div class="code">'+esc(value)+'</div><button type="button" class="btn nfc-copy-button" data-copy-link="'+esc(value)+'" onclick="copyNfcLink(this.dataset.copyLink,this)">'+uiIcon('document')+' Kopiér NFC-link</button><button type="button" class="btn nfc-qr-button" data-qr-link="'+esc(value)+'" onclick="showQrCode(this.dataset.qrLink)">'+uiIcon('qr')+' Vis QR-kode</button></div>';
+};
+const enhanceNfcCopyButtonsV103=enhanceNfcCopyButtons;
+enhanceNfcCopyButtons=function(root=document){
+  enhanceNfcCopyButtonsV103(root);
+  root?.querySelectorAll('.nfc-link-tools').forEach(function(tools){
+    if(tools.querySelector('.nfc-qr-button'))return;let value=(tools.querySelector('.code')?.textContent||'').trim();if(!value)return;
+    let button=document.createElement('button');button.type='button';button.className='btn nfc-qr-button';button.dataset.qrLink=value;button.innerHTML=uiIcon('qr')+' Vis QR-kode';button.onclick=function(){showQrCode(value)};tools.appendChild(button);
+  });
+};
+async function showQrCode(value){
+  try{
+    let data=await createQrDataUrl(value),old=document.getElementById('palaQrDialog');if(old)old.remove();
+    let dialog=document.createElement('div');dialog.id='palaQrDialog';dialog.className='dialog-backdrop';dialog.onclick=function(event){if(event.target===dialog)dialog.remove()};
+    dialog.innerHTML='<div class="dialog-card qr-dialog-card" role="dialog" aria-modal="true" aria-label="QR-kode"><div class="row"><h2>QR-kode</h2><button type="button" class="btn" onclick="document.getElementById(\'palaQrDialog\').remove()">'+uiIcon('close')+' Luk</button></div><img src="'+data+'" alt="QR-kode til NFC-link"><div class="code qr-dialog-link">'+esc(value)+'</div><div class="qr-dialog-actions"><a class="btn primary" href="'+data+'" download="PALA-QR.png">'+uiIcon('download')+' Hent QR-kode</a><button type="button" class="btn" data-copy-link="'+esc(value)+'" onclick="copyNfcLink(this.dataset.copyLink,this)">'+uiIcon('document')+' Kopiér link</button></div></div>';
+    document.body.appendChild(dialog);
+  }catch(error){alert(error.message||'QR-koden kunne ikke oprettes.')}
+}
+
+function detailStateMarkup(type,id,total){
+  let numbers=warehouseNumbers(type,id,total),html='';
+  if(numbers.drying)html+=warehouseStateMarkup('wet','Vådt');
+  if(numbers.out)html+=warehouseStateMarkup('out','Ude');
+  if(!numbers.drying&&!numbers.out)html+=warehouseStateMarkup(numbers.available?'in-stock':'out',numbers.available?'På lager':'Ikke på lager');
+  return '<div class="warehouse-state-row">'+html+'</div>';
+}
+function addAdminEditButton(card,action,label){
+  if(!isAdminLoggedIn()||!card||card.querySelector('.detail-admin-edit'))return;
+  let back=card.querySelector('.submenu-back'),button=document.createElement('button');button.type='button';button.className='btn detail-admin-edit';button.innerHTML=uiIcon('edit')+' '+label;button.onclick=action;
+  if(back)back.insertAdjacentElement('afterend',button);else card.prepend(button);
+}
+function cardHeading(card){return [...(card?.querySelectorAll('h3')||[])].find(function(h){return h.closest('.card')===card})}
+function ensureCardEditHeader(card,action,label){
+  if(!isAdminLoggedIn()||!card)return;let heading=cardHeading(card);if(!heading)return;
+  let row=heading.parentElement?.classList.contains('row')?heading.parentElement:null;
+  if(!row){row=document.createElement('div');row.className='row';heading.replaceWith(row);row.appendChild(heading)}
+  if(!row.querySelector('.detail-card-edit')){let button=document.createElement('button');button.type='button';button.className='btn detail-card-edit';button.innerHTML=uiIcon('edit')+' '+label;button.onclick=action;row.appendChild(button)}
+}
+const openTentV103=openTent;
+openTent=async function(id,selectedBookingId){
+  await openTentV103(id,selectedBookingId);let tent=tents[+id],first=app.firstElementChild;if(!tent||!first)return;
+  addAdminEditButton(first,function(){showAdmin(+id)},'Redigér telt');
+  let statusHost=[...first.querySelectorAll('.row')].pop();if(statusHost&&!first.querySelector('.warehouse-state-row'))statusHost.insertAdjacentHTML('afterend',detailStateMarkup('tent',tent.id,tent.stock_count??1));
+  if(tent.parent_tent_id){
+    let parent=tents[+tent.parent_tent_id];first.insertAdjacentHTML('beforeend','<div class="warehouse-state-row">'+warehouseStateMarkup('in-stock','Anden version af '+(parent?.name||'hovedtelt'))+'</div>');
+  }
+  let cards=[...app.children],measureCard=cards.find(function(card){return (cardHeading(card)?.textContent||'').trim()==='Mål'}),hardwareCard=cards.find(function(card){return (cardHeading(card)?.textContent||'').trim()==='Hardware'});
+  ensureCardEditHeader(measureCard,function(){showAdmin(+id)},'Redigér mål');ensureCardEditHeader(hardwareCard,function(){showAdmin(+id)},'Redigér hardware');
+  let anchor=first;if(measureCard){anchor.insertAdjacentElement('afterend',measureCard);anchor=measureCard}if(hardwareCard){anchor.insertAdjacentElement('afterend',hardwareCard);anchor=hardwareCard}
+  let variantText=String(tent.source_notes||'').split('|').map(function(part){return part.trim()}).find(function(part){return /^varianter:/i.test(part)});
+  if(variantText&&!app.querySelector('.tent-config-card')){
+    let config=document.createElement('section');config.className='card tent-config-card';config.innerHTML='<div class="small muted">KONFIGURATIONER</div><h3>Opsætningsvarianter</h3><p>'+esc(variantText.replace(/^varianter:\s*/i,''))+'</p>';anchor.insertAdjacentElement('afterend',config);
+  }
+  enhanceNfcCopyButtons(app);
+};
+const openInventoryNfcV103=openInventoryNfc;
+openInventoryNfc=function(id){
+  openInventoryNfcV103(id);let item=inventory.find(function(row){return +row.id===+id}),first=app.firstElementChild;if(!item||!first)return;
+  addAdminEditButton(first,function(){showAdminInventory();setTimeout(function(){let select=document.getElementById('adminInventorySelect');if(select){select.value=String(id);adminInvForm(+id)}},0)},'Redigér inventar');
+  first.insertAdjacentHTML('beforeend',detailStateMarkup('inventory',item.id,item.quantity_total));
+  enhanceNfcCopyButtons(app);
+};
+const openHardwareNfcV103=openHardwareNfc;
+openHardwareNfc=function(id){
+  openHardwareNfcV103(id);let item=findHardware(id),first=app.firstElementChild;if(!item||!first)return;
+  addAdminEditButton(first,function(){showAdmin(+item.tent_id)},'Redigér hardware');
+  let total=(+item.qty||1)*(+(item.tent?.stock_count??1));first.insertAdjacentHTML('beforeend',detailStateMarkup('hardware',item.id,total)+'<div class="warehouse-state-row">'+warehouseStateMarkup('in-stock','Standard hardware')+'</div>');
+  enhanceNfcCopyButtons(app);
+};
+const openSpecialHardwareV103=openSpecialHardware;
+openSpecialHardware=function(id){
+  openSpecialHardwareV103(id);let first=app.firstElementChild;if(!first)return;
+  first.insertAdjacentHTML('beforeend','<div class="warehouse-state-row">'+warehouseStateMarkup('in-stock','Special hardware')+'</div>');
+};
+
+function moveEditorRow(button,direction){
+  let row=button.closest('.adminrow,.admin-part-row');if(!row)return;
+  if(direction<0&&row.previousElementSibling)row.parentElement.insertBefore(row,row.previousElementSibling);
+  if(direction>0&&row.nextElementSibling)row.parentElement.insertBefore(row.nextElementSibling,row);
+}
+hwrow=function(h){
+  let special=!!h.is_special;
+  return '<div class="adminrow" data-id="'+esc(h.id||'')+'"><div class="hardware-edit-grid"><div><label>Navn</label><input class="hn" value="'+esc(h.name||'')+'"></div><div><label>Antal</label><input class="hq" type="number" min="1" value="'+esc(h.qty||1)+'"></div><div><label>Underkategori</label><select class="hc">'+HARDWARE_CATEGORIES.map(function(category){return '<option '+(hardwareCategory(h)===category?'selected':'')+'>'+esc(category)+'</option>'}).join('')+'</select></div><button class="btn bad" onclick="this.closest(\'.adminrow\').remove()">'+uiIcon('trash','ui-icon icon-admin')+' Fjern</button></div><div class="three"><div><label>Hardwaretype</label><select class="ht"><option value="normal" '+(!special?'selected':'')+'>Standard</option><option value="special" '+(special?'selected':'')+'>Special</option></select></div><div><label>Materiale <span class="muted">(fx træ eller stål)</span></label><input class="hm" value="'+esc(h.material||'')+'" placeholder="Ikke angivet"></div><div><label>Længde i meter <span class="muted">(valgfrit)</span></label><input class="hl" type="number" min="0" step="0.01" value="'+esc(h.length_m||'')+'" placeholder="Fx 4.5"></div></div><div class="editor-order-actions"><button type="button" class="btn" onclick="moveEditorRow(this,-1)">↑ Flyt op</button><button type="button" class="btn" onclick="moveEditorRow(this,1)">↓ Flyt ned</button></div><p class="small muted">Special flytter delen til den fælles specialliste og knytter den til dette telt. Standard bliver under teltets almindelige hardware.</p><label>Beskrivelse</label><textarea class="hd">'+esc(h.description||'')+'</textarea></div>';
+};
+partrow=function(part={}){
+  return '<div class="admin-part-row"><div class="admin-part-grid"><div><label>Navn</label><input class="part-name" value="'+esc(part.name||'')+'"></div><div><label>Antal</label><input class="part-qty" type="number" min="1" value="'+esc(part.qty||1)+'"></div><div class="part-type"><label>Type</label><select class="part-optional"><option value="true" '+(part.optional!==false?'selected':'')+'>Valgfri del</option><option value="false" '+(part.optional===false?'selected':'')+'>Fast del</option></select></div><button type="button" class="btn bad" onclick="this.closest(\'.admin-part-row\').remove()">'+uiIcon('trash')+' Fjern</button></div><div class="editor-order-actions"><button type="button" class="btn" onclick="moveEditorRow(this,-1)">↑ Flyt op</button><button type="button" class="btn" onclick="moveEditorRow(this,1)">↓ Flyt ned</button></div><label>Beskrivelse</label><textarea class="part-description">'+esc(part.description||'')+'</textarea></div>';
+};
+const adminTentV103=adminTent;
+adminTent=async function(id){
+  await adminTentV103(id);let tent=tents[+id],parent=document.getElementById('tentParentSelect');if(!tent)return;
+  let relation=parent?.closest('.relation-editor'),heading=relation?.querySelector('h3'),hint=relation?.querySelector('.relation-hint');
+  if(heading)heading.innerHTML=uiIcon('link')+' Teltkategori';if(hint)hint.textContent='Vælg om teltet er selvstændigt eller en anden version af et eksisterende telt. Versioner samles i én lukket undermenu i lageret.';
+  if(parent?.options[0])parent.options[0].textContent='Selvstændigt telt';if(parent&&!parent.previousElementSibling?.matches('label'))parent.insertAdjacentHTML('beforebegin','<label>Anden version af <span class="muted">(valgfrit)</span></label>');
+  let editor=document.getElementById('hwr');if(editor){
+    [...(tent.hardware||[])].sort(warehouseDisplaySort).forEach(function(item){let row=editor.querySelector('.adminrow[data-id="'+item.id+'"]');if(row)editor.appendChild(row)});
+    let oldHeading=editor.previousElementSibling;if(oldHeading?.tagName==='H3'){
+      let row=document.createElement('div');row.className='row';oldHeading.replaceWith(row);row.appendChild(oldHeading);let button=document.createElement('button');button.type='button';button.className='btn';button.innerHTML=uiIcon('list')+' Rækkefølge';button.onclick=function(){showWarehouseOrderManager('hardware',tent.id)};row.appendChild(button);
+    }
+  }
+  enhanceNfcCopyButtons(document.getElementById('ab'));
+};
+const adminInvFormV103=adminInvForm;
+adminInvForm=function(id){
+  adminInvFormV103(id);let host=document.getElementById('adminInventoryEditor');if(!host)return;
+  let top=host.querySelector('.admin-inventory-editor > .row');if(top&&!top.querySelector('.inventory-order-button')){let button=document.createElement('button');button.type='button';button.className='btn inventory-order-button';button.innerHTML=uiIcon('list')+' Rækkefølge';button.onclick=function(){showWarehouseOrderManager('inventory')};top.appendChild(button)}
+  enhanceNfcCopyButtons(host);
+};
+
+let warehouseOrderDraft={type:'tent',tentId:null,ids:[]};
+function warehouseOrderSource(type,tentId){
+  if(type==='inventory')return [...inventory];
+  if(type==='hardware'){
+    let tent=tents[+tentId];return tent?[...(tent.hardware||[])]:[];
+  }
+  return Object.values(tents);
+}
+function warehouseOrderMeta(type,item){
+  if(type==='inventory')return item.category||'Inventar';
+  if(type==='hardware')return hardwareCategory(item)+(item.length_m?' · '+item.length_m+' m':'');
+  return item.parent_tent_id?'Anden version af '+(tents[+item.parent_tent_id]?.name||'hovedtelt'):'Selvstændigt telt';
+}
+function warehouseOrderItem(type,id){
+  return warehouseOrderSource(type,warehouseOrderDraft.tentId).find(function(item){return +item.id===+id});
+}
+function renderWarehouseOrderList(){
+  let host=document.getElementById('warehouseOrderList');if(!host)return;
+  host.innerHTML=warehouseOrderDraft.ids.map(function(id,index){
+    let item=warehouseOrderItem(warehouseOrderDraft.type,id);if(!item)return '';
+    return '<div class="warehouse-order-row"><span class="warehouse-order-index">'+(index+1)+'</span><span class="warehouse-order-name"><strong>'+esc(item.name)+'</strong><small>'+esc(warehouseOrderMeta(warehouseOrderDraft.type,item))+'</small></span><span class="warehouse-order-actions"><button type="button" class="btn" '+(index===0?'disabled':'')+' onclick="moveWarehouseOrder('+index+',-1)" aria-label="Flyt '+esc(item.name)+' op">↑</button><button type="button" class="btn" '+(index===warehouseOrderDraft.ids.length-1?'disabled':'')+' onclick="moveWarehouseOrder('+index+',1)" aria-label="Flyt '+esc(item.name)+' ned">↓</button></span></div>';
+  }).join('');
+}
+function moveWarehouseOrder(index,direction){
+  let next=index+direction;if(next<0||next>=warehouseOrderDraft.ids.length)return;
+  let value=warehouseOrderDraft.ids[index];warehouseOrderDraft.ids[index]=warehouseOrderDraft.ids[next];warehouseOrderDraft.ids[next]=value;renderWarehouseOrderList();
+}
+function showWarehouseOrderManager(type='tent',tentId){
+  if(!requireAdmin())return;
+  type=['tent','inventory','hardware'].includes(type)?type:'tent';
+  let hardwareTents=Object.values(tents).filter(function(tent){return (tent.hardware||[]).length}).sort(function(a,b){return alpha(a.name,b.name)});
+  if(type==='hardware'&&!tentId)tentId=hardwareTents[0]?.id||null;
+  warehouseOrderDraft={type:type,tentId:+tentId||null,ids:warehouseOrderSource(type,tentId).sort(warehouseDisplaySort).map(function(item){return +item.id})};
+  act('na');history.replaceState(null,'',location.pathname+'?admin=order&type='+type+(tentId?'&tent='+tentId:''));
+  let title=type==='inventory'?'Inventar':type==='hardware'?'Hardware':'Telte og versioner',back=type==='inventory'?'showAdminInventory()':'showAdmin()';
+  app.innerHTML='<section class="card"><div class="row"><div><div class="small muted">ADMIN · LAGER</div><h2>Rækkefølge for '+title.toLowerCase()+'</h2></div><button type="button" class="btn submenu-back" onclick="'+back+'">'+uiIcon('chevronLeft')+' Tilbage</button></div><p class="muted">Flyt posterne med pilene. Rækkefølgen gemmes i Supabase og bliver den samme på alle enheder.</p>'+(type==='hardware'?'<label>Vælg telt</label><select onchange="showWarehouseOrderManager(\'hardware\',this.value)">'+hardwareTents.map(function(tent){return '<option value="'+tent.id+'" '+(+tent.id===+tentId?'selected':'')+'>'+esc(tent.name)+'</option>'}).join('')+'</select>':'')+'<div id="warehouseOrderList" class="warehouse-order-list"></div><div class="row" style="justify-content:flex-start;margin-top:14px"><button type="button" class="btn primary" onclick="saveWarehouseOrder()">'+uiIcon('check')+' Gem rækkefølge</button><button type="button" class="btn" onclick="'+back+'">Annuller</button></div></section>';
+  renderWarehouseOrderList();
+}
+async function saveWarehouseOrder(){
+  if(!requireAdmin())return;if(!warehouseOrderDraft.ids.length)return alert('Der er ingen poster at gemme.');
+  let result=await sb.rpc('admin_reorder_warehouse',{p_token:adminToken,p_item_type:warehouseOrderDraft.type,p_ids:warehouseOrderDraft.ids});
+  if(result.error)return alert('Rækkefølgen kunne ikke gemmes: '+result.error.message);
+  await reloadData();showWarehouseOrderManager(warehouseOrderDraft.type,warehouseOrderDraft.tentId);
+}
+
+/* v105 · shared editors, durable links and explicit saves */
+function appItemLink(key,id){let url=new URL(location.href);url.search='';url.hash='';url.searchParams.set(key,String(id));return url.href}
+link=id=>appItemLink('t',id);
+hardwareLink=id=>appItemLink('h',id);
+inventoryLink=id=>appItemLink('i',id);
+const nfcToolsV104=nfcLinkTools;
+nfcLinkTools=function(value){let local=location.protocol==='file:'||['localhost','127.0.0.1','::1'].includes(location.hostname);return nfcToolsV104(value)+(local?'<p class="small muted">Dette er et lokalt testlink. Brug appens fælles HTTPS-webadresse, før du skriver NFC-tags eller deler QR-koder til andre enheder.</p>':'')};
+function validCalendarColor(value){return /^#[0-9a-f]{6}$/i.test(String(value||''))?String(value):null}
+function calendarColorField(id,value,inheritLabel=''){
+  let selected=validCalendarColor(value)||(inheritLabel?'':ORDER_COLOR_OPTIONS[0][0]);
+  let options=[...ORDER_COLOR_OPTIONS].sort((a,b)=>alpha(a[1],b[1]));
+  if(selected&&!options.some(([color])=>color.toLowerCase()===selected.toLowerCase()))options.push([selected,'Nuværende farve']);
+  return `<label for="${id}">Kalenderfarve</label><div class="color-select-control pala-color-control"><span class="order-color-preview" data-color-for="${id}" style="background:${esc(selected||'#C9A35E')}"></span><select id="${id}" onchange="updateCalendarColor(this.id)">${inheritLabel?`<option value="" ${!selected?'selected':''}>${esc(inheritLabel)}</option>`:''}${options.map(([color,name])=>`<option value="${color}" ${color.toLowerCase()===selected.toLowerCase()?'selected':''}>${esc(name)}</option>`).join('')}</select></div>`;
+}
+function updateCalendarColor(id){
+  let input=document.getElementById(id),preview=document.querySelector(`[data-color-for="${id}"]`);if(!input||!preview)return;
+  let inherited='#C9A35E',relation=document.getElementById('esrelation')?.value||input.dataset.relation||'';
+  if(relation.startsWith('booking:'))inherited=displayOrderColor(bookings.find(b=>+b.id===+relation.split(':')[1]));
+  if(relation.startsWith('workshop:'))inherited=workshopJobs.find(j=>+j.id===+relation.split(':')[1])?.color||'#6c8ebf';
+  if(id==='newOrderColor')inherited=document.getElementById('ocolor')?.value||inherited;
+  preview.style.background=validCalendarColor(input.value)||inherited;
+}
+function shiftAddress(sh){return String(sh?.address||bookingAddress(staffCalendarBooking(sh))||'').trim()}
+function shiftExtraFields(prefix,sh){return `<div class="two shift-extra-fields"><div>${calendarColorField(prefix+'Color',sh?.color,'Jobbets farve / standard')}</div><div><label for="${prefix}Address">Adresse <span class="muted">(valgfrit)</span></label><input id="${prefix}Address" value="${esc(sh?.address||'')}" placeholder="${esc(shiftAddress(sh)||'Vej, husnummer og by')}"><p class="small muted">Tomt felt bruger jobbets adresse, hvis der er en.</p></div></div>`}
+function installShiftExtras(prefix,sh,host){
+  if(!host||document.getElementById(prefix+'Color'))return;
+  let notes=document.getElementById(prefix+'notes'),anchor=notes?.previousElementSibling;
+  if(anchor?.tagName==='LABEL')anchor.insertAdjacentHTML('beforebegin',shiftExtraFields(prefix,sh));else host.insertAdjacentHTML('beforeend',shiftExtraFields(prefix,sh));
+  let color=document.getElementById(prefix+'Color');color.dataset.relation=linkedShiftOption(sh)||'';updateCalendarColor(color.id);
+  let relation=document.getElementById('esrelation');if(relation)relation.addEventListener('change',()=>updateCalendarColor(color.id));
+  let leader=document.getElementById(prefix+'leader');if(leader?.previousElementSibling?.tagName==='LABEL')leader.previousElementSibling.innerHTML='Daglig leder <span class="muted">(valgfrit)</span>';
+}
+const editShiftV104=editExistingStaffShift;
+editExistingStaffShift=function(id,preset){editShiftV104(id,preset);let sh=staffingShifts.find(s=>+s.id===+id)||{workshop_job_id:preset};installShiftExtras('es',sh,document.querySelector('#staffAdminEditHost .staff-form'))};
+const orderShiftV104=showOrderShiftForm;
+showOrderShiftForm=function(bookingId,id){orderShiftV104(bookingId,id);installShiftExtras('os',staffingShifts.find(s=>+s.id===+id)||{booking_id:bookingId},document.querySelector('#orderShiftHost .staff-form'))};
+const orderStaffingEditorV104=installOrderStaffingInviteEditor;
+installOrderStaffingInviteEditor=function(id,b){orderStaffingEditorV104(id,b);let host=document.getElementById('newShiftFields');if(host&&!document.getElementById('newOrderColor')){host.insertAdjacentHTML('beforeend',shiftExtraFields('newOrder',null));updateCalendarColor('newOrderColor');document.getElementById('ocolor')?.addEventListener('change',()=>updateCalendarColor('newOrderColor'))}};
+function shiftSaveExtras(prefix,leader){
+  let choices=[...document.querySelectorAll('.'+prefix+'StaffChoice')],direct=choices.filter(x=>x.value==='direct').map(x=>+x.dataset.employeeId),requests=choices.filter(x=>x.value==='request').map(x=>+x.dataset.employeeId);
+  if(leader&&!direct.includes(+leader))direct.push(+leader);
+  return {p_color:validCalendarColor(document.getElementById(prefix+'Color')?.value),p_address:document.getElementById(prefix+'Address')?.value.trim()||'',p_direct_employee_ids:direct,p_request_employee_ids:requests.filter(id=>!direct.includes(id))};
+}
+let shiftSaveBusy=false;
+async function saveShiftEditor(prefix,id,bookingId,workshopId){
+  if(!requireAdmin()||shiftSaveBusy)return;
+  const value=suffix=>document.getElementById(prefix+suffix)?.value||'';
+  let date=value('date');if(!date)return alert('Vælg dato for vagten.');
+  let leader=+value('leader')||null,old=staffingShifts.find(s=>+s.id===+id),note=value('notes').trim(),source=(String(old?.notes||'').match(/Kilde: bemandingsark [^\[]+\[ARK-[^\]]+\]/)||[])[0];if(source)note+=(note?'\n':'')+source;
+  let host=document.getElementById(prefix==='es'?'staffAdminEditHost':'orderShiftHost'),buttons=[...(host?.querySelectorAll('button')||[])];shiftSaveBusy=true;buttons.forEach(b=>b.disabled=true);
+  try{
+    let result=await sb.rpc('admin_save_shift_v4',{p_token:adminToken,p_id:id||null,p_booking_id:bookingId||null,p_workshop_job_id:workshopId||null,p_shift_date:date,p_start_time:value('start')||null,p_end_time:value('end')||null,p_workers_needed:+value('needed')||1,p_title:value('title').trim()||'Vagt',p_notes:note,p_daily_leader_employee_id:leader,...shiftSaveExtras(prefix,leader)});
+    if(result.error)return alert('Vagten blev ikke gemt: '+result.error.message);
+    await reloadData();staffSelectedDate=date;staffCalDate=localDateFromISO(date)||staffCalDate;openStaffShift(+result.data);
+  }catch(error){alert('Gemningen kunne ikke bekræftes. Genindlæs oversigten før du prøver igen. '+error.message)}
+  finally{shiftSaveBusy=false;buttons.forEach(b=>b.disabled=false)}
+}
+saveExistingStaffShift=function(id){let [type,related]=String(document.getElementById('esrelation')?.value||'').split(':');return saveShiftEditor('es',id,type==='booking'?+related:null,type==='workshop'?+related:null)};
+saveOrderShift=function(bookingId,id){return saveShiftEditor('os',id,bookingId,null)};
+const shiftOverviewV104=openStaffShift;
+openStaffShift=function(id){shiftOverviewV104(id);let sh=staffingShifts.find(s=>+s.id===+id),address=shiftAddress(sh);if(sh&&address){let host=document.querySelector('.workshop-detail-grid');host?.insertAdjacentHTML('beforeend',`<div class="workshop-detail-box"><small>Adresse</small><strong>${esc(address)}</strong><a class="btn" href="${esc(googleMapsLink(address))}" target="_blank" rel="noopener noreferrer">${uiIcon('map')} Åbn i Google Maps</a></div>`)}};
+
+const hwrowV104=hwrow;
+hwrow=function(h){
+  let html=hwrowV104(h),linked=new Set((h.compatible_tent_ids||[]).map(Number));
+  html=html.replace(/<p class="small muted">Special flytter[\s\S]*?<\/p>/,'<p class="small muted">Standard / Special ændrer kun kategorien. Eksisterende links og lagerregistreringer bevares.</p>');
+  if(h.id)html=html.replace(/<button class="btn bad"[\s\S]*?<\/button>/,'<span class="small muted">Gemt del #'+esc(h.id)+'</span>');
+  let close=html.lastIndexOf('</div>');
+  return html.slice(0,close)+`<details class="hardware-compatibility"><summary>Passer også til andre telte <span class="small muted">(${linked.size} valgt)</span></summary><input type="search" aria-label="Søg kompatible telte" placeholder="Søg telt" oninput="filterHardwareCompatibility(this)"><div class="tent-link-grid">${Object.values(tents).filter(t=>+t.id!==+h.tent_id).sort((a,b)=>alpha(a.name,b.name)).map(t=>`<label class="tent-link-choice"><input class="hw-compatible" type="checkbox" value="${t.id}" ${linked.has(+t.id)?'checked':''}><span>${esc(t.name)}</span></label>`).join('')}</div><p class="small muted">Fjern fluebenet for at frakoble igen. Koblingen viser kompatibilitet og opretter ikke ekstra lagerbeholdning.</p></details>`+html.slice(close);
+};
+function filterHardwareCompatibility(input){let q=normalizedSearchText(input.value);input.parentElement.querySelectorAll('.tent-link-choice').forEach(row=>row.hidden=!!q&&!normalizedSearchText(row.textContent).includes(q))}
+
+function warehouseItemIdentity(button){let action=button.getAttribute('onclick')||'',match=action.match(/open(Tent|HardwareNfc|InventoryNfc)\((\d+)\)/);return match?{type:match[1]==='Tent'?'tent':match[1]==='HardwareNfc'?'hardware':'inventory',id:+match[2]}:null}
+enhanceWarehouseStatuses=function(root=document){
+  root.querySelectorAll('.warehouse-item').forEach(button=>{
+    let ref=warehouseItemIdentity(button),stock=button.querySelector('.warehouse-stock');if(!stock)return;button.querySelector('.warehouse-state-row')?.remove();
+    let html='',known=true;
+    if(ref){let item=ref.type==='tent'?tents[ref.id]:ref.type==='hardware'?findHardware(ref.id):inventory.find(i=>+i.id===ref.id),total=ref.type==='tent'?item?.stock_count??1:ref.type==='hardware'?(item?.qty??1)*(item?.tent?.stock_count??1):item?.quantity_total;
+      known=ref.type!=='inventory'||inventoryQuantityKnown(item);
+      if(known){let z=warehouseNumbers(ref.type,ref.id,total);if(z.drying)html+=warehouseStateMarkup('wet','Vådt');if(warehouseWetSides(ref.type,ref.id))html+=warehouseStateMarkup('wet','Våde sider');if(z.out)html+=warehouseStateMarkup('out','Ude');if(z.available)html+=warehouseStateMarkup('in-stock','På lager');if(!html)html=warehouseStateMarkup('out','Ikke på lager')}
+      else html=warehouseStateMarkup('unknown','Antal ikke angivet');
+    }
+    if(html)stock.insertAdjacentHTML('afterend','<span class="warehouse-state-row">'+html+'</span>');
+  });
+  [...root.querySelectorAll('details.warehouse-group,details.warehouse-subgroup')].reverse().forEach(group=>{
+    let summary=group.querySelector(':scope > summary');if(!summary)return;summary.querySelector('.group-status')?.remove();let states=[...new Set([...group.querySelectorAll('.warehouse-state')].map(s=>s.textContent.trim()))].filter(s=>['Ude','Vådt','Våde sider'].includes(s));
+    if(states.length)summary.insertAdjacentHTML('beforeend','<span class="group-status">'+states.map(s=>warehouseStateMarkup(s==='Ude'?'out':'wet',s)).join('')+'</span>');
+  });
+};
+const stockViewV104=showTents;
+showTents=async function(){await stockViewV104.apply(this,arguments);enhanceWarehouseStatuses(app);document.querySelectorAll('.warehouse-item').forEach(button=>{let ref=warehouseItemIdentity(button),tent=ref?.type==='tent'?tents[ref.id]:null;if(tent?.source_notes?.includes('2 master:')&&!button.querySelector('.configuration-hint'))button.querySelector('.warehouse-item-body')?.insertAdjacentHTML('beforeend','<small class="configuration-hint">Også konfiguration med 2 master · se oversigt</small>')})};
+
+function detailItem(type,id){return type==='tent'?tents[+id]:type==='hardware'?findHardware(id):inventory.find(i=>+i.id===+id)}
+function detailSections(){return [...app.children].slice(1).filter(card=>card.classList.contains('card'))}
+function installDetailOrder(type,id){
+  let item=detailItem(type,id),cards=detailSections(),seen=new Map();if(!item)return;
+  cards.forEach(card=>{let heading=cardHeading(card)?.textContent.trim()||card.querySelector('h2,h3,h4')?.textContent.trim()||'Information',n=seen.get(heading)||0;seen.set(heading,n+1);card.dataset.detailKey=heading+':'+n});
+  let order=item.detail_order||[];cards.sort((a,b)=>{let ai=order.indexOf(a.dataset.detailKey),bi=order.indexOf(b.dataset.detailKey);return (ai<0?999:ai)-(bi<0?999:bi)}).forEach(card=>app.appendChild(card));
+  if(!isAdminLoggedIn()||cards.length<2)return;
+  let tools=document.createElement('div');tools.className='detail-layout-tools';tools.innerHTML=`<button type="button" class="btn" onclick="toggleDetailOrder(this)">${uiIcon('list')} Flyt informationer</button><span class="detail-layout-save" hidden><button type="button" class="btn primary" onclick="saveDetailOrder('${type}',${+id})">Gem rækkefølge</button><span class="small muted">Brug pilene på sektionerne.</span></span>`;app.firstElementChild.appendChild(tools);
+  cards.forEach(card=>{let actions=document.createElement('div');actions.className='detail-section-arrows';actions.hidden=true;actions.innerHTML='<button type="button" class="btn" onclick="moveDetailSection(this,-1)" aria-label="Flyt sektion op">↑ Op</button><button type="button" class="btn" onclick="moveDetailSection(this,1)" aria-label="Flyt sektion ned">↓ Ned</button>';card.prepend(actions)});
+}
+function toggleDetailOrder(button){let active=!app.hasAttribute('data-layout-editor');app.toggleAttribute('data-layout-editor',active);document.querySelectorAll('.detail-section-arrows,.detail-layout-save').forEach(x=>x.hidden=!active);button.textContent=active?'Annuller flytning':'Flyt informationer';button.setAttribute('aria-label',button.textContent);if(!active)route()}
+function moveDetailSection(button,direction){let card=button.closest('[data-detail-key]'),next=direction<0?card.previousElementSibling:card.nextElementSibling;if(!next?.hasAttribute('data-detail-key'))return;if(direction<0)app.insertBefore(card,next);else app.insertBefore(next,card)}
+async function saveDetailOrder(type,id){if(!requireAdmin())return;let order=detailSections().map(card=>card.dataset.detailKey),r=await sb.rpc('admin_set_detail_order',{p_token:adminToken,p_type:type,p_id:+id,p_order:order});if(r.error)return alert(r.error.message);app.removeAttribute('data-layout-editor');await reloadData();route()}
+function splitDetailDescription(){let first=app.firstElementChild,p=first?.querySelector('p.muted');if(p?.textContent.trim()){let card=document.createElement('section');card.className='card';card.innerHTML='<h3>Beskrivelse</h3>';card.appendChild(p);first.insertAdjacentElement('afterend',card)}}
+const tentOverviewV104=openTent;
+openTent=async function(id,bookingId){await tentOverviewV104(id,bookingId);let first=app.firstElementChild;if(warehouseWetSides('tent',id))first.querySelector('.warehouse-state-row')?.insertAdjacentHTML('beforeend',warehouseStateMarkup('wet','Våde sider'));let compatible=allHardwareRows().filter(h=>(h.compatible_tent_ids||[]).map(Number).includes(+id)&&+h.tent_id!==+id);if(compatible.length)app.insertAdjacentHTML('beforeend',`<section class="card"><h3>Kompatibel hardware</h3><p class="small muted">Fælles dele fra andre telte. Beholdningen tælles ikke dobbelt.</p>${compatible.map(h=>`<button type="button" class="btn" onclick="openHardwareNfc(${+h.id})">${uiIcon('link')} ${esc(h.name)}</button>`).join('')}</section>`);installDetailOrder('tent',id)};
+const inventoryOverviewV104=openInventoryNfc;
+openInventoryNfc=function(id){inventoryOverviewV104(id);splitDetailDescription();let i=detailItem('inventory',id);if(i&&!inventoryQuantityKnown(i)){app.firstElementChild.querySelector('.warehouse-state-row')?.remove();app.firstElementChild.insertAdjacentHTML('beforeend',warehouseStateMarkup('unknown','Antal ikke angivet'))}installDetailOrder('inventory',id)};
+const hardwareOverviewV104=openHardwareNfc;
+openHardwareNfc=function(id){hardwareOverviewV104(id);splitDetailDescription();let h=findHardware(id);if(!h)return;let first=app.firstElementChild;first.querySelectorAll('.warehouse-state').forEach(el=>{if(el.textContent.includes('Standard hardware'))el.textContent=h.is_special?'Special hardware':'Standard hardware'});let links=[...new Set([h.tent_id,...(h.compatible_tent_ids||[])].filter(Boolean).map(Number))];app.insertAdjacentHTML('beforeend',`<section class="card"><h3>Passer til</h3>${links.map(tid=>`<button type="button" class="btn" onclick="openTent(${tid})">${uiIcon('tent')} ${esc(tents[tid]?.name||'Telt')}</button>`).join('')}</section>`);installDetailOrder('hardware',id)};
+
+document.addEventListener('keydown',event=>{if(!event.altKey||event.ctrlKey||event.metaKey)return;let map={'1':'calendar','2':'staffing','3':'warehouse','4':'workshop','5':'admin'},target=map[event.key];if(target){event.preventDefault();navigateMainMenu(target)}});
+/* PALA v106 · calm navigation, real stock, safe returns and meetings. */
+let hardwareCatalog=[],palaMeetings=[],damagePhotoIds=new Set(),v106Ready=false;
+const warehouseExtensions105=loadWarehouseExtensions;
+loadWarehouseExtensions=async function(){
+  let base=await warehouseExtensions105();
+  if(!employeeToken){hardwareCatalog=[];palaMeetings=[];damagePhotoIds.clear();v106Ready=false;return base}
+  let r=await sb.rpc('employee_v106_data',{p_token:employeeToken});
+  v106Ready=!r.error;
+  if(r.error){console.warn('Fælles lagerdata kunne ikke hentes',r.error);return base}
+  hardwareCatalog=r.data?.hardware||[];palaMeetings=r.data?.meetings||[];damagePhotoIds=new Set((r.data?.damage_photo_ids||[]).map(Number));return base;
+};
+ICON_LIBRARY.tent='<path d="M3 12C7 9 10.5 5.5 12 2c1.5 3.5 5 7 9 10v9H3z"/><path d="M3 12h18M3 15h18M7.5 15v6M12 15v6M16.5 15v6"/>';
+
+// Swatches are real HTML controls: native select remains the form's source of truth.
+calendarColorField=function(id,value,inheritLabel=''){
+  let selected=validCalendarColor(value)||(inheritLabel?'':ORDER_COLOR_OPTIONS[0][0]),options=[...ORDER_COLOR_OPTIONS].sort((a,b)=>alpha(a[1],b[1]));
+  if(selected&&!options.some(x=>x[0].toLowerCase()===selected.toLowerCase()))options.push([selected,'Nuværende farve']);
+  if(inheritLabel)options.unshift(['',inheritLabel]);
+  let label=options.find(x=>x[0].toLowerCase()===selected.toLowerCase())?.[1]||'Vælg farve';
+  return `<label id="${id}Label">Kalenderfarve</label><div class="swatch-picker"><select id="${id}" hidden aria-hidden="true" tabindex="-1" onchange="updateCalendarColor(this.id)">${options.map(([c,n])=>`<option value="${c}" ${c.toLowerCase()===selected.toLowerCase()?'selected':''}>${esc(n)}</option>`).join('')}</select><button type="button" class="swatch-trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="${id}Label ${id}Text" onclick="toggleColorMenu('${id}')"><span class="color-square" data-color-for="${id}" style="background:${selected||'#C9A35E'}"></span><span id="${id}Text">${esc(label)}</span>${uiIcon('chevronDown')}</button><div class="swatch-options" id="${id}Options" role="listbox" aria-labelledby="${id}Label" hidden>${options.map(([c,n])=>`<button type="button" role="option" aria-selected="${c.toLowerCase()===selected.toLowerCase()}" data-color="${c}" onclick="chooseCalendarColor('${id}',this.dataset.color)"><span class="color-square" style="background:${c||'#C9A35E'}"></span><span>${esc(n)}</span><span class="color-tick" aria-hidden="true">✓</span></button>`).join('')}</div></div>`;
+};
+const updateColor105=updateCalendarColor;
+updateCalendarColor=function(id){updateColor105(id);let el=document.getElementById(id);if(!el)return;let name=document.getElementById(id+'Text');if(name)name.textContent=el.selectedOptions[0]?.textContent||'Vælg farve';document.getElementById(id+'Options')?.querySelectorAll('[role=option]').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.color.toLowerCase()===el.value.toLowerCase())))};
+function closeColorMenus(){document.querySelectorAll('.swatch-options').forEach(list=>{list.hidden=true;list.previousElementSibling?.setAttribute('aria-expanded','false')})}
+function toggleColorMenu(id){let list=document.getElementById(id+'Options'),wasOpen=!list.hidden;closeColorMenus();if(wasOpen)return;list.hidden=false;list.previousElementSibling.setAttribute('aria-expanded','true');(list.querySelector('[aria-selected=true]')||list.firstElementChild)?.focus()}
+function chooseCalendarColor(id,color){let el=document.getElementById(id);el.value=color;el.dispatchEvent(new Event('change',{bubbles:true}));closeColorMenus();el.nextElementSibling.focus()}
+document.addEventListener('click',e=>{if(!e.target.closest('.swatch-picker'))closeColorMenus()});
+document.addEventListener('keydown',e=>{let list=e.target.closest('.swatch-options');if(!list)return;let options=[...list.children],index=options.indexOf(e.target);if(['ArrowDown','ArrowUp','Home','End','Escape'].includes(e.key)){e.preventDefault();if(e.key==='Escape'){closeColorMenus();list.previousElementSibling.focus()}else options[e.key==='Home'?0:e.key==='End'?options.length-1:(index+(e.key==='ArrowDown'?1:-1)+options.length)%options.length].focus()}});
+
+// Small focused editing sheets retain the context of the page beneath them.
+let sheetSave=null,sheetBusy=false,sheetDirty=false,sheetRestoreFocus=null;
+function openEditSheet(title,html,save,label='Gem ændringer'){
+  if(document.getElementById('palaEditSheet'))return;
+  sheetRestoreFocus=document.activeElement;sheetSave=save;sheetDirty=false;
+  let d=document.createElement('dialog');d.id='palaEditSheet';d.className='pala-sheet';d.setAttribute('aria-labelledby','sheetTitle');
+  d.innerHTML=`<form id="palaSheetForm"><div class="sheet-head"><div><span class="small muted">PALA</span><h2 id="sheetTitle">${esc(title)}</h2></div><button type="button" class="btn" aria-label="Luk redigering" onclick="closeEditSheet()">${uiIcon('close')}</button></div><div class="sheet-body">${html}<p id="sheetError" class="sheet-error" role="alert" hidden></p></div><div class="sheet-footer"><button type="button" class="btn" onclick="closeEditSheet()">Annuller</button><button class="btn primary" type="submit">${uiIcon('check')} ${esc(label)}</button></div></form>`;
+  document.body.appendChild(d);d.addEventListener('cancel',e=>{e.preventDefault();closeEditSheet()});d.addEventListener('input',()=>sheetDirty=true);d.addEventListener('change',()=>sheetDirty=true);
+  d.querySelector('form').addEventListener('submit',async e=>{
+    e.preventDefault();if(sheetBusy)return;sheetBusy=true;d.querySelectorAll('button').forEach(b=>b.disabled=true);let err=d.querySelector('#sheetError');err.hidden=true;
+    try{await sheetSave();sheetDirty=false;sheetBusy=false;closeEditSheet(true)}catch(error){err.textContent='Kunne ikke gemme: '+error.message;err.hidden=false;err.scrollIntoView({block:'nearest'})}finally{sheetBusy=false;d.querySelectorAll('button').forEach(b=>b.disabled=false)}
+  });d.showModal();
+}
+function closeEditSheet(force=false){if(sheetBusy)return;if(!force&&sheetDirty&&!confirm('Luk uden at gemme ændringerne?'))return;let d=document.getElementById('palaEditSheet');d?.close();d?.remove();sheetRestoreFocus?.focus?.();sheetDirty=false}
+function sheetField(key,label,value='',type='text',extra=''){return `<div class="sheet-field"><label for="s_${key}">${label}</label><input id="s_${key}" type="${type}" value="${esc(value??'')}" ${extra}></div>`}
+function sheetText(key,label,value=''){return `<div class="sheet-field"><label for="s_${key}">${label}</label><textarea id="s_${key}">${esc(value||'')}</textarea></div>`}
+function sheetValue(key){return document.getElementById('s_'+key)?.value.trim()||''}
+function sheetNumber(key){let value=sheetValue(key);return value===''?null:Number(value)}
+async function checkedRpc(name,args){let r=await sb.rpc(name,args);if(r.error)throw new Error(r.error.message);return r.data}
+function catalogItem(id){return hardwareCatalog.find(h=>+h.id===+id)}
+function catalogRequirements(id){return allHardware().filter(h=>+h.catalog_id===+id)}
+function catalogCaption(h){let variants=[h.material,h.length_m!=null?h.length_m+' m':''].filter(Boolean);if(variants.length)return variants.join(' · ');let links=catalogRequirements(h.id);return links.length>1?'Fælles hardware':links[0]?.tent?.name||'Fælles lager'}
+function catalogOptionName(h){return `${h.name} · ${catalogCaption(h)}${h.is_special?' · Special':''}`}
+function knownStock(value){return value!==null&&value!==undefined&&value!==''}
+function physicalStockLabel(total,out=0){return knownStock(total)?`${Math.max(0,+total-out)} af ${total} tilgængelige${out?' · '+out+' ude':''}`:`Lagerantal ikke angivet${out?' · '+out+' ude':''}`}
+function physicalStates(type,id,total){let out=warehouseOut(type,id),wet=warehouseDrying(type,id),sides=warehouseWetSides(type,id);return (out?warehouseStateMarkup('out','Ude'):'')+(wet?warehouseStateMarkup('wet','Vådt'):'')+(sides?warehouseStateMarkup('wet','Våde sider'):'')+(knownStock(total)&&+total>out&&!wet?warehouseStateMarkup('in-stock','På lager'):'')}
+function warehouseRow106(name,meta,status,icon,action,states=''){return `<button type="button" class="warehouse-item" onclick="${action}"><span class="warehouse-item-icon">${uiIcon(icon)}</span><span class="warehouse-item-body"><strong>${esc(name)}</strong>${meta?`<small>${esc(meta)}</small>`:''}<span class="warehouse-stock">${esc(status)}</span>${states?`<span class="warehouse-state-row">${states}</span>`:''}</span>${uiIcon('chevronRight')}</button>`}
+let stockSearchTimer;
+setWarehouseSearch=function(value){warehouseSearch=String(value||'');clearTimeout(stockSearchTimer);stockSearchTimer=setTimeout(()=>showTents(warehouseViewFilter,true),140)};
+showTents=async function(filter='all',keepFocus=false){
+  warehouseViewFilter=['all','tents','hardware','inventory'].includes(filter)?filter:'all';act('np');history.replaceState(null,'',location.pathname+'?warehouse=1');
+  let tr=Object.values(tents).filter(t=>warehouseMatches(t.name,t.description,t.source_notes)),hr=hardwareCatalog.filter(h=>warehouseMatches(h.name,h.description,h.category,catalogCaption(h),...catalogRequirements(h.id).map(r=>r.tent?.name))),ir=inventory.filter(i=>warehouseMatches(i.name,i.description)),show=n=>warehouseViewFilter==='all'||warehouseViewFilter===n;
+  let tc=t=>warehouseRow106(t.name,t.area_m2?`${t.area_m2} m²`:'Telt',knownStock(t.stock_count)?physicalStockLabel(t.stock_count,warehouseOut('tent',t.id)+Math.max(0,warehouseDrying('tent',t.id)-warehouseOut('tent',t.id))):'Lagerantal ikke angivet','tent',`openTent(${t.id})`,physicalStates('tent',t.id,t.stock_count));
+  let hc=h=>warehouseRow106(h.name,`${h.is_special?'Special':'Standard'} · ${catalogCaption(h)}`,physicalStockLabel(h.quantity_total,+h.out_qty||0),'settings',`openCatalogHardware(${h.id})`,+h.out_qty?warehouseStateMarkup('out','Ude'):'');
+  let ic=i=>warehouseRow106(i.name,i.description,physicalStockLabel(i.quantity_total,warehouseOut('inventory',i.id)),'box',`openInventoryNfc(${i.id})`,physicalStates('inventory',i.id,i.quantity_total));
+  let heading=(name,count,action)=>`<div class="warehouse-section-head"><h3>${name} <span class="small muted">${count}</span></h3>${isAdminLoggedIn()?`<button type="button" class="btn" onclick="${action}">${uiIcon('plus')} Tilføj</button>`:''}</div>`;
+  app.innerHTML=`<section class="card warehouse-hero"><div class="row"><div><span class="small muted">UDSTYR OG BEHOLDNING</span><h2>Lager</h2></div></div><div class="warehouse-search">${uiIcon('search')}<input id="warehouseSearchInput" type="search" value="${esc(warehouseSearch)}" placeholder="Søg telt, hardware eller inventar" aria-label="Søg i lageret" oninput="setWarehouseSearch(this.value)"></div>${packTabs(warehouseViewFilter)}</section>
+  ${!v106Ready?'<section class="card"><p role="alert">Det fælles hardwarekatalog kunne ikke hentes. Prøv at genindlæse appen. Der vises ikke gættede lagerantal.</p><button class="btn" onclick="reloadData().then(()=>showTents())">Prøv igen</button></section>':''}
+  ${show('tents')?`<section class="card warehouse-section">${heading('Telte',tr.length,'editTentBasics(null)')}${tr.length?warehouseGroupedRows(tr,tentGroupName,tc,true):'<p class="muted">Ingen telte matcher søgningen.</p>'}</section>`:''}
+  ${show('hardware')?`<section class="card warehouse-section">${heading('Hardware',hr.length,'editCatalogHardware(null)')}<p class="small muted">Fælles beholdning. Antal til et bestemt telt står under teltets pakkebehov.</p><div class="warehouse-groups">${['Master','Pløkker','Rigge','Sidestænger','Øvrigt'].filter(c=>hr.some(h=>h.category===c)).map(c=>`<details class="warehouse-group"><summary><span>${esc(c)}</span><span class="warehouse-group-count">${hr.filter(h=>h.category===c).length}</span></summary>${warehouseGroupedRows(hr.filter(h=>h.category===c),h=>h.name,hc)}</details>`).join('')||'<p class="muted">Ingen hardware matcher søgningen.</p>'}</div></section>`:''}
+  ${show('inventory')?`<section class="card warehouse-section">${heading('Inventar',ir.length,'editInventoryBasics(null)')}${ir.length?warehouseGroupedRows(ir,i=>i.name,ic):'<p class="muted">Intet inventar matcher søgningen.</p>'}</section>`:''}`;
+  if(warehouseSearch.trim())app.querySelectorAll('details').forEach(d=>d.open=true);
+  if(keepFocus){let input=document.getElementById('warehouseSearchInput');input.focus();input.setSelectionRange(input.value.length,input.value.length)}
 };
 function editTentBasics(id){
   if(!requireAdmin())return;let t=tents[+id]||{},fields=[['area_m2','Areal (m²)'],['diameter_m','Diameter (m)'],['length_m','Længde (m)'],['width_m','Bredde (m)'],['side_height_m','Sidehøjde (m)'],['ridge_height_m','Kiphøjde (m)']];
