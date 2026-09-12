@@ -5590,6 +5590,18 @@ if(!document.getElementById('pala-v123-style')){let style=document.createElement
 .nav{grid-template-columns:repeat(3,1fr)!important;overflow:visible!important}.nav-create-v123{overflow:visible!important}.nav-create-v123::after{display:none!important}.nav-create-circle-v123{width:62px;height:62px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#1083ff;color:#fff;box-shadow:0 8px 24px rgba(16,131,255,.3);transform:translateY(-14px)}.nav-create-circle-v123 svg{width:30px!important;height:30px!important}.create-menu-v123{position:fixed;z-index:80;left:50%;transform:translateX(-50%);bottom:calc(86px + env(safe-area-inset-bottom));width:min(430px,calc(100vw - 24px));max-height:65dvh;overflow:auto;background:#fff;border:1px solid #dce4ee;border-radius:18px;padding:10px;box-shadow:0 18px 48px rgba(29,45,68,.22)}.create-menu-v123[hidden]{display:none}.create-menu-section-v123+ .create-menu-section-v123{border-top:1px solid #e7ebf1;margin-top:8px;padding-top:8px}.create-menu-section-v123>small{display:block;padding:7px 10px 4px;color:#667085;font-size:10px;font-weight:800;letter-spacing:.08em}.create-menu-v123 button{width:100%;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:center;text-align:left;border:0;background:transparent;border-radius:12px;padding:11px;color:#172033}.create-menu-v123 button:hover{background:#f4f7fb}.create-menu-v123 button svg{width:23px;height:23px;color:#1083ff}.create-menu-v123 button span{display:flex;flex-direction:column;gap:2px}.create-menu-v123 button b{font-size:14px}.create-menu-v123 button small{font-size:11px;color:#667085}.unified-calendar-tools-v123{border-top:1px solid #edf1f5;margin-top:12px;padding-top:12px}.unified-filter-grid-v123{display:grid;grid-template-columns:1fr 1fr;gap:10px}.unified-filter-grid-v123 label{margin:0;font-size:11px;color:#667085}.unified-filter-grid-v123 label span{display:block;margin-bottom:5px}.unified-filter-grid-v123 select{width:100%;min-width:0}.unified-calendar-summary-v123,.unified-calendar-actions-v123{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.unified-calendar-summary-v123 .pill{border:0;cursor:pointer}.unified-calendar-actions-v123 .btn{font-size:12px;padding:10px 12px}@media(max-width:520px){.nav-create-circle-v123{width:58px;height:58px}.unified-filter-grid-v123{grid-template-columns:1fr 1fr}.unified-calendar-summary-v123 .pill{font-size:10px;padding:7px 9px}.unified-calendar-actions-v123 .btn{flex:1 1 calc(50% - 4px)}}`;
 document.head.appendChild(style)}
 
+
+/* PALA v124 · strict unified calendar type filtering */
+const calendarEventsV124Base=calendarEvents;
+calendarEvents=function(start,days,mode){
+  let rows=calendarEventsV124Base(start,days,mode);
+  if(mode!=='calendar'||mainCalendarTypeFilterV120==='all')return rows;
+  if(mainCalendarTypeFilterV120==='orders')return rows.filter(event=>!event?.kind);
+  if(mainCalendarTypeFilterV120==='staffing')return rows.filter(event=>event?.kind==='staffing'||event?.kind==='staffLeave');
+  if(mainCalendarTypeFilterV120==='workshop')return rows.filter(event=>event?.kind==='workshop'||event?.kind==='workshopTask');
+  return rows;
+};
+
 syncLoginUi();
 
 </script></body></html>
