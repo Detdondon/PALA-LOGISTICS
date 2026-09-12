@@ -1394,7 +1394,7 @@ const ORDER_COLOR_OPTIONS=[
   ['#91A866','Limegrøn']
 ];
 const COMPLETED_COLOR='#6B7280';
-const STATUS_ORDER=['På lager','Ude','Afsluttet'];
+const STATUS_ORDER=['På lager','Forespørgsel','Ude','Afsluttet'];
 const LEGACY_MUTED_COLORS={'#3158E8':'#5B7FBE','#E4572E':'#C97963','#2A9D8F':'#58A99E','#F2B134':'#D2A34E','#8E5DE7':'#9A78B5','#D1495B':'#C76F83','#4F772D':'#789B68','#00A6A6':'#62A9B6','#C77DFF':'#AD8DBF','#F77F00':'#CB8C50','#5C6BC0':'#7884AE','#00897B':'#568F87','#C62828':'#B85F5F','#6D4C41':'#8B746B','#3949AB':'#667AAD','#7CB342':'#91A866'};
 const WEBSITE_TENT_CATALOG=[
   {aliases:['Cassiopaia 2 master','Cassiopeia 2 master'],url:'https://www.cirkuspanikteltmageri.dk/telte/cassiopeia-med-2-master',hero:'https://cdn.prod.website-files.com/6311afc6f6b2ceee702609e1/66c30f97a48ae9a9fe84c606_Lars%20_%20Juliane-355%20(3).jpg',plan:'https://cdn.prod.website-files.com/6311afc6f6b2ceee702609e1/66c3139a23b17fcd1fb80d7e_Cassiopeia%202%20mast_1.100_plantegning.png',length:14.4,width:9.5,ridge:4.8},
@@ -3232,7 +3232,7 @@ function orderForm(b){
       <div class="order-field"><label>Afhentningsdato</label><input id="opickup" type="date" value="${esc(b?.pickup_date||'')}"></div>
     </div>
     <div class="order-field-grid" style="margin-top:12px">
-      <div class="order-field"><label>Status</label><select id="ost" onchange="updateTentConflictWarning(${id})">${['På lager','Ude','Afsluttet'].map(x=>`<option ${jobLocationStatus(b)===x?'selected':''}>${x}</option>`).join('')}</select></div>
+      <div class="order-field"><label>Status</label><select id="ost" onchange="updateTentConflictWarning(${id})">${['På lager','Forespørgsel','Ude','Afsluttet'].map(x=>`<option ${jobLocationStatus(b)===x?'selected':''}>${x}</option>`).join('')}</select></div>
       <div class="order-field">${calendarColorField('ocolor',selectedColor)}<div class="small muted" style="margin-top:6px">Afsluttede jobs vises automatisk med grå.</div></div>
     </div>
   </div>
@@ -4160,7 +4160,7 @@ showWorkshop=function(filter){
   app.innerHTML=`<section class="card workshop-hero"><div class="row"><div><div class="small muted">PALA · VEDLIGEHOLD</div><h2>Systue</h2><p class="muted">Planlagte systuejobs og skader på telte.</p></div><div class="workshop-actions"><button class="btn" onclick="showDamageForm()">${uiIcon('plus')} Registrér skade</button>${isAdminLoggedIn()?`<button class="btn primary" onclick="showWorkshopJobForm()">${uiIcon('plus')} Opret job</button>`:''}</div></div><div class="workshop-metrics"><button type="button" class="workshop-metric reference-button" onclick="showWorkshop('open')" aria-label="Vis åbne skader"><strong>${open.length}</strong><span>ÅBNE SKADER</span></button><button type="button" class="workshop-metric reference-button" onclick="showWorkshop('open')" aria-label="Vis telte med skader"><strong>${tentCount}</strong><span>TELTE MED SKADER</span></button><button type="button" class="workshop-metric reference-button" onclick="setWorkshopView('list')" aria-label="Vis planlagte systuejobs"><strong>${workshopJobs.filter(j=>j.status!=='Afsluttet'&&j.status!=='Annulleret').length}</strong><span>PLANLAGTE JOBS</span></button></div></section>${!workshopBackendReady||!workshopJobsBackendReady?`<section class="card drying-warning"><h3>Databaseopdateringen til v100 mangler</h3><p class="small">Aktivér filen <b>pala_v100_lager_systue.sql</b> i Supabase for at synkronisere alle nye systuefunktioner.</p></section>`:''}<section class="card calendar-control-card"><div class="calendar-toolbar-top"><div class="calendar-toolbar-title"><h2>${esc(monthHeading)}</h2><div class="small muted">Systueplan · ${esc(fmtDateDa(staffDateString(start)))} – ${esc(fmtDateDa(staffDateString(end)))}</div></div><div class="view-switch"><button class="btn ${workshopViewMode==='calendar'?'active':''}" onclick="setWorkshopView('calendar')">${uiIcon('calendar')} Kalender</button><button class="btn ${workshopViewMode==='list'?'active':''}" onclick="setWorkshopView('list')">${uiIcon('list')} Liste</button></div></div><div class="calendar-nav-controls"><button class="btn calendar-nav-step" onclick="mvWorkshop(-1)">${uiIcon('chevronLeft')} <span>${workshopViewMode==='calendar'?'4 uger':'2 uger'}</span></button><button class="btn calendar-today" onclick="workshopGoToday()">${uiIcon('calendar')} I dag</button><button class="btn calendar-nav-step" onclick="mvWorkshop(1)"><span>${workshopViewMode==='calendar'?'4 uger':'2 uger'}</span> ${uiIcon('chevronRight')}</button></div></section>${workshopViewMode==='calendar'?`<section class="card calendar-grid-card"><div class="calendar-large-wrap"><div class="staff-calendar calendar-large">${sharedCalendarWeekdays()}${workshopCalendarCells(start,days)}</div></div><p class="small muted calendar-grid-caption">Tryk på et job for detaljer. Stryg til siden for at skifte periode.</p></section>${workshopSelectedDate?`<section class="card"><h2>${esc(weekdayDateDa(workshopSelectedDate))}</h2>${selectedJobs.length?selectedJobs.map(workshopJobCard).join(''):'<p class="muted">Ingen systuejobs denne dag.</p>'}</section>`:''}`:`<section class="card workshop-calendar-list">${listHtml||'<p class="muted">Ingen systuejobs i perioden.</p>'}</section>`}<section class="card"><div class="row"><div><div class="small muted">ARBEJDSLISTE</div><h3>Skader og reparationer</h3></div><select style="width:auto" onchange="showWorkshop(this.value)"><option value="open" ${workshopFilter==='open'?'selected':''}>Åbne</option><option value="completed" ${workshopFilter==='completed'?'selected':''}>Afsluttede</option><option value="all" ${workshopFilter==='all'?'selected':''}>Alle</option></select></div></section><div class="workshop-list">${visibleTasks.length?visibleTasks.map(workshopTaskCard).join(''):'<section class="card"><p class="muted">Ingen skadesopgaver i denne visning.</p></section>'}</div>`;if(workshopViewMode==='calendar')setTimeout(installWorkshopSwipe,0);
 };
 function showWorkshopJobForm(id){
-  if(!requireAdmin())return;let job=workshopJobs.find(j=>+j.id===+id);history.replaceState(null,'',`${location.pathname}?workshopEdit=${id||'new'}`);app.innerHTML=`<section class="card workshop-form"><div class="row"><div><div class="small muted">SYSTUEPLAN</div><h2>${job?'Redigér job':'Opret job'}</h2></div><button class="btn" onclick="${job?`openWorkshopJob(${job.id})`:'showWorkshop()'}">${uiIcon('close')} Annuller</button></div><div class="two"><div><label>Jobnavn</label><input id="workshopTitle" value="${esc(job?.title||'')}"></div><div><label>Kunde</label><input id="workshopCustomer" value="${esc(job?.customer_name||'')}"></div></div><div class="two"><div><label>Fra dato</label><input id="workshopStart" type="date" value="${esc(job?.start_date||todayISO())}"></div><div><label>Til dato</label><input id="workshopEnd" type="date" value="${esc(job?.end_date||todayISO())}"></div></div><div class="two"><div><label>Status</label><select id="workshopStatus">${['Planlagt','I gang','Afsluttet','Annulleret'].map(s=>`<option ${s===(job?.status||'Planlagt')?'selected':''}>${s}</option>`).join('')}</select></div><div>${calendarColorField('workshopColor',job?.color||'#6c8ebf')}</div></div><label>Noter</label><textarea id="workshopNotes">${esc(job?.notes||'')}</textarea><label>Linkede filer <span class="muted">(valgfrit)</span></label><input id="workshopFiles" type="file" multiple><p class="small muted">Dokumenterne gemmes sammen med jobbet og bliver synlige på alle enheder.</p><button class="btn primary" style="width:100%" onclick="saveWorkshopJob(${job?.id||'null'})">${uiIcon('check')} Gem job</button></section>`;
+  if(!requireAdmin())return;let job=workshopJobs.find(j=>+j.id===+id);history.replaceState(null,'',`${location.pathname}?workshopEdit=${id||'new'}`);app.innerHTML=`<section class="card workshop-form"><div class="row"><div><div class="small muted">SYSTUEPLAN</div><h2>${job?'Redigér job':'Opret job'}</h2></div><button class="btn" onclick="${job?`openWorkshopJob(${job.id})`:'showWorkshop()'}">${uiIcon('close')} Annuller</button></div><div class="two"><div><label>Jobnavn</label><input id="workshopTitle" value="${esc(job?.title||'')}"></div><div><label>Kunde</label><input id="workshopCustomer" value="${esc(job?.customer_name||'')}"></div></div><div class="two"><div><label>Fra dato</label><input id="workshopStart" type="date" value="${esc(job?.start_date||todayISO())}"></div><div><label>Til dato</label><input id="workshopEnd" type="date" value="${esc(job?.end_date||todayISO())}"></div></div><div class="two"><div><label>Status</label><select id="workshopStatus">${['Forespørgsel','Planlagt','I gang','Afsluttet','Annulleret'].map(s=>`<option ${s===(job?.status||'Planlagt')?'selected':''}>${s}</option>`).join('')}</select></div><div>${calendarColorField('workshopColor',job?.color||'#6c8ebf')}</div></div><label>Noter</label><textarea id="workshopNotes">${esc(job?.notes||'')}</textarea><label>Linkede filer <span class="muted">(valgfrit)</span></label><input id="workshopFiles" type="file" multiple><p class="small muted">Dokumenterne gemmes sammen med jobbet og bliver synlige på alle enheder.</p><button class="btn primary" style="width:100%" onclick="saveWorkshopJob(${job?.id||'null'})">${uiIcon('check')} Gem job</button></section>`;
 }
 function fileDataUrl(file){return new Promise((resolve,reject)=>{let reader=new FileReader();reader.onload=()=>resolve(String(reader.result||''));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
 async function saveWorkshopJob(id){
@@ -5775,6 +5775,55 @@ applyUnifiedCalendarTopV123=function(){
       if(aria.includes('jobs i perioden')||aria.includes('systuejobs i perioden')||text.includes('job i perioden')||text.includes('jobs i perioden')||text.includes('systuejob i perioden')||text.includes('systuejobs i perioden'))button.remove();
     });
     if(!meta.querySelector('button'))meta.remove();
+  }
+  return result;
+};
+
+
+/* PALA v130 · forespørgsel status and automatic packing on Ude */
+async function markBookingChecklistPackedV130(bookingId){
+  if(!bookingId||!isEmployeeLoggedIn()||!employeeToken)return false;
+  try{
+    let tokenResult=await sb.rpc('employee_order_check_token',{p_token:employeeToken,p_booking_id:+bookingId});
+    if(tokenResult.error)throw new Error(tokenResult.error.message);
+    let list=await sb.rpc('order_checklist_get',{p_access_token:tokenResult.data});
+    if(list.error)throw new Error(list.error.message);
+    let lines=Array.isArray(list.data?.lines)?list.data.lines:[];
+    let pending=lines.filter(line=>(+line.qty_required||0)>0&&(+line.packed_qty||0)<(+line.qty_required||0));
+    if(!pending.length)return true;
+    let results=await Promise.all(pending.map(line=>sb.rpc('order_checklist_change',{
+      p_access_token:tokenResult.data,
+      p_line_id:line.id,
+      p_phase:'packed',
+      p_delta:0,
+      p_set_all:true
+    })));
+    let failed=results.find(result=>result.error);
+    if(failed?.error)throw new Error(failed.error.message);
+    await refreshWarehouseStatus();
+    return true;
+  }catch(error){
+    alert('Jobbet er sat til Ude, men pakkelisten kunne ikke markeres automatisk som pakket: '+String(error?.message||error));
+    return false;
+  }
+}
+
+const checkedRpcV130Base=checkedRpc;
+checkedRpc=async function(name,args){
+  let data=await checkedRpcV130Base(name,args);
+  if(name==='admin_save_order_bundle'&&args?.p_booking?.status==='Ude'){
+    let bookingId=Number(data?.id??data??args?.p_id)||Number(args?.p_id)||0;
+    if(bookingId)await markBookingChecklistPackedV130(bookingId);
+  }
+  return data;
+};
+
+const quickSetBookingStatusV130Base=quickSetBookingStatus;
+quickSetBookingStatus=async function(id,status){
+  let result=await quickSetBookingStatusV130Base(id,status);
+  if(status==='Ude'){
+    let updated=bookings.find(row=>+row.id===+id);
+    if(updated&&jobLocationStatus(updated)==='Ude')await markBookingChecklistPackedV130(+id);
   }
   return result;
 };
