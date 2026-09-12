@@ -1,0 +1,83 @@
+name: Persist PALA QR login
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-login-storage:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make employee login persistent across QR scans
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+
+          path = Path('index.html')
+          text = path.read_text(encoding='utf-8')
+
+          helper = """\n// Persistent employee login: QR/NFC links may open in a new browser tab, so auth must survive beyond sessionStorage.\nfunction persistentAuthGet(key){return localStorage.getItem(key)||sessionStorage.getItem(key)}\nfunction persistentAuthSet(key,value){localStorage.setItem(key,String(value));sessionStorage.removeItem(key)}\nfunction persistentAuthRemove(key){localStorage.removeItem(key);sessionStorage.removeItem(key)}\n"""
+
+          if 'function persistentAuthGet(key)' not in text:
+              text, inserted = re.subn(
+                  r"(const sb=supabase\.createClient\([^;]+\);)(let tents=)",
+                  r"\1" + helper + r"\2",
+                  text,
+                  count=1,
+              )
+              if inserted != 1:
+                  raise SystemExit(f'Expected to insert auth helper once, inserted {inserted}')
+
+          keys = [
+              'pala_employee_token',
+              'pala_employee_id',
+              'pala_employee_name',
+              'pala_employee_admin',
+              'pala_admin_token',
+              'pala_admin_id',
+              'pala_admin_name',
+          ]
+
+          for key in keys:
+              text = text.replace(f"sessionStorage.getItem('{key}')", f"persistentAuthGet('{key}')")
+              text = text.replace(f"sessionStorage.setItem('{key}',", f"persistentAuthSet('{key}',")
+              text = text.replace(f"sessionStorage.removeItem('{key}')", f"persistentAuthRemove('{key}')")
+
+          text = text.replace('.forEach(k=>sessionStorage.removeItem(k))', '.forEach(k=>persistentAuthRemove(k))')
+
+          required = [
+              "employeeToken=persistentAuthGet('pala_employee_token')||persistentAuthGet('pala_admin_token')||''",
+              "persistentAuthSet('pala_employee_token',employeeToken)",
+              ".forEach(k=>persistentAuthRemove(k))",
+              "function persistentAuthGet(key)",
+          ]
+          missing = [needle for needle in required if needle not in text]
+          if missing:
+              raise SystemExit('Persistent-login patch verification failed: ' + repr(missing))
+
+          for key in keys:
+              for op in ('getItem', 'setItem', 'removeItem'):
+                  old = f"sessionStorage.{op}('{key}'"
+                  if old in text:
+                      raise SystemExit(f'Old auth storage call remains: {old}')
+
+          path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit persistent login fix
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index change needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Persist PALA login across QR scans"
+          git push
