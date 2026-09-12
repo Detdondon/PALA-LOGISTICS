@@ -1,0 +1,119 @@
+name: Add PALA production plan export
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  patch-production-plan:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Add admin production plan PDF
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          path=Path('index.html')
+          text=path.read_text(encoding='utf-8')
+          if 'async function exportProductionPlanPDF(' in text:
+              print('Production plan feature already present')
+              raise SystemExit(0)
+
+          marker='</script>'
+          pos=text.rfind(marker)
+          if pos<0:
+              raise SystemExit('Could not find final script closing tag')
+
+          code=r'''
+
+/* PALA v110 · admin production meeting plan PDF */
+function productionPlanVisiblePeriod(){
+  let anchor=new Date(calDate),start=new Date(anchor);start.setDate(anchor.getDate()-((anchor.getDay()+6)%7));let end=new Date(start);end.setDate(start.getDate()+(calendarViewMode==='calendar'?27:13));return {start:staffDateString(start),end:staffDateString(end)};
+}
+function showProductionPlanExportDialog(){
+  if(!requireAdmin())return;let period=productionPlanVisiblePeriod();closeDialog('productionPlanExportDialog');document.body.insertAdjacentHTML('beforeend',`<div id="productionPlanExportDialog" class="dialog-backdrop" onclick="if(event.target===this)closeDialog('productionPlanExportDialog')"><div class="dialog-card"><h2>Eksportér produktionsplan</h2><p class="muted">Vælg perioden til produktionsmødet. PDF'en samler ordrer, logistik, bemanding, møder og systuejobs i ét printvenligt overblik.</p><div class="two"><div><label>Fra dato</label><input id="productionPlanStart" type="date" value="${period.start}"></div><div><label>Til dato</label><input id="productionPlanEnd" type="date" value="${period.end}"></div></div><div class="dialog-actions"><button class="btn" onclick="closeDialog('productionPlanExportDialog')">Annuller</button><button class="btn primary" onclick="exportProductionPlanPDF(document.getElementById('productionPlanStart').value,document.getElementById('productionPlanEnd').value)">${uiIcon('document')} Eksportér produktionsplan</button></div></div></div>`);
+}
+function productionPlanValidDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(value)&&!isNaN(Date.parse(value))&&new Date(value).toISOString().slice(0,10)===value}
+function productionPlanOverlap(start,end,periodStart,periodEnd){return !!(start&&end&&start<=periodEnd&&end>=periodStart)}
+function productionPlanOrderRows(periodStart,periodEnd){
+  return bookings.filter(b=>productionPlanOverlap(b.start_date,b.end_date,periodStart,periodEnd)||(b.delivery_date>=periodStart&&b.delivery_date<=periodEnd)||(b.pickup_date>=periodStart&&b.pickup_date<=periodEnd)).sort((a,b)=>String(a.start_date||'').localeCompare(String(b.start_date||''))||String(a.order_no||a.id).localeCompare(String(b.order_no||b.id),undefined,{numeric:true})).map(b=>{
+    let tentRows=bt.filter(r=>+r.booking_id===+b.id).map(r=>({...r,tent:tents[r.tent_id]})).filter(r=>r.tent).sort((a,z)=>alpha(a.tent.name,z.tent.name));
+    let invRows=bi.filter(r=>+r.booking_id===+b.id).map(r=>({...r,item:inventory.find(i=>+i.id===+r.inventory_id)})).filter(r=>r.item).sort((a,z)=>alpha(a.item.name,z.item.name));
+    let sum=bookingSummary(b.id),materials=[tentRows.length?'Telte: '+tentRows.map(r=>`${r.quantity||1}× ${r.tent.name}`).join(', '):'',invRows.length?'Inventar: '+invRows.map(r=>`${r.quantity||1}× ${r.item.name}`).join(', '):''].filter(Boolean).join('\n')||'-';
+    let logistics=[b.delivery_date?`Levering: ${fmtDateDa(b.delivery_date)}`:'',b.pickup_date?`Afhentning: ${fmtDateDa(b.pickup_date)}`:''].filter(Boolean).join('\n')||'-';
+    let staffing=sum.needed?`Bemanding: ${sum.filled}/${sum.needed}${sum.underfilled?' · MANGLER '+Math.max(0,sum.needed-sum.filled):''}${sum.leader?'\nLeder: '+sum.leader:''}`:(sum.filled?`Bemanding: ${sum.filled} tilmeldt`:'Ingen vagtbehov registreret');
+    let notes=cleanBookingNotes(b),status=[jobLocationStatus(b),staffing,notes].filter(Boolean).join('\n');
+    return {underfilled:!!sum.underfilled,cells:[[b.order_no||('#'+b.id),b.title].filter(Boolean).join(' / '),b.customer_name||'-',`${fmtDateDa(b.start_date)} – ${fmtDateDa(b.end_date)}`,logistics,bookingAddress(b)||'-',materials,status]};
+  });
+}
+function productionPlanShiftRows(periodStart,periodEnd){
+  return [...staffingShifts].filter(sh=>{let leave=staffLeaveInfo(sh);return leave?leave.start<=periodEnd&&leave.end>=periodStart:sh.shift_date>=periodStart&&sh.shift_date<=periodEnd}).sort((a,b)=>String(a.shift_date||'').localeCompare(String(b.shift_date||''))||String(a.start_time||'').localeCompare(String(b.start_time||''))||a.id-b.id).map(sh=>{
+    let leave=staffLeaveInfo(sh);if(leave)return {leave:true,cells:[`${fmtDateDa(leave.start)} – ${fmtDateDa(leave.end)}`,'Hele dagen','Fravær',leave.type,'-','-',leave.employee?.name||'Ukendt medarbejder']};
+    let leader=staffLeader(sh),workshop=staffWorkshopJob(sh),jobs=staffCalendarBookings(sh),people=[...new Map(staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).map(p=>[p.id,p])).values()].sort((a,b)=>alpha(a.name,b.name)),notes=staffDisplayNotes(sh.notes),address=shiftAddress(sh),title=sh.title||'Vagt',needed=Math.max(0,+sh.workers_needed||0),details=[title];
+    if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))details.push(notes);if(address&&!details.some(t=>t.includes(address)))details.push(address);
+    let time=sh.start_time&&sh.end_time?`${staffTime(sh.start_time)} – ${staffTime(sh.end_time)}`:sh.start_time?`Fra ${staffTime(sh.start_time)}`:sh.end_time?`Til ${staffTime(sh.end_time)}`:'Ikke angivet';
+    return {underfilled:needed>people.length,cells:[fmtDateDa(sh.shift_date),time,workshop?`Systue / ${workshop.title}`:jobs.map(b=>[b.order_no,b.customer_name||b.title].filter(Boolean).join(' / ')).join('\n')||'-',details.join('\n'),leader?.name||'Ikke angivet',needed?`${people.length}/${needed}${needed>people.length?' · Mangler '+(needed-people.length):''}`:`${people.length} tilmeldt`,people.map(p=>p.name).join('\n')||'Ingen tilmeldte']};
+  });
+}
+function productionPlanMeetingRows(periodStart,periodEnd){
+  return (palaMeetings||[]).filter(m=>!m.cancelled&&productionPlanOverlap(m.start_date,m.end_date,periodStart,periodEnd)).sort((a,b)=>String(a.start_date||'').localeCompare(String(b.start_date||''))||String(a.start_time||'').localeCompare(String(b.start_time||''))).map(m=>{let people=(m.employee_ids||[]).map(id=>staffEmployee(id)?.name).filter(Boolean).join(', ');return [`${fmtDateDa(m.start_date)}${m.end_date&&m.end_date!==m.start_date?' – '+fmtDateDa(m.end_date):''}`,[staffTime(m.start_time),staffTime(m.end_time)].filter(Boolean).join(' – ')||'-',m.title||'Møde',[m.customer_name,people].filter(Boolean).join('\n')||'-',m.address||'-',m.notes||'-']});
+}
+function productionPlanWorkshopRows(periodStart,periodEnd){
+  return (workshopJobs||[]).filter(j=>j.status!=='Annulleret'&&productionPlanOverlap(j.start_date,j.end_date,periodStart,periodEnd)).sort((a,b)=>String(a.start_date||'').localeCompare(String(b.start_date||''))||alpha(a.title,b.title)).map(j=>{let shifts=staffingShifts.filter(sh=>+sh.workshop_job_id===+j.id&&sh.shift_date>=periodStart&&sh.shift_date<=periodEnd),staff=shifts.map(sh=>{let people=staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)?.name).filter(Boolean);return `${fmtDateDa(sh.shift_date)} ${[staffTime(sh.start_time),staffTime(sh.end_time)].filter(Boolean).join('–')} · ${people.length}/${+sh.workers_needed||0}${people.length?' · '+people.join(', '):''}`}).join('\n')||'Ingen vagter i perioden';return [`${fmtDateDa(j.start_date)} – ${fmtDateDa(j.end_date)}`,j.title||'Systuejob',j.customer_name||'-',j.status||'Planlagt',staff,j.notes||'-']});
+}
+function productionPlanSection(doc,title,startY,head,body,columnStyles,styleCallback){
+  let h=doc.internal.pageSize.getHeight();if(startY>h-36){doc.addPage();startY=25}doc.setFont('Inter','bold');doc.setFontSize(12);doc.setTextColor(...PALA_PDF.ink);doc.text(title,12,startY);palaPdfTable(doc,{startY:startY+4,head:[head],body,columnStyles,didParseCell:styleCallback});return doc.lastAutoTable?.finalY?doc.lastAutoTable.finalY+9:startY+18;
+}
+async function exportProductionPlanPDF(periodStart,periodEnd){
+  if(!periodStart||!periodEnd)return showProductionPlanExportDialog();if(!productionPlanValidDate(periodStart)||!productionPlanValidDate(periodEnd))return alert('Vælg gyldige datoer.');if(periodEnd<periodStart)return alert('Slutdatoen skal være samme dag eller senere end startdatoen.');if(!requireAdmin())return;
+  if(!await validateAdminSession())return alert('Dit admin-login er udløbet. Log ind igen.');if(!await ensurePdfTools()||!window.jspdf?.jsPDF)return alert('PDF-funktionen kunne ikke indlæses. Tjek internetforbindelsen og prøv igen.');
+  await reloadData();await Promise.all([loadWarehouseExtensions(),loadWorkshopData()]);
+  let orders=productionPlanOrderRows(periodStart,periodEnd),shifts=productionPlanShiftRows(periodStart,periodEnd),meetings=productionPlanMeetingRows(periodStart,periodEnd),workshop=productionPlanWorkshopRows(periodStart,periodEnd);if(!orders.length&&!shifts.length&&!meetings.length&&!workshop.length)return alert('Der er ingen planlagte aktiviteter i den valgte periode.');
+  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses.');if(!await palaPdfFonts(doc))return;
+  let period=`${fmtDateDa(periodStart)} – ${fmtDateDa(periodEnd)}`,missing=shifts.filter(r=>r.underfilled).length,orderMissing=orders.filter(r=>r.underfilled).length,y=palaPdfHeader(doc,'Produktionsplan',`${period}  /  Produktionsmøde`);
+  doc.setFont('Inter','normal');doc.setFontSize(9);doc.setTextColor(...PALA_PDF.muted);doc.text(`Overblik: ${orders.length} ordrer · ${shifts.filter(r=>!r.leave).length} vagter · ${meetings.length} møder · ${workshop.length} systuejobs${missing||orderMissing?` · ${Math.max(missing,orderMissing)} bemandingsadvarsler`:''}`,12,y);y+=7;
+  if(orders.length)y=productionPlanSection(doc,'Ordrer og logistik',y,['Ordre','Kunde','Brugsperiode','Levering / afhentning','Adresse','Materiel','Status / noter'],orders.map(r=>r.cells),{0:{cellWidth:28},1:{cellWidth:34},2:{cellWidth:32},3:{cellWidth:34},4:{cellWidth:39},5:{cellWidth:55},6:{cellWidth:51}},data=>{if(data.section==='body'&&orders[data.row.index]?.underfilled&&data.column.index===6){data.cell.styles.fillColor=[255,247,230];data.cell.styles.textColor=[115,79,24];data.cell.styles.fontStyle='bold'}});
+  if(shifts.length)y=productionPlanSection(doc,'Vagtplan og bemanding',y,['Dato','Tid','Job / ordre','Opgave / adresse','Daglig leder','Tilmeldt / behov','Medarbejdere'],shifts.map(r=>r.cells),{0:{cellWidth:29},1:{cellWidth:25},2:{cellWidth:44},3:{cellWidth:68},4:{cellWidth:30},5:{cellWidth:27},6:{cellWidth:50}},data=>{if(data.section!=='body')return;let row=shifts[data.row.index];if(row?.leave){data.cell.styles.fillColor=[241,243,246];data.cell.styles.textColor=PALA_PDF.muted}if(row?.underfilled&&data.column.index===5){data.cell.styles.fillColor=[255,247,230];data.cell.styles.textColor=[115,79,24];data.cell.styles.fontStyle='bold'}});
+  if(meetings.length)y=productionPlanSection(doc,'Møder',y,['Dato','Tid','Møde','Deltagere','Adresse','Noter'],meetings,{0:{cellWidth:35},1:{cellWidth:30},2:{cellWidth:52},3:{cellWidth:55},4:{cellWidth:48},5:{cellWidth:53}});
+  if(workshop.length)y=productionPlanSection(doc,'Systuejobs',y,['Periode','Job','Kunde','Status','Bemanding','Noter'],workshop,{0:{cellWidth:38},1:{cellWidth:50},2:{cellWidth:42},3:{cellWidth:30},4:{cellWidth:58},5:{cellWidth:55}});
+  palaPdfFooter(doc,`Produktionsplan / ${period}`);closeDialog('productionPlanExportDialog');doc.save(`Produktionsplan-${periodStart}-til-${periodEnd}.pdf`);
+}
+const showCalendarProductionPlanV109=showCalendar;
+showCalendar=async function(){await showCalendarProductionPlanV109();if(!isAdminLoggedIn())return;let meta=app.querySelector('.calendar-meta');if(meta&&!meta.querySelector('[data-production-plan-export]'))meta.insertAdjacentHTML('beforeend',`<button class="btn" data-production-plan-export onclick="showProductionPlanExportDialog()">${uiIcon('document')} Produktionsplan</button>`)};
+
+'''
+          text=text[:pos]+code+text[pos:]
+          path.write_text(text,encoding='utf-8')
+          PY
+
+      - name: Verify JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text=Path('index.html').read_text(encoding='utf-8')
+          required=['async function exportProductionPlanPDF(','showProductionPlanExportDialog()','data-production-plan-export','Produktionsplan-']
+          missing=[x for x in required if x not in text]
+          if missing: raise SystemExit('Missing production-plan markers: '+repr(missing))
+          matches=re.findall(r'<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)</script>',text,re.I)
+          if not matches: raise SystemExit('No inline script found')
+          Path('/tmp/pala-inline.js').write_text('\n'.join(matches),encoding='utf-8')
+          PY
+          node --check /tmp/pala-inline.js
+
+      - name: Commit production plan feature
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index change needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add admin production plan PDF export"
+          git push
