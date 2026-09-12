@@ -5443,6 +5443,24 @@ showStaffing=function(){let result=showStaffingV121.apply(this,arguments);render
 const showWorkshopV121=showWorkshop;
 showWorkshop=function(){let result=showWorkshopV121.apply(this,arguments);renderWorkshopListV121();return result};
 
+
+/* PALA v122 · open damages button opens list view */
+function showOpenWorkshopDamageListV122(){
+  workshopFilter='open';
+  localStorage.setItem('pala_workshop_filter','open');
+  workshopSelectedDate='';
+  if(workshopViewMode!=='list')return setWorkshopView('list');
+  showWorkshop('open');
+}
+function bindOpenWorkshopDamageListV122(){
+  app.querySelectorAll('button[aria-label="Vis åbne skader"]').forEach(button=>{
+    button.setAttribute('onclick','showOpenWorkshopDamageListV122()');
+    button.setAttribute('title','Vis åbne skader som liste');
+  });
+}
+const showWorkshopV122=showWorkshop;
+showWorkshop=function(){let result=showWorkshopV122.apply(this,arguments);bindOpenWorkshopDamageListV122();return result};
+
 syncLoginUi();
 
 </script></body></html>
