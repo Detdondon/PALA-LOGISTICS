@@ -7,7 +7,7 @@ if marker in text:
     raise SystemExit('PALA v130 already present')
 
 pairs=[
-    ("const STATUS_ORDER=['Planlagt','På lager','Ude','Afsluttet'];", "const STATUS_ORDER=['Planlagt','Forespørgsel','På lager','Ude','Afsluttet'];"),
+    ("const STATUS_ORDER=['På lager','Ude','Afsluttet'];", "const STATUS_ORDER=['På lager','Forespørgsel','Ude','Afsluttet'];"),
     ("['På lager','Ude','Afsluttet'].map(x=>", "['På lager','Forespørgsel','Ude','Afsluttet'].map(x=>"),
     ("['Planlagt','I gang','Afsluttet','Annulleret'].map(s=>", "['Forespørgsel','Planlagt','I gang','Afsluttet','Annulleret'].map(s=>")
 ]
