@@ -6,7 +6,7 @@ old = '''<button type="button" class="pill reference-button" onclick="showWorksh
 if old not in text:
     raise SystemExit('Could not find duplicate workshop damage button')
 text = text.replace(old, '', 1)
-if 'aria-label="Vis telte med skader"' in text:
-    raise SystemExit('Duplicate workshop damage button still present')
+if old in text:
+    raise SystemExit('Duplicate workshop top button still present')
 path.write_text(text, encoding='utf-8')
 print('Removed redundant workshop damaged-tents button')
