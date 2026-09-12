@@ -1,0 +1,42 @@
+name: Apply PALA v129 calendar summary cleanup
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v129_calendar_summary_cleanup.py'
+      - '.github/workflows/pala-v129-calendar-summary-cleanup.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused calendar summary cleanup
+        run: python .github/pala_v129_calendar_summary_cleanup.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused change
+        run: |
+          git diff --check
+          grep -q "PALA v129 · clean unified calendar summary" index.html
+          grep -q "openUnifiedSummaryListV125('workshop')" index.html
+          grep -q "workshopCount===1?'systuejob':'systuejobs'" index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Clean up unified calendar summary buttons'
+          git push
