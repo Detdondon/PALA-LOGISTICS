@@ -1,5 +1,5 @@
-const CACHE='pala-v107';
-const CORE=['./','./index.html','./Logo.png','./manifest.webmanifest','./pala-icon.svg','./pala-icon-32.png','./pala-icon-180.png','./pala-icon-192.png','./pala-icon-512.png'];
+const CACHE='pala-v108';
+const CORE=['./fonts/inter-400.ttf','./fonts/inter-700.ttf','./','./index.html','./Logo.png','./manifest.webmanifest','./pala-icon.svg','./pala-icon-32.png','./pala-icon-180.png','./pala-icon-192.png','./pala-icon-512.png'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));

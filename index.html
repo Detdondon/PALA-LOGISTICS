@@ -1,4 +1,4 @@
-<!-- PALA build: v107 - fælles lager, enkle redigeringer, møder og faste QR-links -->
+<!-- PALA build: v108 - professionelle pakkelister og bemandingsplaner -->
 <!doctype html><html lang="da"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f5f6f8"><meta name="application-name" content="PALA"><meta name="apple-mobile-web-app-title" content="PALA"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="pala-icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="pala-icon-180.png"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"><title>PALA</title><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><style>
 :root{--b:#3158e8;--c:#f6f1e8;--w:#fffdf9;--i:#17353b;--m:#6d7774;--l:#ddd6ca;--g:#dceadd;--y:#f5ead0;--r:#f9dfdc;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-weight:400}*{box-sizing:border-box}button,input,select,textarea{font-family:inherit}body{margin:0;background:var(--c);color:var(--i);font-weight:400}header{position:sticky;top:0;z-index:20;background:var(--b);color:#fff;padding:18px}.shell,main{max-width:980px;margin:auto}.sub{font-size:12px;letter-spacing:.13em}.brand{font-size:30px;font-weight:700}main{padding:14px}.nav{display:flex;gap:8px;overflow:auto;position:sticky;top:78px;z-index:10;background:var(--c);padding:4px 0 12px}.btn{border:0;border-radius:10px;padding:10px 12px;font-weight:600;background:#e9e6de;color:var(--i);white-space:nowrap}.btn.primary,.nav .active{background:var(--b);color:#fff}.btn.bad{background:var(--r);color:#9d443e}.card,.tent{background:var(--w);border:1px solid var(--l);border-radius:12px;padding:15px;margin:10px 0}.grid{display:grid;grid-template-columns:1fr;gap:8px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px}.muted{color:var(--m)}.small{font-size:12px}.pill{padding:4px 8px;border-radius:99px;font-size:11px;font-weight:600}.green{background:var(--g)}.yellow{background:var(--y)}.red{background:var(--r)}.bar{height:7px;background:#e3ddd5;border-radius:99px;overflow:hidden;margin-top:8px}.fill{height:100%;background:var(--b)}input,select,textarea{width:100%;padding:10px;border:1px solid #cfc5b9;border-radius:8px;background:#fff;font-size:16px;font-weight:400}textarea{min-height:80px}label{display:block;font-weight:600;font-size:13px;margin:10px 0 5px}.two{display:grid;grid-template-columns:1fr 1fr;gap:9px}.three{display:grid;grid-template-columns:1fr 90px auto;gap:7px}.hero{width:100%;max-height:350px;object-fit:cover;border-radius:9px}.measure-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}.measure{background:#faf8f3;border:1px solid var(--l);border-radius:8px;padding:9px}.measure strong{display:block;font-size:18px}.item{display:grid;grid-template-columns:58px 1fr 68px;gap:9px;align-items:center;padding:10px 0;border-bottom:1px solid #eee7de}.thumb{width:58px;height:58px;object-fit:cover;border:1px solid var(--l);border-radius:7px}.ph{width:58px;height:58px;border:1px dashed #c8bfb4;border-radius:7px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:9px;color:var(--m)}.adminrow,.invrow,.ordrow{border:1px solid var(--l);border-radius:9px;padding:11px;margin:8px 0;background:#fbf9f5}.code{font-family:ui-monospace,monospace;background:#faf8f3;border:1px solid var(--l);padding:9px;border-radius:8px;word-break:break-all}.calendar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%;max-width:100%;overflow:hidden}.calh{display:none}.day{min-width:0;min-height:104px;background:#fff;border:1px solid var(--l);border-radius:9px;padding:7px;overflow:hidden}.day.out{opacity:.4}.chip{display:block;width:100%;max-width:100%;min-width:0;font-size:9px;border-radius:5px;padding:4px 5px;margin-top:3px;cursor:pointer;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.08);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.colorPalette{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}.swatch{height:48px;border-radius:10px;border:3px solid transparent;cursor:pointer}.swatch.selected{outline:3px solid var(--i);outline-offset:2px}.chip.ok{background:var(--g);color:#45684d}.chip.no{background:var(--r);color:#9d443e}.checklist{max-height:260px;overflow:auto;border:1px solid var(--l);border-radius:8px;background:#fff}.checkrow{display:grid;grid-template-columns:26px 1fr 70px;gap:7px;align-items:center;padding:7px;border-bottom:1px solid #eee7de}.checkrow input[type=checkbox]{width:18px;height:18px}.checkrow input[type=number]{font-size:13px;padding:6px}@media(min-width:760px){.measure-grid{grid-template-columns:repeat(5,1fr)}}@media(max-width:620px){.two{grid-template-columns:1fr}.nav{top:75px}.three{grid-template-columns:1fr 80px auto}.calendar{grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.day{min-height:96px;padding:5px;border-radius:7px}.day>.small{font-size:10px}.chip{font-size:8px;padding:3px 3px;border-radius:4px}}
 
@@ -2706,67 +2706,6 @@ function staffingTaskText(sh){
 function staffingNames(sh){
   return staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).map(e=>e.name).sort(alpha).join(', ');
 }
-async function exportStaffingPlanPDF(){
-  if(!requireEmployee())return;
-  let valid=await validateEmployeeSession();if(!valid)return alert('Dit login er udløbet. Log ind igen.');
-  if(!await ensurePdfTools()||!window.jspdf?.jsPDF)return alert('PDF-funktionen kunne ikke indlæses. Prøv igen med internetforbindelse.');
-  const {jsPDF}=window.jspdf;
-  let exportDate=document.getElementById('ns')?.classList.contains('active')?staffCalDate:calDate,
-      y=exportDate.getFullYear(),m=exportDate.getMonth(),
-      monthShifts=[...staffingShifts]
-        .filter(sh=>{let d=localDateFromISO(sh.shift_date);return d&&d.getFullYear()===y&&d.getMonth()===m})
-        .sort((a,b)=>String(a.shift_date).localeCompare(String(b.shift_date))||String(a.start_time||'').localeCompare(String(b.start_time||''))||a.id-b.id);
-  if(!monthShifts.length)return alert('Der er ingen vagter i den viste måned.');
-  const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
-  if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses. Genindlæs siden og prøv igen.');
-  let rowDates=[],rows=monthShifts.map(sh=>{
-    let d=localDateFromISO(sh.shift_date),leave=staffLeaveInfo(sh),booking=staffCalendarBooking(sh),leader=staffLeader(sh),people=staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).sort((a,b)=>alpha(a.name,b.name)),notes=staffDisplayNotes(sh.notes),title=sh.title||'Vagt';
-    if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))title+=`\n${notes}`;
-    rowDates.push(sh.shift_date);
-    return [
-      leave?`${fmtDateDa(leave.start)} - ${fmtDateDa(leave.end)}`:fmtDateDa(sh.shift_date),
-      new Intl.DateTimeFormat('da-DK',{weekday:'long'}).format(d),
-      leave?'Hele dagen':([staffTime(sh.start_time),staffTime(sh.end_time)].filter(Boolean).join(' - ')||'Ikke angivet'),
-      leave?`${leave.type} · ${leave.employee?.name||'Medarbejder'}`:(booking?.customer_name||booking?.title||booking?.order_no||''),
-      title,
-      leader?.name||'',
-      leave?'':`${people.length}/${+sh.workers_needed||0}`,
-      leave?(leave.employee?.name||''):people.map(person=>person.name).join(', ')
-    ];
-  });
-  let title=new Intl.DateTimeFormat('da-DK',{month:'long',year:'numeric'}).format(new Date(y,m,1));
-  title=title.charAt(0).toUpperCase()+title.slice(1);
-  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(`Bemandingsplan - ${title}`,8,11);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`${monthShifts.length} vagter / perioder · PALA`,8,16);
-  doc.autoTable({
-    startY:20,
-    head:[['Dato / periode','Dag','Tid','Job / ordre','Vagt / opgave','Daglig leder','Bemanding','Medarbejdere']],
-    body:rows,
-    theme:'grid',
-    styles:{font:'helvetica',fontSize:7,cellPadding:1.7,valign:'top',lineWidth:.15,lineColor:[120,120,120],textColor:[20,20,20],overflow:'linebreak'},
-    headStyles:{fillColor:[235,61,51],textColor:[20,20,20],fontStyle:'bold',halign:'left'},
-    columnStyles:{
-      0:{cellWidth:28},1:{cellWidth:18},2:{cellWidth:24},3:{cellWidth:48},
-      4:{cellWidth:50},5:{cellWidth:28},6:{cellWidth:22,halign:'center'},7:{cellWidth:63}
-    },
-    alternateRowStyles:{fillColor:[248,248,248]},
-    didParseCell:function(data){
-      if(data.section==='body'){
-        let date=rowDates[data.row.index],d=localDateFromISO(date);
-        if(d&&d.getDay()===1)data.cell.styles.fillColor=[255,239,180];
-      }
-    },
-    margin:{left:8,right:8,top:20,bottom:13},showHead:'everyPage'
-  });
-  let pages=doc.getNumberOfPages();
-  for(let p=1;p<=pages;p++){
-    doc.setPage(p);doc.setFontSize(7);doc.setTextColor(90);
-    doc.text(`Genereret ${new Date().toLocaleString('da-DK')}`,8,203);
-    doc.text(`Side ${p} af ${pages}`,285,203,{align:'right'});
-  }
-  let safeTitle=title.replace(/[^a-zA-Z0-9ÆØÅæøå_-]+/g,'-');
-  doc.save(`Bemandingsplan-${safeTitle}.pdf`);
-}
 function mvStaff(n){let days=staffingViewMode==='calendar'?28:14;staffCalDate=new Date(staffCalDate.getFullYear(),staffCalDate.getMonth(),staffCalDate.getDate()+(n*days));staffSelectedDate='';showStaffing()}
 function selectStaffDate(ds){staffSelectedDate=ds;let d=localDateFromISO(ds);if(d)staffCalDate=new Date(d);showStaffing()}
 function openCalendarStaffDate(ds){staffSelectedDate=ds;showCalendar()}
@@ -3414,6 +3353,47 @@ function currentTentRowsForPackingList(id){
   return bt.filter(x=>+x.booking_id===+id).map(x=>({tent_id:+x.tent_id,quantity:+x.quantity||1}));
 }
 
+let palaPdfFontsPromise;
+async function palaPdfFonts(doc){
+  try{
+    if(!palaPdfFontsPromise)palaPdfFontsPromise=Promise.all([400,700].map(async weight=>{
+      const response=await fetch(new URL(`fonts/inter-${weight}.ttf`,document.baseURI));
+      if(!response.ok)throw new Error('Skrifttypen kunne ikke hentes.');
+      const bytes=new Uint8Array(await response.arrayBuffer());let binary='';
+      for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+      return btoa(binary);
+    })).catch(error=>{palaPdfFontsPromise=null;throw error});
+    const fonts=await palaPdfFontsPromise;
+    fonts.forEach((font,i)=>{const name=`Inter-${i}.ttf`;doc.addFileToVFS(name,font);doc.addFont(name,'Inter',i?'bold':'normal')});return true;
+  }catch(error){alert('PDF-skrifttypen kunne ikke indlæses. Tjek internetforbindelsen og prøv igen.');return false}
+}
+// Shared print system: A4 landscape, 12 mm margins and measured table widths.
+const PALA_PDF={ink:[32,43,61],blue:[16,131,255],line:[225,229,236],pale:[234,244,255],muted:[102,112,133]};
+function palaPdfHeader(doc,title,subtitle,qrData,checkUrl){
+  const c=PALA_PDF,w=doc.internal.pageSize.getWidth(),right=w-12;
+  doc.setFillColor(...c.blue);doc.rect(12,10,2,9,'F');
+  doc.setTextColor(...c.ink);doc.setFont('Inter','bold');doc.setFontSize(16);doc.text('PALA',18,16);
+  doc.setTextColor(...c.muted);doc.setFont('Inter','normal');doc.setFontSize(7);doc.text('LOGISTICS',38,16);
+  doc.setTextColor(...c.ink);doc.setFont('Inter','bold');doc.setFontSize(21);
+  const lines=doc.splitTextToSize(String(title).replace(/[–—]/g,'-'),w-24-(qrData?42:0));
+  doc.text(lines,12,29);let y=29+lines.length*8;
+  doc.setFont('Inter','normal');doc.setFontSize(8.5);doc.setTextColor(...c.muted);
+  const sub=doc.splitTextToSize(String(subtitle),w-24-(qrData?42:0));doc.text(sub,12,y);y+=sub.length*4+5;
+  if(qrData){doc.addImage(qrData,'PNG',right-28,10,28,28);doc.link(right-28,10,28,28,{url:checkUrl});doc.setFontSize(7);doc.textWithLink('Pakning / retur',right-28,42,{url:checkUrl});y=Math.max(y,47)}
+  return y;
+}
+function palaPdfTable(doc,options){
+  const c=PALA_PDF;
+  doc.autoTable({theme:'plain',styles:{font:'Inter',fontSize:8.2,cellPadding:2.3,valign:'top',lineWidth:{bottom:.12},lineColor:c.line,textColor:c.ink,overflow:'linebreak'},headStyles:{fillColor:c.ink,textColor:[255,255,255],fontStyle:'bold',fontSize:7.6},alternateRowStyles:{fillColor:[247,249,252]},margin:{left:12,right:12,top:23,bottom:17},rowPageBreak:'avoid',showHead:'everyPage',...options});
+}
+function palaPdfFooter(doc,label){
+  const c=PALA_PDF,w=doc.internal.pageSize.getWidth(),h=doc.internal.pageSize.getHeight(),pages=doc.getNumberOfPages(),stamp=new Date().toLocaleString('da-DK');
+  for(let p=1;p<=pages;p++){
+    doc.setPage(p);doc.setFont('Inter','normal');doc.setFontSize(7);doc.setTextColor(...c.muted);doc.setDrawColor(...c.line);doc.setLineWidth(.2);doc.line(12,h-13,w-12,h-13);
+    doc.text(`Genereret ${stamp}`,12,h-8);doc.text(`Side ${p} af ${pages}`,w-12,h-8,{align:'right'});
+    if(p>1){doc.setFont('Inter','bold');doc.setFontSize(8);doc.setTextColor(...c.ink);doc.text(doc.splitTextToSize(`PALA  /  ${label}`,w-24).slice(0,2),12,12)}
+  }
+}
 async function exportPackingListPDF(id,options={}){
   if(!requireEmployee())return;
   let valid=await validateEmployeeSession();if(!valid)return alert('Dit login er udløbet. Log ind igen.');
@@ -3422,13 +3402,14 @@ async function exportPackingListPDF(id,options={}){
   const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
   if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses. Genindlæs siden og prøv igen.');
 
+  if(!await palaPdfFonts(doc))return;
   await reloadData();
   const order=bookings.find(x=>+x.id===+id)||{};
   if(!order.id)return alert('Ordren blev ikke fundet.');
 
   let checkUrl=durablePackingLink(id),qrData;
   if(!checkUrl&&!options.withoutQr)return alert('Angiv først appens fælles HTTPS-webadresse.');
-  if(checkUrl)try{qrData=await createQrDataUrl(checkUrl)}catch(e){return alert(e.message)}
+  if(checkUrl&&!options.withoutQr)try{qrData=await createQrDataUrl(checkUrl)}catch(e){return alert(e.message)}
 
   const tentRows=bt.filter(r=>+r.booking_id===+id)
     .map(r=>({...r,tent:tents[r.tent_id]}))
@@ -3440,93 +3421,35 @@ async function exportPackingListPDF(id,options={}){
     .filter(r=>r.item)
     .sort((a,b)=>alpha(a.item.name,b.item.name));
 
-  const red=[235,61,51],grid=[120,120,120],yellow=[255,239,180],white=[255,255,255],light=[248,248,248];
-
-  let title=`Pakkeliste - ${order.customer_name||order.title||order.order_no||('Ordre '+id)}`;
-  doc.setFont('helvetica','bold');doc.setFontSize(15);let titleLines=doc.splitTextToSize(title.replace(/[–—]/g,'-'),238);doc.text(titleLines.slice(0,3),8,10);
-  doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('PALA pakke- og retursystem',8,Math.max(18,10+titleLines.slice(0,3).length*6));
-  if(qrData){doc.addImage(qrData,'PNG',258,3,32,32);
-  doc.link(258,3,32,32,{url:checkUrl});
-  doc.setFontSize(6.7);doc.textWithLink('Åbn pakning / retur',262,38,{url:checkUrl});}else{doc.setFontSize(7);doc.text(['Eksporteret uden QR','Fælles webadresse','mangler i PALA'],256,12)}
-
-  doc.autoTable({
-    startY:42,
-    head:[['Ordre nr.','Kunde','Produktion','Status','Brugsperiode','Leveres','Afhentes']],
-    body:[[
-      order.order_no||`#${id}`,order.customer_name||'-',order.title||'-',order.status||'-',
-      `${fmtDateDa(order.start_date)||'-'} - ${fmtDateDa(order.end_date)||'-'}`,
-      fmtDateDa(order.delivery_date)||'-',fmtDateDa(order.pickup_date)||'-'
-    ]],
-    theme:'grid',
-    styles:{font:'helvetica',fontSize:7.3,cellPadding:1.6,valign:'top',lineWidth:.15,lineColor:grid,textColor:[20,20,20],overflow:'linebreak'},
-    headStyles:{fillColor:red,textColor:[20,20,20],fontStyle:'bold',halign:'left'},
-    bodyStyles:{fillColor:white},
-    columnStyles:{0:{cellWidth:25},1:{cellWidth:45},2:{cellWidth:76},3:{cellWidth:27},4:{cellWidth:45},5:{cellWidth:32},6:{cellWidth:31}},
-    margin:{left:8,right:8}
-  });
-
-  let orderAddress=bookingAddress(order);
-  if(orderAddress){
-    doc.autoTable({startY:doc.lastAutoTable.finalY+3,head:[['Leveringsadresse','Google Maps-link']],body:[[orderAddress,googleMapsLink(orderAddress)]],theme:'grid',styles:{font:'helvetica',fontSize:7.2,cellPadding:1.5,lineWidth:.15,lineColor:grid,textColor:[20,20,20],overflow:'linebreak'},headStyles:{fillColor:yellow,textColor:[20,20,20],fontStyle:'bold'},columnStyles:{0:{cellWidth:110},1:{cellWidth:171}},margin:{left:8,right:8}});
-  }
-
+  let startY=palaPdfHeader(doc,'Pakkeliste',`${order.order_no||('#'+id)}  /  ${order.customer_name||order.title||'Ordre'}`,qrData,checkUrl);
+  palaPdfTable(doc,{startY,head:[['Ordre nr.','Kunde','Produktion','Status','Brugsperiode','Leveres','Afhentes']],body:[[
+    order.order_no||`#${id}`,order.customer_name||'-',order.title||'-',order.status||'-',
+    `${fmtDateDa(order.start_date)||'-'} - ${fmtDateDa(order.end_date)||'-'}`,fmtDateDa(order.delivery_date)||'-',fmtDateDa(order.pickup_date)||'-'
+  ]],columnStyles:{0:{cellWidth:23},1:{cellWidth:42},2:{cellWidth:62},3:{cellWidth:30},4:{cellWidth:48},5:{cellWidth:34},6:{cellWidth:34}}});
+  const address=bookingAddress(order);
+  if(address)palaPdfTable(doc,{startY:doc.lastAutoTable.finalY+4,head:[['Leveringsadresse','Rute']],body:[[address,'Åbn i Google Maps']],columnStyles:{0:{cellWidth:225},1:{cellWidth:48,textColor:PALA_PDF.blue}},didDrawCell:data=>{if(data.section==='body'&&data.column.index===1)doc.link(data.cell.x,data.cell.y,data.cell.width,data.cell.height,{url:googleMapsLink(address)})}});
   let rows=[];
-  if(tentRows.length){
-    tentRows.forEach(r=>{
-      rows.push({kind:'section',cells:['TELT',`${r.quantity} stk.`,r.tent.name,r.tent.description||'','[ ] Pakket']});
-      let hw=[...(r.tent.hardware||[])].filter(h=>(+h.qty||0)>0).sort((a,b)=>alpha(a.name,b.name));
-      if(hw.length)hw.forEach(h=>rows.push({kind:'normal',cells:['Hardware',`${(+h.qty||1)*(+r.quantity||1)} stk.`,h.name,h.description||`Til ${r.tent.name}`,'[ ]']}));
-      else rows.push({kind:'normal',cells:['Hardware','-',`Intet hardware registreret til ${r.tent.name}`,'','[ ]']});
-    });
-  }else rows.push({kind:'section',cells:['TELTE','-','Ingen telte valgt','','']});
-
+  for(const r of tentRows){
+    rows.push({kind:'section',cells:['TELT',`${r.quantity} stk.`,r.tent.name,r.tent.description||'','[ ]']});
+    const hardware=[...(r.tent.hardware||[])].filter(h=>(+h.qty||0)>0).sort((a,b)=>alpha(a.name,b.name));
+    for(const h of hardware)rows.push({kind:'normal',cells:['Hardware',`${(+h.qty)*(+r.quantity||1)} stk.`,h.name,h.description||`Til ${r.tent.name}`,'[ ]']});
+    if(!hardware.length)rows.push({kind:'warning',cells:['Bemærk','-','Intet hardware registreret',`Kontrollér behovet for hardware til ${r.tent.name}.`,'']});
+  }
   if(invRows.length){
-    rows.push({kind:'inventoryHeader',cells:['INVENTAR','','','','']});
-    invRows.forEach(r=>rows.push({kind:'normal',cells:['Inventar',`${r.quantity} stk.`,r.item.name,r.item.description||'','[ ]']}));
-  }else rows.push({kind:'inventoryHeader',cells:['INVENTAR','-','Intet ekstra inventar valgt','','']});
-
-  rows.push({kind:'controlHeader',cells:['DIGITAL KONTROL','','','','']});
-  rows.push({kind:'control',cells:[qrData?'QR':'App','','',qrData?'Scan QR-koden øverst for at registrere pakning og returnering. Alt hardware til et telt kan krydses af samlet. Telte der pakkes hårdt/vådt kan markeres til tørring.':'Åbn ordren i PALA for at registrere pakning og returnering. Denne eksport har ingen QR-kode, fordi appens fælles webadresse ikke er angivet.','']});
-  ['Teltdug / hoveddele pakket','Master / stænger pakket','Pløkker og barduner pakket','Inventar optalt','Ordre kontrolleret før afgang']
-    .forEach(x=>rows.push({kind:'control',cells:['Kontrol','','',x,'[ ]']}));
-
-  doc.autoTable({
-    startY:doc.lastAutoTable.finalY+5,
-    head:[['Type','Antal','Udstyr / del','Beskrivelse / bemærkning','Status / kontrol']],
-    body:rows.map(r=>r.cells),
-    theme:'grid',
-    styles:{font:'helvetica',fontSize:7.4,cellPadding:1.5,valign:'top',lineWidth:.15,lineColor:grid,textColor:[20,20,20],overflow:'linebreak'},
-    headStyles:{fillColor:red,textColor:[20,20,20],fontStyle:'bold',halign:'left'},
-    bodyStyles:{fillColor:white},
-    alternateRowStyles:{fillColor:light},
-    columnStyles:{0:{cellWidth:24,fontStyle:'bold'},1:{cellWidth:22,halign:'center'},2:{cellWidth:72},3:{cellWidth:134},4:{cellWidth:29,halign:'center'}},
-    didParseCell:function(data){
-      if(data.section!=='body')return;
-      let r=rows[data.row.index];if(!r)return;
-      if(r.kind==='section'||r.kind==='inventoryHeader'||r.kind==='controlHeader'){data.cell.styles.fillColor=yellow;data.cell.styles.fontStyle='bold'}
-      else if(r.kind==='control')data.cell.styles.fillColor=light;
-    },
-    margin:{left:8,right:8,top:10,bottom:13}
-  });
-
-  let packingNotes=cleanBookingNotes(order);
-  if(packingNotes){
-    doc.autoTable({
-      startY:doc.lastAutoTable.finalY+5,
-      head:[['Noter']],body:[[String(packingNotes).replace(/[–—]/g,'-')]],theme:'grid',
-      styles:{font:'helvetica',fontSize:7.5,cellPadding:1.7,valign:'top',lineWidth:.15,lineColor:grid,textColor:[20,20,20]},
-      headStyles:{fillColor:red,textColor:[20,20,20],fontStyle:'bold'},margin:{left:8,right:8,bottom:13}
-    });
+    rows.push({kind:'section',cells:['INVENTAR','','','','']});
+    for(const r of invRows)rows.push({kind:'normal',cells:['Inventar',`${r.quantity} stk.`,r.item.name,r.item.description||'','[ ]']});
   }
-
-  let pages=doc.getNumberOfPages();
-  for(let p=1;p<=pages;p++){
-    doc.setPage(p);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(90);
-    doc.text(`Genereret ${new Date().toLocaleString('da-DK')}`,8,203);
-    doc.text(`Side ${p} af ${pages}`,289,203,{align:'right'});
-  }
-
-  let safe=(order.order_no||order.customer_name||`ordre-${id}`).trim().replace(/[^a-zA-Z0-9ÆØÅæøå_-]+/g,'-').replace(/^-+|-+$/g,'');
+  if(!rows.length)rows.push({kind:'warning',cells:['Bemærk','-','Ingen udstyrslinjer','Ordren har ingen registrerede telte eller inventar.','']});
+  palaPdfTable(doc,{startY:doc.lastAutoTable.finalY+6,head:[['Type','Antal','Udstyr / del','Beskrivelse / bemærkning','Pakket']],body:rows.map(r=>r.cells),columnStyles:{0:{cellWidth:25},1:{cellWidth:23,halign:'center'},2:{cellWidth:80},3:{cellWidth:125},4:{cellWidth:20,halign:'center'}},didParseCell:data=>{
+    if(data.section!=='body')return;const row=rows[data.row.index];
+    if(row.kind==='section'){data.cell.styles.fillColor=PALA_PDF.pale;data.cell.styles.fontStyle='bold'}
+    if(row.kind==='warning'){data.cell.styles.fillColor=[255,247,230];data.cell.styles.textColor=[115,79,24]}
+  }});
+  const notes=cleanBookingNotes(order);
+  if(notes)palaPdfTable(doc,{startY:doc.lastAutoTable.finalY+5,head:[['Ordrenoter']],body:[[String(notes).replace(/[–—]/g,'-')]]});
+  palaPdfTable(doc,{startY:doc.lastAutoTable.finalY+5,head:[['Kontrol før afgang','Digital registrering']],body:[['Kontrolleret af: ____________________   Dato: ______________',qrData?'Scan QR-koden for at registrere pakning og retur i PALA. Afkrydsninger på papiret opdaterer ikke appen.':'Registrér pakning og retur på ordren i PALA. Afkrydsninger på papiret opdaterer ikke appen.']],columnStyles:{0:{cellWidth:140},1:{cellWidth:133}}});
+  palaPdfFooter(doc,`Pakkeliste / ${order.order_no||('#'+id)}`);
+  const safe=String(order.order_no||order.customer_name||`ordre-${id}`).trim().replace(/[^a-zA-Z0-9ÆØÅæøå_-]+/g,'-').replace(/^-+|-+$/g,'');
   doc.save(`Pakkeliste-${safe||id}.pdf`);
 }
 async function finishOrder(id){
@@ -3883,8 +3806,36 @@ function showStaffingExportDialog(){
   let anchor=new Date(staffCalDate),start=new Date(anchor);start.setDate(anchor.getDate()-((anchor.getDay()+6)%7));let end=new Date(start);end.setDate(start.getDate()+(staffingViewMode==='calendar'?27:13));closeDialog('staffingExportDialog');document.body.insertAdjacentHTML('beforeend',`<div id="staffingExportDialog" class="dialog-backdrop" onclick="if(event.target===this)closeDialog('staffingExportDialog')"><div class="dialog-card"><h2>Eksportér bemandingsplan</h2><p class="muted">Vælg præcis den periode, der skal med i PDF-filen.</p><div class="two"><div><label>Fra dato</label><input id="staffExportStart" type="date" value="${staffDateString(start)}"></div><div><label>Til dato</label><input id="staffExportEnd" type="date" value="${staffDateString(end)}"></div></div><div class="dialog-actions"><button class="btn" onclick="closeDialog('staffingExportDialog')">Annuller</button><button class="btn primary" onclick="exportStaffingPlanPDF(document.getElementById('staffExportStart').value,document.getElementById('staffExportEnd').value)">${uiIcon('document')} Eksportér PDF</button></div></div></div>`);
 }
 async function exportStaffingPlanPDF(periodStart,periodEnd){
-  if(!periodStart||!periodEnd)return showStaffingExportDialog();if(periodEnd<periodStart)return alert('Slutdatoen skal være samme dag eller senere end startdatoen.');if(!requireEmployee())return;let valid=await validateEmployeeSession();if(!valid)return alert('Dit login er udløbet. Log ind igen.');if(!await ensurePdfTools()||!window.jspdf?.jsPDF)return alert('PDF-funktionen kunne ikke indlæses. Prøv igen med internetforbindelse.');const {jsPDF}=window.jspdf;
-  let rowsInPeriod=[...staffingShifts].filter(sh=>{let leave=staffLeaveInfo(sh);return leave?leave.start<=periodEnd&&leave.end>=periodStart:sh.shift_date>=periodStart&&sh.shift_date<=periodEnd}).sort((a,b)=>String(a.shift_date).localeCompare(String(b.shift_date))||String(a.start_time||'').localeCompare(String(b.start_time||''))||a.id-b.id);if(!rowsInPeriod.length)return alert('Der er ingen vagter i den valgte periode.');const doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses.');let rowDates=[],rows=rowsInPeriod.map(sh=>{let d=localDateFromISO(sh.shift_date),leave=staffLeaveInfo(sh),booking=staffCalendarBooking(sh),workshop=staffWorkshopJob(sh),leader=staffLeader(sh),people=staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).sort((a,b)=>alpha(a.name,b.name)),notes=staffDisplayNotes(sh.notes),title=sh.title||'Vagt';if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))title+=`\n${notes}`;if(shiftAddress(sh))title+='\n'+shiftAddress(sh);rowDates.push(sh.shift_date);return [leave?`${fmtDateDa(leave.start)} - ${fmtDateDa(leave.end)}`:fmtDateDa(sh.shift_date),new Intl.DateTimeFormat('da-DK',{weekday:'long'}).format(d),leave?'Hele dagen':([staffTime(sh.start_time),staffTime(sh.end_time)].filter(Boolean).join(' - ')||'Ikke angivet'),leave?`${leave.type} · ${leave.employee?.name||'Medarbejder'}`:(workshop?`Systue · ${workshop.title}`:(booking?.customer_name||booking?.title||booking?.order_no||'')),title,leader?.name||'',leave?'':`${people.length}/${+sh.workers_needed||0}`,leave?(leave.employee?.name||''):people.map(person=>person.name).join(', ')]});let title=`${fmtDateDa(periodStart)} - ${fmtDateDa(periodEnd)}`;doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text(`Bemandingsplan - ${title}`,8,11);doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text(`${rowsInPeriod.length} vagter / perioder · PALA`,8,16);doc.autoTable({startY:20,head:[['Dato / periode','Dag','Tid','Job / systuejob','Vagt / opgave','Hold','Bemanding','Medarbejdere']],body:rows,theme:'grid',styles:{font:'helvetica',fontSize:7,cellPadding:1.7,valign:'top',lineWidth:.15,lineColor:[120,120,120],textColor:[20,20,20],overflow:'linebreak'},headStyles:{fillColor:[235,61,51],textColor:[20,20,20],fontStyle:'bold',halign:'left'},columnStyles:{0:{cellWidth:25},1:{cellWidth:17},2:{cellWidth:22},3:{cellWidth:42},4:{cellWidth:52},5:{cellWidth:29},6:{cellWidth:20,halign:'center'},7:{cellWidth:74}},alternateRowStyles:{fillColor:[248,248,248]},didParseCell:data=>{if(data.section==='body'){let d=localDateFromISO(rowDates[data.row.index]);if(d&&d.getDay()===1)data.cell.styles.fillColor=[255,239,180]}},margin:{left:8,right:8,top:20,bottom:13},showHead:'everyPage'});let pages=doc.getNumberOfPages();for(let p=1;p<=pages;p++){doc.setPage(p);doc.setFontSize(7);doc.setTextColor(90);doc.text(`Genereret ${new Date().toLocaleString('da-DK')}`,8,203);doc.text(`Side ${p} af ${pages}`,285,203,{align:'right'})}closeDialog('staffingExportDialog');doc.save(`Bemandingsplan-${periodStart}-til-${periodEnd}.pdf`);
+  if(!periodStart||!periodEnd)return showStaffingExportDialog();
+  const validDate=v=>/^\d{4}-\d{2}-\d{2}$/.test(v)&&!isNaN(Date.parse(v))&&new Date(v).toISOString().slice(0,10)===v;
+  if(!validDate(periodStart)||!validDate(periodEnd))return alert('Vælg gyldige datoer.');
+  if(periodEnd<periodStart)return alert('Slutdatoen skal være samme dag eller senere end startdatoen.');
+  if(!requireEmployee())return;
+  if(!await validateEmployeeSession())return alert('Dit login er udløbet. Log ind igen.');
+  if(!await ensurePdfTools()||!window.jspdf?.jsPDF)return alert('PDF-funktionen kunne ikke indlæses. Prøv igen med internetforbindelse.');
+  await reloadData();
+  const selected=[...staffingShifts].filter(sh=>{const leave=staffLeaveInfo(sh);return leave?leave.start<=periodEnd&&leave.end>=periodStart:sh.shift_date>=periodStart&&sh.shift_date<=periodEnd}).sort((a,b)=>String(a.shift_date<periodStart?periodStart:a.shift_date).localeCompare(String(b.shift_date<periodStart?periodStart:b.shift_date))||String(a.start_time||'').localeCompare(String(b.start_time||''))||a.id-b.id);
+  if(!selected.length)return alert('Der er ingen vagter i den valgte periode.');
+  const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+  if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses.');
+  if(!await palaPdfFonts(doc))return;
+  const rows=selected.map(sh=>{
+    const leave=staffLeaveInfo(sh),leader=staffLeader(sh),workshop=staffWorkshopJob(sh),jobs=staffCalendarBookings(sh),people=[...new Map(staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).map(p=>[p.id,p])).values()].sort((a,b)=>alpha(a.name,b.name));
+    if(leave)return {leave:true,cells:[`${fmtDateDa(leave.start)} -\n${fmtDateDa(leave.end)}`,'Hele dagen','Fravær',leave.type,'-','-',leave.employee?.name||'Ukendt medarbejder']};
+    const date=localDateFromISO(sh.shift_date),notes=staffDisplayNotes(sh.notes),address=shiftAddress(sh),title=sh.title||'Vagt',needed=Math.max(0,+sh.workers_needed||0),details=[title];
+    if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))details.push(notes);
+    if(address&&!details.some(t=>t.includes(address)))details.push(address);
+    const time=sh.start_time&&sh.end_time?`${staffTime(sh.start_time)} - ${staffTime(sh.end_time)}`:sh.start_time?`Fra ${staffTime(sh.start_time)}`:sh.end_time?`Til ${staffTime(sh.end_time)}`:'Ikke angivet';
+    return {underfilled:needed>people.length,cells:[`${fmtDateDa(sh.shift_date)}\n${date?new Intl.DateTimeFormat('da-DK',{weekday:'long'}).format(date):''}`,time,workshop?`Systue / ${workshop.title}`:jobs.map(b=>[b.order_no,b.customer_name||b.title].filter(Boolean).join(' / ')).join('\n')||'-',details.join('\n'),leader?.name||'Ikke angivet',needed?`${people.length} / ${needed}${needed>people.length?'\nMangler '+(needed-people.length):''}`:`${people.length} tilmeldt\nBehov ikke angivet`,people.map(p=>p.name).join('\n')||'Ingen tilmeldte']};
+  });
+  const leaveCount=rows.filter(r=>r.leave).length,period=`${fmtDateDa(periodStart)} - ${fmtDateDa(periodEnd)}`;
+  const y=palaPdfHeader(doc,'Bemandingsplan',`${period}  /  ${rows.length-leaveCount} vagter · ${leaveCount} fraværsperioder`);
+  palaPdfTable(doc,{startY:y,head:[['Dato / periode','Tid','Job / ordre','Opgave / adresse','Daglig leder','Tilmeldt / behov','Medarbejdere']],body:rows.map(r=>r.cells),columnStyles:{0:{cellWidth:29},1:{cellWidth:25},2:{cellWidth:44},3:{cellWidth:68},4:{cellWidth:30},5:{cellWidth:27},6:{cellWidth:50}},didParseCell:data=>{
+    if(data.section!=='body')return;const r=rows[data.row.index];
+    if(r.leave){data.cell.styles.fillColor=[241,243,246];data.cell.styles.textColor=PALA_PDF.muted}
+    if(r.underfilled&&data.column.index===5){data.cell.styles.fillColor=[255,247,230];data.cell.styles.textColor=[115,79,24];data.cell.styles.fontStyle='bold'}
+  }});
+  palaPdfFooter(doc,`Bemandingsplan / ${period}`);closeDialog('staffingExportDialog');doc.save(`Bemandingsplan-${periodStart}-til-${periodEnd}.pdf`);
 }
 
 /* PALA v100 · sammenhængende lager, systue og bemanding */
