@@ -1,0 +1,42 @@
+name: Apply PALA v127 open damage list
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v127_open_damage_list.py'
+      - '.github/workflows/pala-v127-open-damage-list.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused open-damage list patch
+        run: python .github/pala_v127_open_damage_list.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused patch
+        run: |
+          git diff --check
+          grep -q "PALA v127 · open damage shortcut shows only open damage tasks" index.html
+          grep -q "renderOpenWorkshopDamageOnlyV127" index.html
+          grep -q "mainCalendarStatusFilterV123='open'" index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Make open damage shortcut show only open damages'
+          git push
