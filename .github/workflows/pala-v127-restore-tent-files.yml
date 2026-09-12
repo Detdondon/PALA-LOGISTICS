@@ -1,0 +1,45 @@
+name: Apply PALA v127 tent files
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v127_restore_tent_files.py'
+      - '.github/workflows/pala-v127-restore-tent-files.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused tent-file patch
+        run: python .github/pala_v127_restore_tent_files.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused patch
+        run: |
+          git diff --check
+          grep -q "PALA v127 · restore tent images and files" index.html
+          grep -q "openTentDocumentSeparateV127" index.html
+          grep -q "downloadTentDocumentV127" index.html
+          grep -q "Filer og tegninger" index.html
+          grep -q "Tilføj billede" index.html
+          grep -q "Tilføj fil" index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Restore tent images and downloadable files'
+          git push
