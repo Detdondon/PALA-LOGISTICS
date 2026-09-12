@@ -30,7 +30,7 @@ jobs:
         run: |
           git diff --check
           grep -q "PALA v130 · forespørgsel status and automatic packing on Ude" index.html
-          grep -q "'Planlagt','Forespørgsel','På lager','Ude','Afsluttet'" index.html
+          grep -q "'På lager','Forespørgsel','Ude','Afsluttet'" index.html
           grep -q "markBookingChecklistPackedV130" index.html
           grep -q "p_phase:'packed'" index.html
           grep -q "Forespørgsel" recovery/database/005_pala_v130_forespoergsel_status.sql
