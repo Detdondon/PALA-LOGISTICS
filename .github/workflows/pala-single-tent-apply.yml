@@ -1,0 +1,42 @@
+name: Apply PALA single tent display
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply patch
+        run: python .github/pala_single_tent_patch.py
+      - name: Verify JavaScript syntax
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          text=Path('index.html').read_text(encoding='utf-8')
+          if 'function warehouseGroupedRows(rows,keyFn,cardFn,flatSingles=false)' not in text:
+              raise SystemExit('Updated grouping function missing')
+          matches=re.findall(r'<script(?![^>]*\\bsrc=)[^>]*>([\\s\\S]*?)</script>',text,re.I)
+          if not matches:
+              raise SystemExit('No inline script found')
+          Path('/tmp/pala-inline.js').write_text('\n'.join(matches),encoding='utf-8')
+          PY
+          node --check /tmp/pala-inline.js
+      - name: Commit change
+        run: |
+          if git diff --quiet -- index.html; then
+            echo "No index change needed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Hide tent dropdowns for single variants"
+          git push
