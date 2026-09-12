@@ -4956,4 +4956,30 @@ async function exportProductionPlanPDF(periodStart,periodEnd){
 const showCalendarProductionPlanV109=showCalendar;
 showCalendar=async function(){await showCalendarProductionPlanV109();if(!isAdminLoggedIn())return;let meta=app.querySelector('.calendar-meta');if(meta&&!meta.querySelector('[data-production-plan-export]'))meta.insertAdjacentHTML('beforeend',`<button class="btn" data-production-plan-export onclick="showProductionPlanExportDialog()">${uiIcon('document')} Produktionsplan</button>`)};
 
+
+
+/* PALA v111 · visible admin backup shortcut */
+const syncLoginUiBackupV111=syncLoginUi;
+syncLoginUi=function(){
+  syncLoginUiBackupV111();
+  if(!isAdminLoggedIn())return;
+  let menu=document.getElementById('userMenuPopover');
+  if(menu&&!menu.querySelector('[data-admin-backup-shortcut]')){
+    let button=document.createElement('button');
+    button.type='button';button.className='user-menu-action';button.dataset.adminBackupShortcut='1';button.setAttribute('role','menuitem');
+    button.innerHTML=uiIcon('document','ui-icon')+'<span>Sikkerhedsbackup</span>';
+    button.onclick=function(){closeUserMenu();showAdminBackup()};
+    let logout=[...menu.querySelectorAll('.user-menu-action')].find(el=>(el.getAttribute('onclick')||'').includes('employeeLogout'));
+    if(logout)menu.insertBefore(button,logout);else menu.appendChild(button);
+  }
+};
+const showCalendarBackupV111=showCalendar;
+showCalendar=async function(){
+  await showCalendarBackupV111();
+  if(!isAdminLoggedIn())return;
+  let meta=app.querySelector('.calendar-meta');
+  if(meta&&!meta.querySelector('[data-backup-shortcut]'))meta.insertAdjacentHTML('beforeend',`<button class="btn" data-backup-shortcut onclick="showAdminBackup()">${uiIcon('document')} ZIP-backup</button>`);
+};
+syncLoginUi();
+
 </script></body></html>
