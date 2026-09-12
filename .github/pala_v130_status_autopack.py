@@ -6,23 +6,15 @@ marker='PALA v130 · forespørgsel status and automatic packing on Ude'
 if marker in text:
     raise SystemExit('PALA v130 already present')
 
-replacements=[
+pairs=[
     ("const STATUS_ORDER=['Planlagt','På lager','Ude','Afsluttet'];", "const STATUS_ORDER=['Planlagt','Forespørgsel','På lager','Ude','Afsluttet'];"),
-    ("${['På lager','Ude','Afsluttet'].map(x=>`<option ${jobLocationStatus(b)===x?'selected':''}>${x}</option>`).join('')}", "${['På lager','Forespørgsel','Ude','Afsluttet'].map(x=>`<option ${jobLocationStatus(b)===x?'selected':''}>${x}</option>`).join('')}"),
-    ("${['Planlagt','I gang','Afsluttet','Annulleret'].map(s=>`<option ${s===(job?.status||'Planlagt')?'selected':''}>${s}</option>`).join('')}", "${['Forespørgsel','Planlagt','I gang','Afsluttet','Annulleret'].map(s=>`<option ${s===(job?.status||'Planlagt')?'selected':''}>${s}</option>`).join('')}")
+    ("['På lager','Ude','Afsluttet'].map(x=>", "['På lager','Forespørgsel','Ude','Afsluttet'].map(x=>"),
+    ("['Planlagt','I gang','Afsluttet','Annulleret'].map(s=>", "['Forespørgsel','Planlagt','I gang','Afsluttet','Annulleret'].map(s=>")
 ]
-for old,new in replacements:
-    count=text.count(old)
-    if count!=1:
-        raise SystemExit(f'Expected exactly one occurrence, found {count}: {old[:80]}')
+for old,new in pairs:
+    if old not in text:
+        raise SystemExit(f'Required target not found: {old}')
     text=text.replace(old,new,1)
-
-old_try="try{await checkedRpc('admin_save_order_bundle',{p_token:adminToken,p_id:id||null,p_booking:p,p_shift:shift});await reloadData();history.replaceState(null,'',location.pathname);showOrders()}"
-new_try="try{let saved=await checkedRpc('admin_save_order_bundle',{p_token:adminToken,p_id:id||null,p_booking:p,p_shift:shift});await reloadData();let savedId=Number(saved?.id??saved??id)||Number(id)||0;if(p.status==='Ude'&&savedId)await markBookingChecklistPackedV130(savedId);history.replaceState(null,'',location.pathname);showOrders()}"
-count=text.count(old_try)
-if count!=1:
-    raise SystemExit(f'Expected one final bundled save block, found {count}')
-text=text.replace(old_try,new_try,1)
 
 needle='\nsyncLoginUi();\n\n</script></body></html>'
 if needle not in text:
@@ -56,6 +48,16 @@ async function markBookingChecklistPackedV130(bookingId){
     return false;
   }
 }
+
+const checkedRpcV130Base=checkedRpc;
+checkedRpc=async function(name,args){
+  let data=await checkedRpcV130Base(name,args);
+  if(name==='admin_save_order_bundle'&&args?.p_booking?.status==='Ude'){
+    let bookingId=Number(data?.id??data??args?.p_id)||Number(args?.p_id)||0;
+    if(bookingId)await markBookingChecklistPackedV130(bookingId);
+  }
+  return data;
+};
 
 const quickSetBookingStatusV130Base=quickSetBookingStatus;
 quickSetBookingStatus=async function(id,status){
