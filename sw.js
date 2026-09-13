@@ -1,5 +1,5 @@
-const CACHE='pala-v112-calendar-stability';
-const CORE=['./fonts/inter-400.ttf','./fonts/inter-700.ttf','./','./index.html','./workshop-edit.js?v=1','./calendar-stability.js?v=1','./Logo.png','./manifest.webmanifest?v=110','./pala-icon.svg?v=110','./pala-icon-32.png?v=110','./pala-icon-180.png?v=110','./pala-icon-192.png?v=110','./pala-icon-512.png?v=110'];
+const CACHE='pala-v150-calendar-controller';
+const CORE=['./fonts/inter-400.ttf','./fonts/inter-700.ttf','./','./index.html','./workshop-edit.js?v=1','./calendar-controller.js?v=1','./Logo.png','./manifest.webmanifest?v=110','./pala-icon.svg?v=110','./pala-icon-32.png?v=110','./pala-icon-180.png?v=110','./pala-icon-192.png?v=110','./pala-icon-512.png?v=110'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
@@ -14,8 +14,11 @@ async function withAppExtensions(response){
   const type=response.headers.get('content-type')||'';
   if(!type.includes('text/html'))return response;
   let html=await response.text();
+  // Remove the two temporary calendar layers from both fresh and previously cached HTML.
+  html=html.replace(/<script\s+src=["']calendar-stability\.js[^"']*["']><\/script>/gi,'');
+  html=html.replace(/<script\s+src=["']calendar-order-fixes\.js[^"']*["']><\/script>/gi,'');
   if(!html.includes('workshop-edit.js'))html=html.replace('</body>','<script src="workshop-edit.js?v=1"></script></body>');
-  if(!html.includes('calendar-stability.js'))html=html.replace('</body>','<script src="calendar-stability.js?v=1"></script></body>');
+  if(!html.includes('calendar-controller.js'))html=html.replace('</body>','<script src="calendar-controller.js?v=1"></script></body>');
   const headers=new Headers(response.headers);headers.delete('content-length');
   return new Response(html,{status:response.status,statusText:response.statusText,headers});
 }
