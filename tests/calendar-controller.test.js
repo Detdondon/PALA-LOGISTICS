@@ -117,4 +117,31 @@ const activeOrderCard=sandbox.orderCard({id:22,status:'På lager'});
 assert.ok(!completedOrderCard.includes('Pak / Retur'),'completed orders must not expose Pak / Retur');
 assert.ok(activeOrderCard.includes('Pak / Retur'),'active orders must keep Pak / Retur');
 
+
+// Open damages are pinned first only when the Systue type filter is selected.
+sandbox.calDate=new Date(2026,8,13);
+sandbox.calendarViewMode='list';
+sandbox.mainCalendarTypeFilterV120='workshop';
+sandbox.mainCalendarStatusFilterV123='all';
+sandbox.workshopJobs=[{id:31,status:'Åben',start_date:'2026-09-20',end_date:'2026-09-20',title:'Nyere systuejob'}];
+sandbox.workshopTasks=[
+  {id:41,status:'open',range:{start:'2026-09-02',end:'2026-09-02'},tent_name:'Gammel åben skade'},
+  {id:42,status:'completed',range:{start:'2026-09-25',end:'2026-09-25'},tent_name:'Nyere afsluttet skade'}
+];
+sandbox.setCalendarSortV150('date_desc');
+sandbox.renderMainCalendarListV121();
+assert.ok(host.innerHTML.indexOf('task-41')>=0,'open workshop damage must be present');
+assert.ok(host.innerHTML.indexOf('task-41')<host.innerHTML.indexOf('task-42'),'open workshop damage must be first when Systue is selected');
+assert.ok(host.innerHTML.indexOf('task-41')<host.innerHTML.indexOf('workshop-31'),'open workshop damage must be above workshop jobs when Systue is selected');
+
+const workshopMonthHtml=sandbox.calendarMonthDetailHtmlV157();
+assert.ok(workshopMonthHtml.indexOf('task-41')<workshopMonthHtml.indexOf('task-42'),'calendar month detail must pin open damage first in Systue view');
+
+sandbox.mainCalendarTypeFilterV120='all';
+sandbox.mainCalendarStatusFilterV123='all';
+sandbox.bookings=[{id:51,status:'På lager',start_date:'2026-09-29',end_date:'2026-09-29',customer_name:'Ny ordre'}];
+sandbox.setCalendarSortV150('date_desc');
+sandbox.renderMainCalendarListV121();
+assert.ok(host.innerHTML.indexOf('order-51')<host.innerHTML.indexOf('task-41'),'open damage must not be force-pinned when type filter is Alt');
+
 console.log('calendar-controller regression tests passed');
