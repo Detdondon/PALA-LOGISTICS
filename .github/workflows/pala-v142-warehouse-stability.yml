@@ -1,0 +1,45 @@
+name: Apply PALA v142 warehouse stability
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v142_warehouse_stability.py'
+      - '.github/workflows/pala-v142-warehouse-stability.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused patch
+        run: python .github/pala_v142_warehouse_stability.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused changes
+        run: |
+          git diff --check
+          grep -q "PALA v142 · stable warehouse tabs and explicit navigation only" index.html
+          grep -q "grid-template-columns:repeat(4,minmax(0,1fr))!important" index.html
+          grep -q "data-warehouse-filter=\"${value}\"" .github/pala_v142_warehouse_stability.py
+          grep -q "sessionStorage.setItem('pala_warehouse_filter',requested)" index.html
+          grep -q "swipeMainMenu=function(){return false}" index.html
+          grep -q "badge.textContent='v142'" index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Stabilize warehouse tabs and navigation'
+          git push
