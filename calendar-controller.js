@@ -44,7 +44,7 @@ function dayHtml(ds){let type=mainCalendarTypeFilterV120,rows=[],add=(k,r,t='')=
 orderCard=function(b){let html=baseOrderCard(b),marker=`data-booking-status="${b.id}"`;if(!isAdminLoggedIn()||html.includes(marker))return html;let current=orderStatus(b),opts=['Forespørgsel','På lager','Ude','Afsluttet'],control=`<div class="job-quick-status" onclick="event.stopPropagation()"><label for="cardStatus${b.id}">Jobstatus</label><select id="cardStatus${b.id}" data-booking-status="${b.id}" onclick="event.stopPropagation()" onchange="event.stopPropagation();quickSetBookingStatus(${b.id},this.value)">${opts.map(v=>`<option value="${v}" ${current===v?'selected':''}>${v}</option>`).join('')}</select></div>`;return html.replace('<div class="job-actions',control+'<div class="job-actions')};
 function months(){let a=[];for(let n=-36;n<=36;n++){let d=new Date(calDate.getFullYear(),calDate.getMonth()+n,1),value=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,raw=new Intl.DateTimeFormat(locale,{month:'long',year:'numeric'}).format(d);a.push({value,label:raw.charAt(0).toUpperCase()+raw.slice(1)})}return a}
 function counts(){let w=monthWindow(),orders=bookings.filter(r=>r.status!=='Annulleret'&&date(r.start_date)&&date(r.end_date)&&date(r.start_date)<=w.last&&date(r.end_date)>=w.first).length,staffing=staffingShifts.filter(r=>!leave(r)&&date(r.shift_date)>=w.first&&date(r.shift_date)<=w.last).length,under=staffingShifts.filter(r=>!leave(r)&&date(r.shift_date)>=w.first&&date(r.shift_date)<=w.last&&understaffed(r)).length,workshop=workshopJobs.filter(r=>r.status!=='Annulleret'&&date(r.start_date)<=w.last&&date(r.end_date)>=w.first).length+workshopTasks.filter(r=>{if(typeof workshopTaskRangeV120!=='function')return false;let x=workshopTaskRangeV120(r);return x&&x.start<=w.last&&x.end>=w.first}).length;return{orders,staffing,under,workshop}}
-showCalendar=async function(){act('nc');history.replaceState(null,'',location.pathname);normalizeFilter();persist();let w=monthWindow(),g=gridWindow(),selected=staffDateString(calDate),value=`${calDate.getFullYear()}-${String(calDate.getMonth()+1).padStart(2,'0')}`,raw=new Intl.DateTimeFormat(locale,{month:'long',year:'numeric'}).format(calDate),heading=raw.charAt(0).toUpperCase()+raw.slice(1),c=counts(),sr=statusRows(mainCalendarTypeFilterV120),sortRows=[['date_asc','Dato · ældste først'],['date_desc','Dato · nyeste først'],['name_asc','Navn · A–Å'],['name_desc','Navn · Å–A'],['type','Type'],['status','Status']];app.innerHTML=`<div class="card calendar-control-card calendar-controller-v150"><div class="calendar-toolbar-top"><div class="calendar-toolbar-title"><h2>${esc(heading)}</h2><div class="small muted">${calendarViewMode==='list'?'Hele den valgte måned':'Månedsoversigt'} · ${esc(fmtDateDa(w.first))} – ${esc(fmtDateDa(w.last))}</div></div><div class="view-switch"><button class="btn ${calendarViewMode==='calendar'?'active':''}" onclick="setCalendarView('calendar')">${uiIcon('calendar')} Kalender</button><button class="btn ${calendarViewMode==='list'?'active':''}" onclick="setCalendarView('list')">${uiIcon('list')} Liste</button></div></div><div class="calendar-nav-controls"><button class="btn calendar-nav-step" onclick="mv(-1)" aria-label="Vis forrige måned">${uiIcon('chevronLeft')} <span class="calendar-nav-label">1 måned</span></button><button class="btn calendar-today" onclick="goCalendarToday()">${uiIcon('calendar')} I dag</button><select class="compact-select calendar-month-select" onchange="jumpCalendarMonth(this.value)">${months().map(x=>`<option value="${x.value}" ${x.value===value?'selected':''}>${esc(x.label)}</option>`).join('')}</select><button class="btn calendar-nav-step" onclick="mv(1)" aria-label="Vis næste måned"><span class="calendar-nav-label">1 måned</span> ${uiIcon('chevronRight')}</button></div><div class="unified-calendar-tools-v123 calendar-tools-v150"><div class="unified-filter-grid-v123 calendar-filter-grid-v150"><label><span>Vis</span><select class="compact-select" onchange="setUnifiedCalendarTypeV123(this.value)"><option value="all" ${mainCalendarTypeFilterV120==='all'?'selected':''}>Alt</option><option value="orders" ${mainCalendarTypeFilterV120==='orders'?'selected':''}>Ordrer</option><option value="staffing" ${mainCalendarTypeFilterV120==='staffing'?'selected':''}>Bemanding</option><option value="workshop" ${mainCalendarTypeFilterV120==='workshop'?'selected':''}>Systue</option></select></label><label><span>Status</span><select class="compact-select" onchange="setUnifiedCalendarStatusV123(this.value)">${sr.map(([v,l])=>`<option value="${v}" ${mainCalendarStatusFilterV123===v?'selected':''}>${l}</option>`).join('')}</select></label>${calendarViewMode==='list'?`<label><span>Sortering</span><select class="compact-select" onchange="setCalendarSortV150(this.value)">${sortRows.map(([v,l])=>`<option value="${v}" ${calendarSortV150===v?'selected':''}>${l}</option>`).join('')}</select></label>`:''}</div><div class="unified-calendar-summary-v123"><button class="pill reference-button" onclick="setUnifiedCalendarTypeV123('orders')">${uiIcon('calendar')}${c.orders} ordrer</button><button class="pill reference-button ${c.under?'red':''}" onclick="setUnifiedCalendarTypeV123('staffing')">${uiIcon('people')}${c.staffing} vagter${c.under?` · ${c.under} mangler folk`:''}</button><button class="pill reference-button" onclick="setUnifiedCalendarTypeV123('workshop')">${uiIcon('scissors')}${c.workshop} systue</button></div><div class="unified-calendar-actions-v123">${typeof showStaffingExportDialog==='function'?`<button class="btn" onclick="showStaffingExportDialog()">${uiIcon('document')} Bemandingsplan PDF</button>`:''}${isAdminLoggedIn()&&typeof showProductionPlanExportDialog==='function'?`<button class="btn" onclick="showProductionPlanExportDialog()">${uiIcon('document')} Produktionsplan</button>`:''}</div></div></div>${calendarViewMode==='calendar'?`<div class="card calendar-grid-card"><div class="calendar-large-wrap"><div class="staff-calendar calendar-large">${sharedCalendarWeekdays()}${sharedCalendarCells(g.start,g.days,selected,'calendar')}</div></div><div class="small muted calendar-grid-caption">Viser hele måneden. Dage fra nabomåneder er med som overgang. Tryk på en aktivitet for detaljer.</div></div><div class="card"><div><div class="small muted">UGE ${isoWeekNumber(selected)}</div><h2 class="calendar-day-title">${esc(weekdayDateDa(selected))}</h2></div><div class="calendar-detail-list">${dayHtml(selected)}</div></div>`:`<div class="card view-list"></div>`}`;if(calendarViewMode==='list')renderList();if(typeof ensureUnifiedNavV123==='function')ensureUnifiedNavV123();if(calendarViewMode==='calendar'&&typeof installCalendarSwipe==='function')setTimeout(()=>installCalendarSwipe('calendar'),0)};
+showCalendar=async function(){act('nc');history.replaceState(null,'',location.pathname);normalizeFilter();persist();let w=monthWindow(),g=gridWindow(),selected=staffDateString(calDate),value=`${calDate.getFullYear()}-${String(calDate.getMonth()+1).padStart(2,'0')}`,raw=new Intl.DateTimeFormat(locale,{month:'long',year:'numeric'}).format(calDate),heading=raw.charAt(0).toUpperCase()+raw.slice(1),c=counts(),sr=statusRows(mainCalendarTypeFilterV120),sortRows=[['date_asc','Dato · ældste først'],['date_desc','Dato · nyeste først'],['name_asc','Navn · A–Å'],['name_desc','Navn · Å–A'],['type','Type'],['status','Status']];app.innerHTML=`<div class="card calendar-control-card calendar-controller-v150"><div class="calendar-toolbar-top"><div class="calendar-toolbar-title"><h2>${esc(heading)}</h2><div class="small muted">${calendarViewMode==='list'?'Hele den valgte måned':'Månedsoversigt'} · ${esc(fmtDateDa(w.first))} – ${esc(fmtDateDa(w.last))}</div></div><div class="view-switch"><button class="btn ${calendarViewMode==='calendar'?'active':''}" onclick="setCalendarView('calendar')">${uiIcon('calendar')} Kalender</button><button class="btn ${calendarViewMode==='list'?'active':''}" onclick="setCalendarView('list')">${uiIcon('list')} Liste</button></div></div><div class="calendar-nav-controls"><button class="btn calendar-nav-step" onclick="mv(-1)" aria-label="Vis forrige måned">${uiIcon('chevronLeft')} <span class="calendar-nav-label">1 måned</span></button><button class="btn calendar-today" onclick="goCalendarToday()">${uiIcon('calendar')} I dag</button><select class="compact-select calendar-month-select" onchange="jumpCalendarMonth(this.value)">${months().map(x=>`<option value="${x.value}" ${x.value===value?'selected':''}>${esc(x.label)}</option>`).join('')}</select><button class="btn calendar-nav-step" onclick="mv(1)" aria-label="Vis næste måned"><span class="calendar-nav-label">1 måned</span> ${uiIcon('chevronRight')}</button></div><div class="unified-calendar-tools-v123 calendar-tools-v150"><div class="unified-filter-grid-v123 calendar-filter-grid-v150"><label><span>Vis</span><select class="compact-select" onchange="setUnifiedCalendarTypeV123(this.value)"><option value="all" ${mainCalendarTypeFilterV120==='all'?'selected':''}>Alt</option><option value="orders" ${mainCalendarTypeFilterV120==='orders'?'selected':''}>Ordrer</option><option value="staffing" ${mainCalendarTypeFilterV120==='staffing'?'selected':''}>Bemanding</option><option value="workshop" ${mainCalendarTypeFilterV120==='workshop'?'selected':''}>Systue</option></select></label><label><span>Status</span><select class="compact-select" onchange="setUnifiedCalendarStatusV123(this.value)">${sr.map(([v,l])=>`<option value="${v}" ${mainCalendarStatusFilterV123===v?'selected':''}>${l}</option>`).join('')}</select></label>${calendarViewMode==='list'?`<label><span>Sortering</span><select class="compact-select" onchange="setCalendarSortV150(this.value)">${sortRows.map(([v,l])=>`<option value="${v}" ${calendarSortV150===v?'selected':''}>${l}</option>`).join('')}</select></label>`:''}</div><div class="unified-calendar-summary-v123"><button class="pill reference-button" onclick="setUnifiedCalendarTypeV123('orders')">${uiIcon('calendar')}${c.orders} ordrer</button><button class="pill reference-button ${c.under?'red':''}" onclick="setUnifiedCalendarTypeV123('staffing')">${uiIcon('people')}${c.staffing} vagter${c.under?` · ${c.under} mangler folk`:''}</button><button class="pill reference-button" onclick="setUnifiedCalendarTypeV123('workshop')">${uiIcon('scissors')}${c.workshop} systue</button></div><div class="unified-calendar-actions-v123">${typeof showStaffingExportDialog==='function'?`<button class="btn" onclick="showStaffingExportDialog()">${uiIcon('document')} Bemandingsplan PDF</button>`:''}${isAdminLoggedIn()&&typeof showProductionPlanExportDialog==='function'?`<button class="btn" onclick="showProductionPlanExportDialog()">${uiIcon('document')} Produktionsplan</button>`:''}</div></div></div>${calendarViewMode==='calendar'?`<div class="card calendar-grid-card"><div class="calendar-large-wrap"><div class="staff-calendar calendar-large">${sharedCalendarWeekdays()}${sharedCalendarCells(g.start,g.days,selected,'calendar')}</div></div><div class="small muted calendar-grid-caption">Viser hele måneden. Dage fra nabomåneder er med som overgang. Tryk på en aktivitet for detaljer.</div></div><div class="card calendar-day-detail-card"><div><div class="small muted">UGE ${isoWeekNumber(selected)}</div><h2 class="calendar-day-title">${esc(weekdayDateDa(selected))}</h2></div><div class="calendar-detail-list">${dayHtml(selected)}</div></div>`:`<div class="card view-list"></div>`}`;if(calendarViewMode==='list')renderList();if(typeof ensureUnifiedNavV123==='function')ensureUnifiedNavV123();if(calendarViewMode==='calendar'&&typeof installCalendarSwipe==='function')setTimeout(()=>installCalendarSwipe('calendar'),0)};
 if(!document.getElementById('pala-calendar-controller-v150-style')){let s=document.createElement('style');s.id='pala-calendar-controller-v150-style';s.textContent='.calendar-filter-grid-v150{grid-template-columns:repeat(2,minmax(0,1fr))}.calendar-filter-grid-v150 label{min-width:0}.calendar-filter-grid-v150 label select{width:100%}.calendar-list-flat-v150{margin:12px 0 18px}.calendar-list-meta-v150{font-size:11px;font-weight:800;color:#667085;letter-spacing:.02em;margin:0 0 6px 4px}.calendar-controller-v150 .calendar-month-select{min-width:170px}@media(min-width:700px){.calendar-filter-grid-v150:has(label:nth-child(3)){grid-template-columns:repeat(3,minmax(0,1fr))}}@media(max-width:620px){.calendar-controller-v150 .calendar-nav-controls{display:grid;grid-template-columns:auto auto 1fr auto}.calendar-controller-v150 .calendar-month-select{min-width:0}.calendar-filter-grid-v150{grid-template-columns:1fr 1fr}.calendar-filter-grid-v150 label:nth-child(3){grid-column:1/-1}}';document.head.appendChild(s)}
 
 /* PALA v151 · dense full-month list */
@@ -88,6 +88,90 @@ if(!document.getElementById('pala-calendar-list-v151-style')){
     .view-list .job-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   }`;
   document.head.appendChild(compact);
+}
+
+
+/* PALA v152 · compact calendar day/list cards */
+if(!document.getElementById('pala-calendar-compact-cards-v152')){
+  let compactCards=document.createElement('style');
+  compactCards.id='pala-calendar-compact-cards-v152';
+  compactCards.textContent=`
+  .calendar-day-detail-card{padding:10px 12px!important;margin-top:8px!important;border-radius:14px!important;box-shadow:none!important}
+  .calendar-day-detail-card>.row,.calendar-day-detail-card>div:first-child{margin:0!important}
+  .calendar-day-detail-card .calendar-day-title{font-size:22px!important;line-height:1.05!important;margin:1px 0 7px!important}
+  .calendar-day-detail-card>div:first-child>.small{font-size:10px!important;line-height:1.1!important}
+  .calendar-detail-list{gap:5px!important}
+
+  .calendar-detail-list .job-card,.calendar-detail-list .staff-card,.calendar-detail-list .workshop-job-card,.calendar-detail-list .workshop-task,
+  .view-list .job-card,.view-list .staff-card,.view-list .workshop-job-card,.view-list .workshop-task{
+    margin:2px 0!important;padding:7px 8px!important;border-radius:9px!important;box-shadow:none!important;
+  }
+  .calendar-detail-list .job-head,.view-list .job-head{grid-template-columns:minmax(0,1fr) auto!important;gap:6px!important;align-items:center!important}
+  .calendar-detail-list .job-title,.view-list .job-title,
+  .calendar-detail-list .workshop-job-card h3,.view-list .workshop-job-card h3,
+  .calendar-detail-list .workshop-task h3,.view-list .workshop-task h3,
+  .calendar-detail-list .staff-card h3,.view-list .staff-card h3{
+    font-size:14px!important;line-height:1.08!important;margin:0 0 2px!important;letter-spacing:0!important;
+  }
+  .calendar-detail-list .job-date,.view-list .job-date,
+  .calendar-detail-list .small,.view-list .small,
+  .calendar-detail-list .workshop-job-meta,.view-list .workshop-job-meta,
+  .calendar-detail-list .workshop-task-meta,.view-list .workshop-task-meta{
+    font-size:9.5px!important;line-height:1.15!important;
+  }
+  .calendar-detail-list .job-date,.view-list .job-date{gap:3px!important;margin:0!important}
+  .calendar-detail-list .job-date .ui-icon,.view-list .job-date .ui-icon,
+  .calendar-detail-list .metric-chip .ui-icon,.view-list .metric-chip .ui-icon,
+  .calendar-detail-list .btn .ui-icon,.view-list .btn .ui-icon{width:10px!important;height:10px!important}
+  .calendar-detail-list .job-status-col,.view-list .job-status-col{gap:2px!important;min-width:0!important;align-items:flex-end!important}
+  .calendar-detail-list .pill,.view-list .pill,
+  .calendar-detail-list .metric-chip,.view-list .metric-chip,
+  .calendar-detail-list .workshop-status,.view-list .workshop-status,
+  .calendar-detail-list .leader-badge,.view-list .leader-badge,
+  .calendar-detail-list .leader-missing,.view-list .leader-missing{
+    font-size:9px!important;line-height:1.05!important;padding:2px 5px!important;border-radius:999px!important;
+  }
+  .calendar-detail-list .job-metrics,.view-list .job-metrics{
+    display:flex!important;flex-wrap:wrap!important;margin-top:4px!important;padding-top:4px!important;gap:3px!important;
+  }
+  .calendar-detail-list .job-quick-status,.view-list .job-quick-status{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:5px!important;margin:4px 0 0!important;
+  }
+  .calendar-detail-list .job-quick-status label,.view-list .job-quick-status label{
+    font-size:9px!important;line-height:1!important;margin:0!important;white-space:nowrap!important;
+  }
+  .calendar-detail-list .job-quick-status select,.view-list .job-quick-status select{
+    width:auto!important;min-width:92px!important;min-height:28px!important;height:28px!important;padding:2px 24px 2px 7px!important;font-size:11px!important;line-height:1!important;border-radius:7px!important;
+  }
+  .calendar-detail-list .job-actions,.view-list .job-actions{
+    display:flex!important;flex-wrap:wrap!important;gap:4px!important;margin-top:5px!important;justify-content:flex-start!important;
+  }
+  .calendar-detail-list .job-actions .btn,.view-list .job-actions .btn,
+  .calendar-detail-list .staff-card .btn,.view-list .staff-card .btn,
+  .calendar-detail-list .workshop-job-card .btn,.view-list .workshop-job-card .btn,
+  .calendar-detail-list .workshop-task .btn,.view-list .workshop-task .btn{
+    width:auto!important;min-width:0!important;min-height:29px!important;padding:5px 9px!important;font-size:10.5px!important;line-height:1.05!important;border-radius:8px!important;box-shadow:none!important;
+  }
+  .calendar-detail-list .job-actions .btn.primary,.view-list .job-actions .btn.primary{flex:0 0 auto!important}
+  .calendar-detail-list .order-note,.view-list .order-note{font-size:9px!important;line-height:1.15!important;margin:3px 0 0!important}
+  .calendar-detail-list .staff-people,.view-list .staff-people{gap:3px!important;margin:3px 0!important}
+  .calendar-detail-list .staff-person,.view-list .staff-person{font-size:8.5px!important;padding:2px 5px!important}
+  .calendar-detail-list .workshop-task p,.view-list .workshop-task p{font-size:9.5px!important;line-height:1.15!important;margin:3px 0!important}
+  .calendar-detail-list .workshop-task-meta,.view-list .workshop-task-meta{gap:3px!important;margin-top:3px!important}
+
+  @media(max-width:620px){
+    .calendar-day-detail-card{padding:8px 9px!important;border-radius:12px!important}
+    .calendar-day-detail-card .calendar-day-title{font-size:19px!important;margin-bottom:5px!important}
+    .calendar-detail-list{gap:3px!important}
+    .calendar-detail-list .job-card,.calendar-detail-list .staff-card,.calendar-detail-list .workshop-job-card,.calendar-detail-list .workshop-task,
+    .view-list .job-card,.view-list .staff-card,.view-list .workshop-job-card,.view-list .workshop-task{padding:6px 7px!important;margin:1px 0!important}
+    .calendar-detail-list .job-title,.view-list .job-title,
+    .calendar-detail-list .workshop-job-card h3,.view-list .workshop-job-card h3,
+    .calendar-detail-list .workshop-task h3,.view-list .workshop-task h3,
+    .calendar-detail-list .staff-card h3,.view-list .staff-card h3{font-size:13px!important}
+    .calendar-detail-list .job-actions .btn,.view-list .job-actions .btn{min-height:28px!important;padding:4px 8px!important;font-size:10px!important}
+  }`;
+  document.head.appendChild(compactCards);
 }
 
 })();
