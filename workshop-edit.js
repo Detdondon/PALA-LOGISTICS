@@ -1,4 +1,4 @@
-// PALA systue: redigering af skade for admin eller skadens opretter.
+// PALA systue: redigering/sletning af skade for admin eller skadens opretter.
 (() => {
   const baseWorkshopTaskCard = workshopTaskCard;
 
@@ -11,7 +11,7 @@
     if (!canEditWorkshopDamage(task)) return html;
     return html.replace(
       '<div class="workshop-task-actions">',
-      `<div class="workshop-task-actions"><button class="btn" onclick="editWorkshopDamage(${+task.id})">${uiIcon('edit')} Redigér skade</button>`
+      `<div class="workshop-task-actions"><button class="btn" onclick="editWorkshopDamage(${+task.id})">${uiIcon('edit')} Redigér skade</button><button class="btn bad" onclick="deleteWorkshopDamage(${+task.id})">${uiIcon('trash')} Slet skade</button>`
     );
   };
 
@@ -57,5 +57,27 @@
       },
       'Gem skade'
     );
+  };
+
+  window.deleteWorkshopDamage = async function(id) {
+    const task = workshopTasks.find(x => +x.id === +id);
+    if (!task) return alert('Skaden findes ikke.');
+    if (!canEditWorkshopDamage(task)) return alert('Kun opretteren eller en admin kan slette skaden.');
+    if (!confirm('Slet skaden permanent? Et eventuelt skadebillede slettes også.')) return;
+
+    try {
+      await checkedRpc('employee_delete_workshop_task', {
+        p_token: employeeToken,
+        p_task_id: +id
+      });
+      if (typeof damagePhotoIds !== 'undefined') damagePhotoIds.delete(+id);
+      await Promise.all([
+        loadWorkshopData(),
+        typeof loadWarehouseExtensions === 'function' ? loadWarehouseExtensions() : Promise.resolve()
+      ]);
+      await route();
+    } catch (error) {
+      alert('Kunne ikke slette skaden: ' + String(error?.message || error));
+    }
   };
 })();
