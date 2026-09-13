@@ -1,0 +1,45 @@
+name: Apply PALA v137 core admin calendar default
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v137_core_admin_calendar_default.py'
+      - '.github/workflows/pala-v137-core-admin-calendar-default.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused patch
+        run: python .github/pala_v137_core_admin_calendar_default.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused change
+        run: |
+          git diff --check
+          grep -q "PALA v137 · core admins start calendar on all" index.html
+          grep -q "\[1,2,3\].includes(+employeeId)" index.html
+          grep -q "mainCalendarTypeFilterV120='all'" index.html
+          grep -q "mainCalendarStatusFilterV123='all'" index.html
+          grep -q "pala_core_admin_calendar_default_v137" index.html
+          grep -q "v137" index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Default core admin calendar to all'
+          git push
