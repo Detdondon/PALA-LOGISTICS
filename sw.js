@@ -1,5 +1,5 @@
-/* PALA recovery service worker v169
-   Network-first navigation, no app cache, pinned Supabase fallback and startup guard. */
+/* PALA recovery service worker v170
+   Network-first navigation, no app cache, stable Supabase SDK and startup guard. */
 
 self.addEventListener('install',event=>{
   event.waitUntil(self.skipWaiting());
@@ -30,16 +30,18 @@ const STARTUP_GUARD=`<script>(function(){
   },15000);
 })();<\/script>`;
 
+const STABLE_SUPABASE='<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.3/dist/umd/supabase.js" onerror="this.onerror=null;this.src=\'https://unpkg.com/@supabase/supabase-js@2.45.3/dist/umd/supabase.js\'"></script>';
+
 async function withAppExtensions(response){
   if(!response)return response;
   const type=response.headers.get('content-type')||'';
   if(!type.includes('text/html'))return response;
   let html=await response.text();
 
-  // Pin the browser SDK and move away from the previously unpinned jsDelivr URL.
+  // Never allow an unpinned or newly released Supabase browser SDK to decide production startup.
   html=html.replace(
-    /<script\s+src=["']https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2["']><\/script>/i,
-    '<script src="https://unpkg.com/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>'
+    /<script\s+src=["']https:\/\/(?:cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2|unpkg\.com\/@supabase\/supabase-js@2\.116\.0\/dist\/umd\/supabase\.js)["'][^>]*><\/script>/i,
+    STABLE_SUPABASE
   );
   if(!html.includes('__palaStartupError'))html=html.replace('</head>',STARTUP_GUARD+'</head>');
 
