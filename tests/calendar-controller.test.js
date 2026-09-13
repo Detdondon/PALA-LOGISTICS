@@ -72,4 +72,23 @@ assert.equal(store.get('pala_calendar_view'),'list','view choice must persist');
 sandbox.setCalendarSortV150('name_desc');
 assert.equal(store.get('pala_calendar_sort'),'name_desc','sort choice must persist');
 
+
+// The list view must include the complete selected calendar month and exclude adjacent months.
+const host={innerHTML:''};
+sandbox.app.querySelector=selector=>selector==='.view-list'?host:null;
+sandbox.calendarViewMode='list';
+sandbox.calDate=new Date(2026,0,15);
+sandbox.mainCalendarTypeFilterV120='orders';
+sandbox.mainCalendarStatusFilterV123='all';
+sandbox.bookings=[
+  {id:11,status:'På lager',start_date:'2026-01-01',end_date:'2026-01-01',customer_name:'Første dag'},
+  {id:12,status:'På lager',start_date:'2026-01-31',end_date:'2026-01-31',customer_name:'Sidste dag'},
+  {id:13,status:'På lager',start_date:'2026-02-01',end_date:'2026-02-01',customer_name:'Næste måned'}
+];
+sandbox.setCalendarSortV150('date_asc');
+sandbox.renderMainCalendarListV121();
+assert.ok(host.innerHTML.includes('order-11'),'full selected month must be represented in list view: first day missing');
+assert.ok(host.innerHTML.includes('order-12'),'full selected month must be represented in list view: last day missing');
+assert.ok(!host.innerHTML.includes('order-13'),'list view must not leak activities from the next month');
+
 console.log('calendar-controller regression tests passed');
