@@ -1,0 +1,41 @@
+name: Apply PALA v158 hide pack completed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v158_hide_pack_completed_trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply focused patch
+        run: python .github/pala_v158_hide_pack_completed_patch.py
+      - name: Syntax checks
+        run: |
+          node --check calendar-controller.js
+          node --check sw.js
+          node --check tests/calendar-controller.test.js
+      - name: Regression tests
+        run: node tests/calendar-controller.test.js
+      - name: Verify requested fix
+        run: |
+          grep -q 'PALA v158 · no pack/return on completed orders' calendar-controller.js
+          grep -q 'completed orders must not expose Pak / Retur' tests/calendar-controller.test.js
+          grep -q 'pala-v158-hide-pack-completed' sw.js
+          grep -q 'calendar-controller.js?v=8' sw.js
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add calendar-controller.js tests/calendar-controller.test.js sw.js index.html
+          git diff --cached --quiet || git commit -m "Hide pack return for completed orders"
+          git push
