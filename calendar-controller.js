@@ -293,4 +293,44 @@ if(!document.getElementById('pala-calendar-readability-v154')){
   document.head.appendChild(readable);
 }
 
+
+/* PALA v155 · status and pack action on one row */
+const orderCardV155Base = orderCard;
+orderCard = function(booking){
+  let html = orderCardV155Base(booking);
+  return html.replace(
+    /(<div class="job-quick-status"[\s\S]*?<\/div>)(<div class="job-actions[^\"]*"[\s\S]*?<\/div>)/,
+    '<div class="job-status-action-row">$1$2</div>'
+  );
+};
+
+if(!document.getElementById('pala-calendar-status-row-v155')){
+  let rowStyle=document.createElement('style');
+  rowStyle.id='pala-calendar-status-row-v155';
+  rowStyle.textContent=`
+  .calendar-detail-list .job-status-action-row,.view-list .job-status-action-row{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;margin-top:5px!important;
+  }
+  .calendar-detail-list .job-status-action-row .job-quick-status,.view-list .job-status-action-row .job-quick-status{
+    flex:1 1 auto!important;min-width:0!important;margin:0!important;justify-content:flex-start!important;
+  }
+  .calendar-detail-list .job-status-action-row .job-actions,.view-list .job-status-action-row .job-actions{
+    flex:0 0 auto!important;display:flex!important;margin:0!important;padding:0!important;align-items:center!important;
+  }
+  .calendar-detail-list .job-status-action-row .job-actions .btn,.view-list .job-status-action-row .job-actions .btn{
+    margin:0!important;white-space:nowrap!important;
+  }
+  @media(max-width:620px){
+    .calendar-detail-list .job-status-action-row,.view-list .job-status-action-row{gap:6px!important;margin-top:4px!important}
+    .calendar-detail-list .job-status-action-row .job-quick-status,.view-list .job-status-action-row .job-quick-status{gap:5px!important}
+    .calendar-detail-list .job-status-action-row .job-quick-status select,.view-list .job-status-action-row .job-quick-status select{
+      min-width:108px!important;width:auto!important;
+    }
+    .calendar-detail-list .job-status-action-row .job-actions .btn,.view-list .job-status-action-row .job-actions .btn{
+      min-height:32px!important;padding:5px 9px!important;
+    }
+  }`;
+  document.head.appendChild(rowStyle);
+}
+
 })();
