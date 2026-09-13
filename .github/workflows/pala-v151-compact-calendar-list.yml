@@ -1,0 +1,40 @@
+name: Apply PALA v151 compact calendar list
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v151_compact_calendar_list_trigger'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Apply focused patch
+        run: python .github/pala_v151_compact_calendar_list.py
+      - name: Syntax checks
+        run: |
+          node --check calendar-controller.js
+          node --check sw.js
+          node --check tests/calendar-controller.test.js
+      - name: Regression tests
+        run: node tests/calendar-controller.test.js
+      - name: Verify loader/cache version
+        run: |
+          grep -q 'calendar-controller.js?v=2' index.html
+          grep -q 'pala-v151-compact-calendar-list' sw.js
+          grep -q 'PALA v151 · dense full-month list' calendar-controller.js
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add calendar-controller.js index.html sw.js tests/calendar-controller.test.js
+          git diff --cached --quiet || git commit -m "Compact full-month calendar list"
+          git push
