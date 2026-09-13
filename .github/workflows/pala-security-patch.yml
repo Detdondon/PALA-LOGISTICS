@@ -1,0 +1,55 @@
+name: PALA security patch
+on:
+  push:
+    paths: ['.github/workflows/pala-security-patch.yml']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Patch frontend
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          def one(old,new,label):
+              global s
+              n=s.count(old)
+              if n==0:
+                  if new in s: return
+                  raise SystemExit(f'{label}: source not found')
+              if n!=1: raise SystemExit(f'{label}: expected 1, found {n}')
+              s=s.replace(old,new)
+          pattern=r"const sb=supabase\.createClient\(([^\n;]+)\);"
+          repl="const palaAuthorizedFetch=(input,init={})=>{const headers=new Headers(init.headers||{}),token=localStorage.getItem('pala_employee_token')||localStorage.getItem('pala_admin_token')||sessionStorage.getItem('pala_employee_token')||sessionStorage.getItem('pala_admin_token')||'';if(token)headers.set('x-pala-token',token);else headers.delete('x-pala-token');return fetch(input,{...init,headers})};\nconst sb=supabase.createClient(\\1,{global:{fetch:palaAuthorizedFetch}});"
+          s,n=re.subn(pattern,repl,s,count=1)
+          if n!=1 and 'palaAuthorizedFetch' not in s: raise SystemExit('Supabase client source not found')
+          one("let e=await sb.from('employees').select('*').order('sort_order').order('name');","let e=await sb.rpc('public_employee_directory');",'employee directory')
+          old="let [b,ss,sa]=await Promise.all([sb.from('bookings').select('*').order('start_date'),sb.from('staffing_shifts').select('*').order('shift_date').order('start_time'),sb.from('staffing_assignments').select('*')]);\n  if(!b.error)bookings=b.data||[];if(!ss.error)staffingShifts=ss.data||[];if(!sa.error)staffingAssignments=sa.data||[];rebuildDataIndexes();"
+          new="let r=await sb.rpc('public_login_preview_data'),d=r.data||{};\n  if(r.error){bookings=[];staffingShifts=[];staffingAssignments=[];return rebuildDataIndexes()}\n  bookings=Array.isArray(d.bookings)?d.bookings:[];staffingShifts=Array.isArray(d.shifts)?d.shifts:[];staffingAssignments=Array.isArray(d.assignments)?d.assignments:[];rebuildDataIndexes();"
+          one(old,new,'public preview')
+          one(".on('postgres_changes',{event:'*',schema:'public'},payload=>scheduleCloudSync(payload))",".on('postgres_changes',{event:'*',schema:'public',table:'pala_sync_events'},payload=>scheduleCloudSync(payload))",'realtime')
+          s=s.replace("if(r.error||!row)return alert('Login mislykkedes. Kontrollér navn og kode.');","if(r.error)return alert(r.error.message||'Login mislykkedes.');if(!row)return alert('Login mislykkedes. Kontrollér navn og kode.');")
+          one("function isLukasAdmin(){return employeeIsAdmin&&normalizedSearchText(employeeName).trim()==='lukas'}","function isLukasAdmin(){return employeeIsAdmin&&!!employees.find(e=>+e.id===+employeeId)?.can_manage_admins}",'admin identity')
+          s=s.replace('Kun Lukas kan ændre adminstatus.','Kun systemejeren kan ændre adminstatus.')
+          old="async function addEmployee(){if(!requireAdmin())return;let name=document.getElementById('newEmpName')?.value.trim();if(!name)return alert('Skriv medarbejderens navn.');let result=await sb.rpc('admin_save_employee',{p_token:adminToken,p_id:null,p_name:name,p_is_admin:!!document.getElementById('newEmpAdmin')?.checked});if(result.error)return alert(result.error.message);await reloadData();showAdminEmployees()}"
+          new="async function addEmployee(){if(!requireAdmin())return;let name=document.getElementById('newEmpName')?.value.trim();if(!name)return alert('Skriv medarbejderens navn.');let p_initial_pin=(prompt('Vælg en unik startkode på 4-8 cifre til medarbejderen:')||'').trim();if(!/^\\d{4,8}$/.test(p_initial_pin))return alert('Startkoden skal være 4-8 cifre.');let result=await sb.rpc('admin_create_employee',{p_token:adminToken,p_name:name,p_is_admin:!!document.getElementById('newEmpAdmin')?.checked,p_initial_pin});if(result.error)return alert(result.error.message);await reloadData();showAdminEmployees()}"
+          one(old,new,'employee create')
+          s=s.replace('Nye medarbejdere får startkoden 4211 og kan derefter selv ændre den i brugermenuen.','Du vælger en unik startkode, når medarbejderen oprettes. Medarbejderen kan derefter selv ændre den i brugermenuen.')
+          p.write_text(s,encoding='utf-8')
+          PY
+          git diff --check
+          if git diff --quiet -- index.html; then exit 0; fi
+          git config user.name 'PALA Security Bot'
+          git config user.email 'actions@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Harden PALA login and database access'
+          git push
