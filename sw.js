@@ -1,6 +1,5 @@
-/* PALA recovery service worker v168
-   Network-first navigation with no app cache. This intentionally clears all
-   previous PALA caches so Safari/PWA clients cannot stay on a stale build. */
+/* PALA recovery service worker v169
+   Network-first navigation, no app cache, pinned Supabase fallback and startup guard. */
 
 self.addEventListener('install',event=>{
   event.waitUntil(self.skipWaiting());
@@ -14,11 +13,36 @@ self.addEventListener('activate',event=>{
   })());
 });
 
+const STARTUP_GUARD=`<script>(function(){
+  window.__palaStartupError='';
+  window.addEventListener('error',function(e){window.__palaStartupError=(e&&e.message)||'JavaScript-fejl';});
+  window.addEventListener('unhandledrejection',function(e){var r=e&&e.reason;window.__palaStartupError=(r&&r.message)||String(r||'Promise-fejl');});
+  setTimeout(function(){
+    var host=document.getElementById('app');
+    if(!host)return;
+    var txt=String(host.textContent||'');
+    if(txt.indexOf('Indlæser')===-1)return;
+    var card=document.createElement('div');card.className='card';
+    var h=document.createElement('h2');h.textContent='PALA kunne ikke starte';card.appendChild(h);
+    var p=document.createElement('p');p.className='muted';p.textContent=window.__palaStartupError||'Opstarten fik ikke svar inden for 15 sekunder.';card.appendChild(p);
+    var b=document.createElement('button');b.className='btn primary';b.textContent='Prøv igen';b.onclick=function(){location.reload()};card.appendChild(b);
+    host.replaceChildren(card);
+  },15000);
+})();<\/script>`;
+
 async function withAppExtensions(response){
   if(!response)return response;
   const type=response.headers.get('content-type')||'';
   if(!type.includes('text/html'))return response;
   let html=await response.text();
+
+  // Pin the browser SDK and move away from the previously unpinned jsDelivr URL.
+  html=html.replace(
+    /<script\s+src=["']https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@2["']><\/script>/i,
+    '<script src="https://unpkg.com/@supabase/supabase-js@2.116.0/dist/umd/supabase.js"></script>'
+  );
+  if(!html.includes('__palaStartupError'))html=html.replace('</head>',STARTUP_GUARD+'</head>');
+
   html=html.replace(/<script\s+src=["']calendar-stability\.js[^"']*["']><\/script>/gi,'');
   html=html.replace(/<script\s+src=["']calendar-order-fixes\.js[^"']*["']><\/script>/gi,'');
   if(!html.includes('workshop-edit.js'))html=html.replace('</body>','<script src="workshop-edit.js?v=3"></script></body>');
@@ -37,6 +61,10 @@ self.addEventListener('fetch',event=>{
   const url=new URL(event.request.url);
   if(url.origin!==location.origin)return;
   if(event.request.mode==='navigate'){
+    if(url.pathname.endsWith('/recovery.html')){
+      event.respondWith(fetch(event.request,{cache:'no-store'}));
+      return;
+    }
     event.respondWith(fetch(event.request,{cache:'no-store'}).then(withAppExtensions));
   }
 });
