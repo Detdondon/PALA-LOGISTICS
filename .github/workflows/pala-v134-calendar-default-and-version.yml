@@ -1,0 +1,45 @@
+name: Apply PALA v134 calendar default and version
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/pala_v134_calendar_default_and_version.py'
+      - '.github/workflows/pala-v134-calendar-default-and-version.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply focused patch
+        run: python .github/pala_v134_calendar_default_and_version.py
+      - name: Verify JavaScript syntax
+        run: |
+          node <<'NODE'
+          const fs=require('fs');
+          const html=fs.readFileSync('index.html','utf8');
+          const scripts=[...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(s=>s.trim());
+          scripts.forEach(code=>new Function(code));
+          console.log('Inline JavaScript syntax OK');
+          NODE
+      - name: Verify focused change
+        run: |
+          git diff --check
+          grep -q "PALA v134 · calendar defaults and admin-only version badge" index.html
+          grep -q "calendarViewMode='calendar'" index.html
+          grep -q "openCalendarDefaultV134" index.html
+          grep -q "badge.textContent='v134'" index.html
+          grep -q "employeeIsAdmin&&adminModeEnabled" index.html
+          grep -q 'app-version" hidden>v134' index.html
+      - name: Commit update
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Default calendar view and show version only in admin mode'
+          git push
