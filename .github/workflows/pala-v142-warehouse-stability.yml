@@ -31,7 +31,7 @@ jobs:
           git diff --check
           grep -q "PALA v142 · stable warehouse tabs and explicit navigation only" index.html
           grep -q "grid-template-columns:repeat(4,minmax(0,1fr))!important" index.html
-          grep -q "data-warehouse-filter=\"${value}\"" .github/pala_v142_warehouse_stability.py
+          grep -q "data-warehouse-filter" index.html
           grep -q "sessionStorage.setItem('pala_warehouse_filter',requested)" index.html
           grep -q "swipeMainMenu=function(){return false}" index.html
           grep -q "badge.textContent='v142'" index.html
