@@ -16,7 +16,7 @@ button{border:0;border-radius:16px;padding:13px 18px;font:inherit;font-weight:80
 <body>
 <div class="card">
 <h1>Gendanner PALA</h1>
-<p id="status">Rydder gammel app-cache og installerer den aktuelle version…</p>
+<p id="status">Installerer stabil PALA-opstart…</p>
 <div class="spinner" id="spinner"></div>
 <button id="retry" onclick="location.reload()">Prøv igen</button>
 </div>
@@ -28,7 +28,7 @@ button{border:0;border-radius:16px;padding:13px 18px;font:inherit;font-weight:80
     if('serviceWorker' in navigator){
       const regs=await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map(r=>r.unregister()));
-      const reg=await navigator.serviceWorker.register('./sw.js?v=169',{scope:'./',updateViaCache:'none'});
+      const reg=await navigator.serviceWorker.register('./sw.js?v=170',{scope:'./',updateViaCache:'none'});
       await reg.update();
       let worker=reg.installing||reg.waiting||reg.active;
       if(worker&&worker.state!=='activated')await new Promise((resolve,reject)=>{
@@ -37,8 +37,8 @@ button{border:0;border-radius:16px;padding:13px 18px;font:inherit;font-weight:80
       });
       await new Promise(resolve=>setTimeout(resolve,500));
     }
-    status.textContent='PALA er nulstillet. Åbner appen…';
-    location.replace('./?recovered='+Date.now());
+    status.textContent='Stabil version installeret. Åbner PALA…';
+    location.replace('./?recovered=v170-'+Date.now());
   }catch(err){
     console.error(err);status.textContent='Recovery fejlede: '+(err&&err.message?err.message:String(err));spinner.style.display='none';retry.style.display='inline-block';
   }
