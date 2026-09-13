@@ -91,4 +91,23 @@ assert.ok(host.innerHTML.includes('order-11'),'full selected month must be repre
 assert.ok(host.innerHTML.includes('order-12'),'full selected month must be represented in list view: last day missing');
 assert.ok(!host.innerHTML.includes('order-13'),'list view must not leak activities from the next month');
 
+
+// Bemanding + Ubemandet must show missing-staff shifts anywhere in the selected month
+// in the list shown below the calendar, not only on the selected day.
+sandbox.calendarViewMode='calendar';
+sandbox.calDate=new Date(2026,8,13);
+sandbox.mainCalendarTypeFilterV120='staffing';
+sandbox.mainCalendarStatusFilterV123='understaffed';
+sandbox.staffingShifts=[
+  {id:2,shift_date:'2026-09-24',workers_needed:3,done:false,title:'Mangler folk'},
+  {id:1,shift_date:'2026-09-25',workers_needed:1,done:false,title:'Fuldt bemandet'},
+  {id:4,shift_date:'2026-10-01',workers_needed:2,done:false,title:'Næste måned'},
+  {id:5,shift_date:'2026-09-14',workers_needed:1,done:false,leave:true,title:'Fravær'}
+];
+const staffingMonthHtml=sandbox.calendarMonthDetailHtmlV157();
+assert.ok(staffingMonthHtml.includes('staff-2'),'understaffed staffing must appear in the full-month detail list');
+assert.ok(!staffingMonthHtml.includes('staff-1'),'fully staffed shift must not appear in understaffed filter');
+assert.ok(!staffingMonthHtml.includes('staff-4'),'next-month shift must not leak into selected month');
+assert.ok(!staffingMonthHtml.includes('staff-5'),'leave row must not count as understaffed staffing');
+
 console.log('calendar-controller regression tests passed');
