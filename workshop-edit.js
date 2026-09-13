@@ -1,4 +1,4 @@
-// PALA systue: redigering/sletning af skade for admin eller skadens opretter.
+// PALA v156 systue: redigering/sletning af skade for admin eller skadens opretter.
 (() => {
   const baseWorkshopTaskCard = workshopTaskCard;
 
