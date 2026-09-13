@@ -1,14 +1,14 @@
-/* PALA v164 · optically matched settings icon stroke
-   Keeps the approved gear silhouette, but matches the visual weight of the PALA icon set. */
+/* PALA v175 · stable settings icon
+   Keeps the approved gear silhouette and only replaces the old default icon once. */
 (()=>{
 'use strict';
-if(window.__palaSettingsIconV164)return;
-window.__palaSettingsIconV164=true;
+if(window.__palaSettingsIconV175)return;
+window.__palaSettingsIconV175=true;
 
 const GEAR_OUTLINE='<path d="M10.46 2.09 9.15 4.25 6.18 4.01 3.76 6.3 4.42 8.53 2.08 10.44 2 13.64 4.05 14.97 3.65 17.84 5.86 20.07 8.14 19.49 10.19 21.8 13.6 21.85 14.79 19.94 17.9 20.2 20.24 18 19.55 15.84 21.89 13.98 21.97 10.74 19.95 9.46 20.35 6.51 18.14 4.19 15.88 4.73 13.84 2.17Z"/><circle cx="12" cy="12" r="4.15"/>';
 
 function gearSvg(cls='ui-icon icon-action'){
-  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${GEAR_OUTLINE}</svg>`;
+  return `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" data-pala-settings-icon="1">${GEAR_OUTLINE}</svg>`;
 }
 
 try{
@@ -23,19 +23,17 @@ if(typeof baseUiIcon==='function'){
   };
 }
 
-function isSettingsIcon(svg){
-  if(!svg||svg.tagName?.toLowerCase()!=='svg')return false;
+function isOldSettingsIcon(svg){
+  if(!svg||svg.tagName?.toLowerCase()!=='svg'||svg.dataset?.palaSettingsIcon==='1')return false;
   const paths=[...svg.querySelectorAll('path')].map(path=>String(path.getAttribute('d')||''));
-  const oldDefault=svg.querySelector('circle[cx="12"][cy="12"][r="3"]')&&paths.some(d=>d.startsWith('M19.4 15'));
-  const approved=paths.some(d=>d.startsWith('M10.46 2.09'));
-  return !!(oldDefault||approved);
+  return !!(svg.querySelector('circle[cx="12"][cy="12"][r="3"]')&&paths.some(d=>d.startsWith('M19.4 15')));
 }
 function replaceExisting(root=document){
   const list=[];
   if(root?.matches?.('svg'))list.push(root);
   root?.querySelectorAll?.('svg')?.forEach(svg=>list.push(svg));
   list.forEach(svg=>{
-    if(!isSettingsIcon(svg))return;
+    if(!isOldSettingsIcon(svg))return;
     const template=document.createElement('template');
     template.innerHTML=gearSvg(svg.getAttribute('class')||'ui-icon icon-action');
     svg.replaceWith(template.content.firstElementChild);
