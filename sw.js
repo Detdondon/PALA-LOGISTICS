@@ -1,5 +1,5 @@
-const CACHE='pala-v164-settings-icon-weight';
-const CORE=['./fonts/inter-400.ttf','./fonts/inter-700.ttf','./','./index.html','./workshop-edit.js?v=3','./calendar-controller.js?v=9','./calendar-toolbar.js?v=1','./settings-icon.js?v=3','./warehouse-categories.js?v=1','./Logo.png','./manifest.webmanifest?v=110','./pala-icon.svg?v=110','./pala-icon-32.png?v=110','./pala-icon-180.png?v=110','./pala-icon-192.png?v=110','./pala-icon-512.png?v=110'];
+const CACHE='pala-v165-settings-icon-refresh';
+const CORE=['./fonts/inter-400.ttf','./fonts/inter-700.ttf','./','./index.html','./workshop-edit.js?v=3','./calendar-controller.js?v=9','./calendar-toolbar.js?v=1','./settings-icon.js?v=4','./warehouse-categories.js?v=1','./Logo.png','./manifest.webmanifest?v=110','./pala-icon.svg?v=110','./pala-icon-32.png?v=110','./pala-icon-180.png?v=110','./pala-icon-192.png?v=110','./pala-icon-512.png?v=110'];
 
 self.addEventListener('install',event=>{
   event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(CORE)).then(()=>self.skipWaiting()));
@@ -22,7 +22,7 @@ async function withAppExtensions(response){
   html=html.replace(/<script\s+src=["']calendar-toolbar\.js[^"']*["']><\/script>/gi,'');
   html=html.replace(/<script\s+src=["']settings-icon\.js[^"']*["']><\/script>/gi,'');
   html=html.replace(/<script\s+src=["']warehouse-categories\.js[^"']*["']><\/script>/gi,'');
-  html=html.replace('</body>','<script src="calendar-controller.js?v=9"></script><script src="calendar-toolbar.js?v=1"></script><script src="settings-icon.js?v=3"></script><script src="warehouse-categories.js?v=1"></script></body>');
+  html=html.replace('</body>','<script src="calendar-controller.js?v=9"></script><script src="calendar-toolbar.js?v=1"></script><script src="settings-icon.js?v=4"></script><script src="warehouse-categories.js?v=1"></script></body>');
   const headers=new Headers(response.headers);headers.delete('content-length');
   return new Response(html,{status:response.status,statusText:response.statusText,headers});
 }
