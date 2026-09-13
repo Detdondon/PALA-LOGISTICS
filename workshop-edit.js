@@ -15,6 +15,19 @@
     );
   };
 
+  function addDeleteButtonToDamageSheet(id) {
+    const footer = document.querySelector('#palaEditSheet .sheet-footer');
+    if (!footer || footer.querySelector('[data-delete-workshop-damage]')) return;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'btn bad';
+    button.dataset.deleteWorkshopDamage = String(id);
+    button.style.marginRight = 'auto';
+    button.innerHTML = `${uiIcon('trash')} Slet skade`;
+    button.addEventListener('click', () => deleteWorkshopDamage(id));
+    footer.prepend(button);
+  }
+
   window.editWorkshopDamage = function(id) {
     const task = workshopTasks.find(x => +x.id === +id);
     if (!task) return alert('Skaden findes ikke.');
@@ -57,6 +70,8 @@
       },
       'Gem skade'
     );
+
+    addDeleteButtonToDamageSheet(+id);
   };
 
   window.deleteWorkshopDamage = async function(id) {
@@ -71,6 +86,7 @@
         p_task_id: +id
       });
       if (typeof damagePhotoIds !== 'undefined') damagePhotoIds.delete(+id);
+      closeEditSheet(true);
       await Promise.all([
         loadWorkshopData(),
         typeof loadWarehouseExtensions === 'function' ? loadWarehouseExtensions() : Promise.resolve()
