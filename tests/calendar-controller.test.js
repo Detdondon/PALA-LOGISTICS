@@ -16,7 +16,7 @@ const sandbox={
   mainCalendarTypeFilterV120:'all',mainCalendarStatusFilterV123:'all',calendarViewMode:'calendar',
   staffingCalendarStatusFilterV120:'all',workshopFilter:'all',calDate:new Date(2026,0,31),
   bookings:[],staffingShifts:[],workshopJobs:[],workshopTasks:[],palaMeetings:[],tents:{},
-  showCalendar(){},orderCard:r=>`order-${r.id}`,calendarEvents(){return sandbox.__events||[]},
+  showCalendar(){},orderCard:r=>`<article>order-${r.id}<div class="job-actions"><button>Pak / Retur</button></div></article>`,calendarEvents(){return sandbox.__events||[]},
   jobLocationStatus:r=>r.status,bookingStatusMatchV123(){},shiftStatusMatchV123(){},workshopJobStatusMatchV123(){},workshopTaskStatusMatchV123(){},unifiedStatusMatchV123(){},
   setUnifiedCalendarTypeV123(){},setUnifiedCalendarStatusV123(){},setCalendarView(){},setCalendarDay(){},mv(){},jumpCalendarMonth(){},goCalendarToday(){},renderMainCalendarListV121(){},mainCalendarDayHtmlV120(){},
   isStaffLeave:r=>!!r.leave,staffLinkedJobCompleted:r=>!!r.done,staffAssignmentsFor:r=>Array.from({length:r===1?1:0}),
@@ -109,5 +109,12 @@ assert.ok(staffingMonthHtml.includes('staff-2'),'understaffed staffing must appe
 assert.ok(!staffingMonthHtml.includes('staff-1'),'fully staffed shift must not appear in understaffed filter');
 assert.ok(!staffingMonthHtml.includes('staff-4'),'next-month shift must not leak into selected month');
 assert.ok(!staffingMonthHtml.includes('staff-5'),'leave row must not count as understaffed staffing');
+
+
+// Completed orders are read-only for packing/return from calendar cards.
+const completedOrderCard=sandbox.orderCard({id:21,status:'Afsluttet'});
+const activeOrderCard=sandbox.orderCard({id:22,status:'På lager'});
+assert.ok(!completedOrderCard.includes('Pak / Retur'),'completed orders must not expose Pak / Retur');
+assert.ok(activeOrderCard.includes('Pak / Retur'),'active orders must keep Pak / Retur');
 
 console.log('calendar-controller regression tests passed');

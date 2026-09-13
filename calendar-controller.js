@@ -307,6 +307,14 @@ orderCard = function(booking){
   );
 };
 
+/* PALA v158 · no pack/return on completed orders */
+const orderCardV158Base = orderCard;
+orderCard = function(booking){
+  let html = orderCardV158Base(booking);
+  if(orderStatus(booking)!=='Afsluttet')return html;
+  return html.replace(/<div class=\"job-actions[^\"]*\"[\s\S]*?<\/div>/,'');
+};
+
 if(!document.getElementById('pala-calendar-status-row-v155')){
   let rowStyle=document.createElement('style');
   rowStyle.id='pala-calendar-status-row-v155';
