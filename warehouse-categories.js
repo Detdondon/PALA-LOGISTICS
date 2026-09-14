@@ -7,7 +7,7 @@ window.__palaWarehouseCategoriesV180=true;
 
 const KINDS=[['tent','Telte'],['hardware','Hardware'],['inventory','Inventar']];
 const escText=value=>typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-const rowsFor=kind=>(Array.isArray(window.warehouseCategories)?window.warehouseCategories:[]).filter(c=>c.kind===kind);
+const rowsFor=kind=>(typeof warehouseCategories!=='undefined'&&Array.isArray(warehouseCategories)?warehouseCategories:[]).filter(c=>c.kind===kind);
 const rowById=(kind,id)=>rowsFor(kind).find(c=>+c.id===+id)||null;
 const itemsFor=kind=>{try{return typeof stockKindRows==='function'?(stockKindRows(kind)||[]):[]}catch(_e){return[]}};
 const directCount=(kind,id)=>itemsFor(kind).filter(row=>+row?.category_id===+id).length;
