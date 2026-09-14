@@ -1,10 +1,10 @@
-/* PALA v181 · inline admin editing
+/* PALA v182 · inline admin editing
    Adds small + edit affordances to editable content blocks while Adminfunktion is active.
    All actions reuse PALA's existing editors/RPCs, so saved data stays synchronized everywhere. */
 (()=>{
 'use strict';
-if(window.__palaInlineAdminEditV181)return;
-window.__palaInlineAdminEditV181=true;
+if(window.__palaInlineAdminEditV182)return;
+window.__palaInlineAdminEditV182=true;
 
 const SELECTOR=['.warehouse-item','.job-card','.staff-card','.workshop-job-card','.workshop-task','.meeting-card','.calendar-job-chip','.card'].join(',');
 const EDITOR_SELECTOR='button.detail-admin-edit,button.detail-card-edit,button[onclick*="editWorkshopDamage("],button[onclick*="editShiftFromOverview("],button[onclick*="editExistingStaffShift("],button[onclick*="showWorkshopJobForm("],button[onclick*="editMeeting("],button[onclick*="editTentBasics("],button[onclick*="editTentRequirements("],button[onclick*="editCatalogHardware("],button[onclick*="editInventoryBasics("],button[onclick*="editOrder("]';
@@ -12,7 +12,7 @@ const EDITOR_SELECTOR='button.detail-admin-edit,button.detail-card-edit,button[o
 function adminOn(){try{return typeof isAdminLoggedIn==='function'&&isAdminLoggedIn()}catch(_e){return false}}
 function codeFrom(root){
   let parts=[];const own=root.getAttribute?.('onclick');if(own)parts.push(own);
-  root.querySelectorAll?.('[onclick]')?.forEach(el=>{if(el.classList?.contains('pala-inline-edit-plus-v181'))return;const c=el.getAttribute('onclick');if(c)parts.push(c)});
+  root.querySelectorAll?.('[onclick]')?.forEach(el=>{if(el.classList?.contains('pala-inline-edit-plus-v182')||el.closest(SELECTOR)!==root)return;const c=el.getAttribute('onclick');if(c)parts.push(c)});
   return parts.join('\n');
 }
 function contextAction(root){
@@ -50,17 +50,17 @@ function mappedAction(root){
   return root.classList?.contains('card')?contextAction(root):null;
 }
 function addPlus(root){
-  if(!root||root.dataset?.palaInlineEditV181==='1'||root.closest?.('#palaEditSheet')||root.closest?.('.admin-tabs,.admin-utility-tools-v179,.warehouse-category-admin-v180'))return;
+  if(!root||root.dataset?.palaInlineEditV182==='1'||root.closest?.('#palaEditSheet')||root.closest?.('.admin-tabs,.admin-utility-tools-v179,.warehouse-category-admin-v180'))return;
   const action=mappedAction(root);if(!action)return;
-  root.dataset.palaInlineEditV181='1';root.classList.add('pala-inline-edit-target-v181');
-  const plus=document.createElement('span');plus.className='pala-inline-edit-plus-v181';plus.setAttribute('role','button');plus.setAttribute('tabindex','0');plus.setAttribute('aria-label','Redigér indhold');plus.setAttribute('title','Redigér');plus.textContent='+';
+  root.dataset.palaInlineEditV182='1';root.classList.add('pala-inline-edit-target-v182');
+  const plus=document.createElement('span');plus.className='pala-inline-edit-plus-v182';plus.setAttribute('role','button');plus.setAttribute('tabindex','0');plus.setAttribute('aria-label','Redigér indhold');plus.setAttribute('title','Redigér');plus.textContent='+';
   const run=event=>{event.preventDefault();event.stopPropagation();try{action()}catch(error){console.warn('PALA adminredigering kunne ikke åbnes',error)}};
   plus.addEventListener('click',run);plus.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){run(event)}});
   root.appendChild(plus);
 }
 function clear(){
-  document.querySelectorAll('.pala-inline-edit-plus-v181').forEach(el=>el.remove());
-  document.querySelectorAll('[data-pala-inline-edit-v181]').forEach(el=>{delete el.dataset.palaInlineEditV181;el.classList.remove('pala-inline-edit-target-v181')});
+  document.querySelectorAll('.pala-inline-edit-plus-v182').forEach(el=>el.remove());
+  document.querySelectorAll('[data-pala-inline-edit-v182]').forEach(el=>{delete el.dataset.palaInlineEditV182;el.classList.remove('pala-inline-edit-target-v182')});
 }
 function enhance(){
   if(!adminOn()){clear();return}
@@ -71,15 +71,15 @@ let queued=false;function schedule(){if(queued)return;queued=true;requestAnimati
 const app=document.getElementById('app');if(app)new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
 const baseSync=window.syncLoginUi;if(typeof baseSync==='function')window.syncLoginUi=function(){const result=baseSync.apply(this,arguments);setTimeout(schedule,0);return result};
 
-if(!document.getElementById('pala-inline-admin-edit-v181-style')){
-  const style=document.createElement('style');style.id='pala-inline-admin-edit-v181-style';style.textContent=`
-    .pala-inline-edit-target-v181{position:relative!important}
-    .pala-inline-edit-plus-v181{position:absolute;top:7px;right:7px;z-index:8;width:24px;height:24px;border-radius:999px;background:#1768c4;color:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(23,104,196,.28);display:flex;align-items:center;justify-content:center;font:800 17px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;user-select:none;-webkit-user-select:none}
-    .pala-inline-edit-plus-v181:hover{background:#0f57aa}.pala-inline-edit-plus-v181:focus-visible{outline:3px solid rgba(23,104,196,.25);outline-offset:2px}
-    .warehouse-item.pala-inline-edit-target-v181{padding-right:43px!important}.job-card.pala-inline-edit-target-v181,.staff-card.pala-inline-edit-target-v181,.workshop-job-card.pala-inline-edit-target-v181,.workshop-task.pala-inline-edit-target-v181,.meeting-card.pala-inline-edit-target-v181{padding-right:40px!important}
-    .calendar-job-chip.pala-inline-edit-target-v181{padding-right:28px!important;overflow:visible!important}
-    .calendar-job-chip>.pala-inline-edit-plus-v181{top:-7px;right:-7px;width:19px;height:19px;font-size:13px;z-index:12}
-    @media(max-width:600px){.pala-inline-edit-plus-v181{top:6px;right:6px;width:22px;height:22px;font-size:16px}.warehouse-item.pala-inline-edit-target-v181{padding-right:38px!important}}
+if(!document.getElementById('pala-inline-admin-edit-v182-style')){
+  const style=document.createElement('style');style.id='pala-inline-admin-edit-v182-style';style.textContent=`
+    .pala-inline-edit-target-v182{position:relative!important}
+    .pala-inline-edit-plus-v182{position:absolute;top:7px;right:7px;z-index:8;width:24px;height:24px;border-radius:999px;background:#1768c4;color:#fff;border:2px solid #fff;box-shadow:0 2px 8px rgba(23,104,196,.28);display:flex;align-items:center;justify-content:center;font:800 17px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer;user-select:none;-webkit-user-select:none}
+    .pala-inline-edit-plus-v182:hover{background:#0f57aa}.pala-inline-edit-plus-v182:focus-visible{outline:3px solid rgba(23,104,196,.25);outline-offset:2px}
+    .warehouse-item.pala-inline-edit-target-v182{padding-right:43px!important}.job-card.pala-inline-edit-target-v182,.staff-card.pala-inline-edit-target-v182,.workshop-job-card.pala-inline-edit-target-v182,.workshop-task.pala-inline-edit-target-v182,.meeting-card.pala-inline-edit-target-v182{padding-right:40px!important}
+    .calendar-job-chip.pala-inline-edit-target-v182{padding-right:28px!important;overflow:visible!important}
+    .calendar-job-chip>.pala-inline-edit-plus-v182{top:-7px;right:-7px;width:19px;height:19px;font-size:13px;z-index:12}
+    @media(max-width:600px){.pala-inline-edit-plus-v182{top:6px;right:6px;width:22px;height:22px;font-size:16px}.warehouse-item.pala-inline-edit-target-v182{padding-right:38px!important}}
   `;document.head.appendChild(style);
 }
 schedule();
