@@ -75,6 +75,23 @@ if(typeof baseSyncLoginUi==='function'){
   };
 }
 
+// The compact employee editor used to tell users that PIN changes lived in the user menu.
+// That is no longer true: PIN changes are managed from the employee editor in Adminmenu.
+const baseNewEmployeeEditor=window.openNewEmployeeAdminEditor;
+if(typeof baseNewEmployeeEditor==='function'){
+  window.openNewEmployeeAdminEditor=function(){
+    const result=baseNewEmployeeEditor.apply(this,arguments);
+    queueMicrotask(()=>{
+      document.querySelectorAll('#palaEditSheet .small.muted').forEach(note=>{
+        if(String(note.textContent||'').trim()==='Medarbejderen kan selv ændre koden senere i brugermenuen.'){
+          note.textContent='Koden kan senere ændres fra medarbejderens redigering i Adminmenuen.';
+        }
+      });
+    });
+    return result;
+  };
+}
+
 if(!document.getElementById('pala-header-admin-v184-style')){
   const style=document.createElement('style');
   style.id='pala-header-admin-v184-style';
