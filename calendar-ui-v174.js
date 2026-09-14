@@ -1,5 +1,6 @@
-/* PALA calendar UI v176
+/* PALA calendar UI v177
    Safe DOM-only enhancer: icon filters with labels, contextual counts and compact action row.
+   Completed status uses completed-only counts for the selected month.
    Does not override showCalendar or any startup/data function. */
 (()=>{
 'use strict';
@@ -27,6 +28,30 @@ function countNode(text,warning=false){
   return span;
 }
 function separator(){const span=document.createElement('span');span.className='calendar-count-separator-v174';span.setAttribute('aria-hidden','true');span.textContent='•';return span}
+function isoDate(d){
+  const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function completedMonthCounts(){
+  const current=typeof calDate!=='undefined'&&calDate instanceof Date&&!Number.isNaN(calDate.getTime())?calDate:new Date();
+  const first=isoDate(new Date(current.getFullYear(),current.getMonth(),1));
+  const last=isoDate(new Date(current.getFullYear(),current.getMonth()+1,0));
+  const dateOnly=v=>String(v??'').slice(0,10);
+  const overlaps=(a,b)=>{a=dateOnly(a);b=dateOnly(b);return !!(a&&b&&a<=last&&b>=first)};
+  const inMonth=v=>{v=dateOnly(v);return !!(v&&v>=first&&v<=last)};
+
+  const orders=Array.isArray(bookings)?bookings.filter(r=>overlaps(r?.start_date,r?.end_date)&&(typeof bookingStatusMatchV123==='function'?bookingStatusMatchV123(r):r?.status==='Afsluttet')).length:0;
+  const staffing=Array.isArray(staffingShifts)?staffingShifts.filter(r=>inMonth(r?.shift_date)&&(typeof shiftStatusMatchV123==='function'?shiftStatusMatchV123(r):false)).length:0;
+  const jobs=Array.isArray(workshopJobs)?workshopJobs.filter(r=>overlaps(r?.start_date,r?.end_date)&&(typeof workshopJobStatusMatchV123==='function'?workshopJobStatusMatchV123(r):r?.status==='Afsluttet')).length:0;
+  const tasks=Array.isArray(workshopTasks)?workshopTasks.filter(r=>{
+    if(typeof workshopTaskStatusMatchV123==='function'&&!workshopTaskStatusMatchV123(r))return false;
+    if(typeof workshopTaskStatusMatchV123!=='function'&&r?.status!=='completed')return false;
+    if(typeof workshopTaskRangeV120!=='function')return false;
+    const range=workshopTaskRangeV120(r);
+    return !!(range&&range.start<=last&&range.end>=first);
+  }).length:0;
+  return{orders,staffing,workshop:jobs+tasks};
+}
 function enhanceCalendar(){
   try{
     const card=document.querySelector('.calendar-controller-v150');
@@ -40,6 +65,7 @@ function enhanceCalendar(){
     const visLabel=labelByName(filterGrid,'Vis');
     const statusLabel=labelByName(filterGrid,'Status');
     const type=visLabel?.querySelector('select')?.value||'all';
+    const status=statusLabel?.querySelector('select')?.value||'active';
     const original=[...summary.querySelectorAll('button')].slice(0,3);
     if(original.length<3)return;
     const counts={
@@ -48,6 +74,13 @@ function enhanceCalendar(){
       workshop:textOf(original[2])||'0 systue',
       staffingMissing:original[1].classList.contains('red')||/mangler/i.test(textOf(original[1]))
     };
+    if(status==='completed'){
+      const completed=completedMonthCounts();
+      counts.orders=`${completed.orders} ordrer`;
+      counts.staffing=`${completed.staffing} vagter`;
+      counts.workshop=`${completed.workshop} systue`;
+      counts.staffingMissing=false;
+    }
 
     card.dataset.calendarUiV174='1';
     visLabel?.remove();
