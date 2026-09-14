@@ -1,5 +1,5 @@
-/* PALA calendar UI v174
-   Safe DOM-only enhancer: icon filters, contextual counts and compact action row.
+/* PALA calendar UI v176
+   Safe DOM-only enhancer: icon filters with labels, contextual counts and compact action row.
    Does not override showCalendar or any startup/data function. */
 (()=>{
 'use strict';
@@ -8,14 +8,15 @@ window.__palaCalendarUiV174=true;
 
 const textOf=el=>String(el?.textContent||'').replace(/\s+/g,' ').trim();
 function labelByName(root,name){return [...(root?.querySelectorAll('label')||[])].find(label=>textOf(label.querySelector('span'))===name)||null}
-function iconButton(type,icon,label,active){
+function iconButton(type,icon,label,ariaLabel,active){
   const button=document.createElement('button');
   button.type='button';
   button.className='calendar-type-icon-v174'+(active?' active':'');
-  button.setAttribute('aria-label',label);
-  button.setAttribute('title',label);
+  button.setAttribute('aria-label',ariaLabel||label);
+  button.setAttribute('title',ariaLabel||label);
   button.setAttribute('aria-pressed',active?'true':'false');
-  button.innerHTML=typeof uiIcon==='function'?uiIcon(icon):label;
+  const iconMarkup=typeof uiIcon==='function'?uiIcon(icon):'';
+  button.innerHTML=iconMarkup+'<span class="calendar-type-label-v174">'+label+'</span>';
   button.addEventListener('click',()=>{if(typeof setUnifiedCalendarTypeV123==='function')setUnifiedCalendarTypeV123(type)});
   return button;
 }
@@ -57,10 +58,10 @@ function enhanceCalendar(){
 
     summary.className='unified-calendar-summary-v123 calendar-type-buttons-v174';
     summary.replaceChildren(
-      iconButton('all','list','Vis alt',type==='all'),
-      iconButton('orders','calendar','Ordrer',type==='orders'),
-      iconButton('staffing','people','Vagter',type==='staffing'),
-      iconButton('workshop','scissors','Systue',type==='workshop')
+      iconButton('all','list','Alt','Vis alt',type==='all'),
+      iconButton('orders','calendar','Ordre','Ordrer',type==='orders'),
+      iconButton('staffing','people','Vagter','Vagter',type==='staffing'),
+      iconButton('workshop','scissors','Systue','Systue',type==='workshop')
     );
 
     actions.classList.add('calendar-action-row-v174');
@@ -81,8 +82,9 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
   style.id='pala-calendar-ui-v174-style';
   style.textContent=`
     .calendar-type-buttons-v174{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;align-items:stretch!important}
-    .calendar-type-icon-v174{min-width:0!important;min-height:46px!important;border:1px solid #d7dde8!important;border-radius:15px!important;background:#fff!important;color:#42526b!important;display:flex!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;padding:9px!important}
+    .calendar-type-icon-v174{min-width:0!important;min-height:54px!important;border:1px solid #d7dde8!important;border-radius:15px!important;background:#fff!important;color:#42526b!important;display:flex!important;flex-direction:column!important;gap:3px!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;padding:7px 8px 6px!important}
     .calendar-type-icon-v174 .ui-icon{width:21px!important;height:21px!important;flex:0 0 auto!important}
+    .calendar-type-label-v174{display:block!important;font-size:10px!important;font-weight:750!important;line-height:1!important;white-space:nowrap!important}
     .calendar-type-icon-v174.active{background:#eef5ff!important;color:#1768c4!important;border-color:#2f80ed!important;box-shadow:0 0 0 2px rgba(47,128,237,.12) inset!important}
     .calendar-type-icon-v174:focus-visible{outline:3px solid rgba(47,128,237,.24)!important;outline-offset:2px!important}
     .calendar-filter-grid-single-v174{grid-template-columns:1fr!important}
@@ -94,7 +96,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
     .calendar-count-summary-v174{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;min-height:30px!important;padding:8px 2px 0!important;border-top:1px solid #e4e8ef!important;color:#667085!important;font-size:12px!important;font-weight:750!important;line-height:1.3!important;flex-wrap:wrap!important}
     .calendar-count-item-v174.warning{color:#a12a2a!important}
     .calendar-count-separator-v174{color:#b0b7c3!important}
-    @media(max-width:620px){.calendar-type-buttons-v174{gap:5px!important}.calendar-type-icon-v174{min-height:44px!important;border-radius:13px!important;padding:8px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:11px!important;gap:6px!important}}
+    @media(max-width:620px){.calendar-type-buttons-v174{gap:5px!important}.calendar-type-icon-v174{min-height:52px!important;border-radius:13px!important;padding:6px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-type-label-v174{font-size:9.5px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:11px!important;gap:6px!important}}
   `;
   document.head.appendChild(style);
 }
