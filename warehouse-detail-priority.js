@@ -1,9 +1,9 @@
-/* PALA v186 · warehouse detail priority
+/* PALA v191 · warehouse detail priority
    Operational facts first; drawings, photos, documents and sources last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV186)return;
-window.__palaWarehouseDetailPriorityV186=true;
+if(window.__palaWarehouseDetailPriorityV191)return;
+window.__palaWarehouseDetailPriorityV191=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
 const escText=value=>typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -17,9 +17,23 @@ function directCards(){
   return root?[...root.children].filter(el=>el.classList?.contains('card')):[];
 }
 function heading(card){return card?.querySelector('h2,h3')?.textContent?.trim()||''}
+function hardwareDisplayName(row){
+  let catalogName='';
+  try{catalogName=typeof catalogItem==='function'?catalogItem(row?.catalog_id)?.name||'':''}catch(_e){}
+  return catalogName||row?.name||'';
+}
+function standardHardwareType(value){
+  const name=norm(value).replace(/\s+/g,' ');
+  if(name==='pløk'||name==='pløkker'||name.startsWith('pløk ')||name.startsWith('pløkker '))return 'pløkker';
+  if(name==='sidestang'||name==='sidestænger'||name.startsWith('sidestang ')||name.startsWith('sidestænger '))return 'sidestænger';
+  return '';
+}
 function standardQty(tent,name){
-  const row=(tent?.hardware||[]).find(h=>norm(h.name)===norm(name));
-  const qty=Number(row?.qty)||0;
+  const wanted=standardHardwareType(name)||norm(name);
+  const qty=(tent?.hardware||[]).reduce((sum,row)=>{
+    const type=standardHardwareType(hardwareDisplayName(row));
+    return type===wanted?sum+(Number(row?.qty)||0):sum;
+  },0);
   return qty>0?`${fmt(qty)} stk. pr. telt`:'Pakkemængde mangler';
 }
 function tentMeasure(t){
