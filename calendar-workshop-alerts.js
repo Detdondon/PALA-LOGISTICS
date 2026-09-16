@@ -1,8 +1,8 @@
-/* PALA v199 · open workshop damages stay active and warning label is always red */
+/* PALA v201 · stable open workshop damage warning rendering */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV199)return;
-window.__palaCalendarWorkshopAlertsV199=true;
+if(window.__palaCalendarWorkshopAlertsV201)return;
+window.__palaCalendarWorkshopAlertsV201=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -15,19 +15,17 @@ function allOpenWorkshopDamages(){
 
 function clearLegacyOpenDamageText(node){
   if(!node)return;
-  const cleaned=String(node.textContent||'')
+  const current=String(node.textContent||'').trim();
+  const cleaned=current
     .replace(/\s*·\s*\d+\s+åben skade\s*$/i,'')
     .replace(/\s*·\s*\d+\s+åbne skader\s*$/i,'')
     .trim();
-  if(cleaned!==String(node.textContent||'').trim())node.textContent=cleaned;
+  if(cleaned!==current)node.textContent=cleaned;
 }
 
 function markWorkshopSummary(){
   const button=document.querySelector('.unified-calendar-summary-v123 .reference-button[onclick*="setUnifiedCalendarTypeV123(\'workshop\')"]');
   if(!button)return;
-  button.querySelector('.workshop-open-damage-count-v197')?.remove();
-  button.querySelector('.workshop-open-damage-count-v196')?.remove();
-  button.querySelector('.workshop-open-damage-count-v195')?.remove();
   clearLegacyOpenDamageText(button);
   const count=allOpenWorkshopDamages().length;
   button.classList.toggle('red',count>0);
@@ -35,15 +33,20 @@ function markWorkshopSummary(){
   else if(button.title?.includes('uafsluttet'))button.removeAttribute('title');
 }
 
+function removeLegacyCountNodes(bar){
+  bar.querySelectorAll([
+    '.workshop-open-damage-separator-v198',
+    '.workshop-open-damage-inline-v198',
+    '.workshop-open-damage-separator-v199',
+    '.workshop-open-damage-inline-v199'
+  ].join(',')).forEach(node=>node.remove());
+}
+
 function markCalendarCountBar(){
   const bar=document.querySelector('.calendar-count-summary-v174');
   if(!bar)return;
 
-  bar.querySelector('.workshop-open-damage-separator-v198')?.remove();
-  bar.querySelector('.workshop-open-damage-inline-v198')?.remove();
-  bar.querySelector('.workshop-open-damage-separator-v199')?.remove();
-  bar.querySelector('.workshop-open-damage-inline-v199')?.remove();
-
+  removeLegacyCountNodes(bar);
   const items=[...bar.querySelectorAll('.calendar-count-item-v174')];
   const workshopItem=items.find(node=>/\bsystue\b/i.test(String(node.textContent||'')));
   if(workshopItem)clearLegacyOpenDamageText(workshopItem);
@@ -51,19 +54,44 @@ function markCalendarCountBar(){
   const status=typeof mainCalendarStatusFilterV123!=='undefined'?mainCalendarStatusFilterV123:'all';
   const type=typeof mainCalendarTypeFilterV120!=='undefined'?mainCalendarTypeFilterV120:'all';
   const count=allOpenWorkshopDamages().length;
-  if(status==='completed'||!['all','workshop'].includes(type)||!count||!workshopItem)return;
+  const shouldShow=status!=='completed'&&['all','workshop'].includes(type)&&count>0&&!!workshopItem;
 
-  const separator=document.createElement('span');
-  separator.className='calendar-count-separator-v174 workshop-open-damage-separator-v199';
-  separator.setAttribute('aria-hidden','true');
-  separator.textContent='•';
+  let separator=bar.querySelector('.workshop-open-damage-separator-v201');
+  let warning=bar.querySelector('.workshop-open-damage-inline-v201');
+  if(!shouldShow){separator?.remove();warning?.remove();return}
 
-  const warning=document.createElement('span');
-  warning.className='calendar-count-item-v174 warning workshop-open-damage-inline-v199';
-  warning.innerHTML=`<span class="workshop-open-damage-number-v199">${count}</span> <span class="workshop-open-damage-label-v199">${count===1?'åben skade':'åbne skader'}</span>`;
+  if(!separator){
+    separator=document.createElement('span');
+    separator.className='calendar-count-separator-v174 workshop-open-damage-separator-v201';
+    separator.setAttribute('aria-hidden','true');
+    separator.textContent='•';
+    workshopItem.insertAdjacentElement('afterend',separator);
+  }else if(separator.previousElementSibling!==workshopItem){
+    workshopItem.insertAdjacentElement('afterend',separator);
+  }
 
-  workshopItem.insertAdjacentElement('afterend',separator);
-  separator.insertAdjacentElement('afterend',warning);
+  if(!warning){
+    warning=document.createElement('span');
+    warning.className='calendar-count-item-v174 warning workshop-open-damage-inline-v201';
+    warning.setAttribute('role','button');
+    warning.setAttribute('tabindex','0');
+    warning.setAttribute('aria-label','Vis åbne skader i systuen');
+    warning.setAttribute('title','Vis åbne skader');
+    const number=document.createElement('span');
+    number.className='workshop-open-damage-number-v201';
+    const label=document.createElement('span');
+    label.className='workshop-open-damage-label-v201';
+    warning.append(number,document.createTextNode(' '),label);
+    separator.insertAdjacentElement('afterend',warning);
+  }else if(warning.previousElementSibling!==separator){
+    separator.insertAdjacentElement('afterend',warning);
+  }
+
+  const number=warning.querySelector('.workshop-open-damage-number-v201');
+  const label=warning.querySelector('.workshop-open-damage-label-v201');
+  const labelText=count===1?'åben skade':'åbne skader';
+  if(number&&number.textContent!==String(count))number.textContent=String(count);
+  if(label&&label.textContent!==labelText)label.textContent=labelText;
 }
 
 function taskCard(task){
@@ -75,34 +103,38 @@ function taskCard(task){
 
 function clearEmptyMessage(host){
   [...host.children].forEach(child=>{
-    if(child.tagName!=='P')return;
-    const txt=String(child.textContent||'');
-    if(txt.includes('Ingen aktiviteter matcher'))child.remove();
+    if(child.tagName==='P'&&String(child.textContent||'').includes('Ingen aktiviteter matcher'))child.remove();
   });
 }
 
 function ensureOpenDamageSection(){
-  if(typeof mainCalendarTypeFilterV120==='undefined'||mainCalendarTypeFilterV120!=='workshop')return;
-  if(typeof mainCalendarStatusFilterV123!=='undefined'&&mainCalendarStatusFilterV123==='completed')return;
-
+  const isWorkshop=typeof mainCalendarTypeFilterV120!=='undefined'&&mainCalendarTypeFilterV120==='workshop';
+  const completed=typeof mainCalendarStatusFilterV123!=='undefined'&&mainCalendarStatusFilterV123==='completed';
   const host=(typeof calendarViewMode!=='undefined'&&calendarViewMode==='list')
     ?document.querySelector('.view-list')
     :document.querySelector('.calendar-detail-list');
   if(!host)return;
 
-  const tasks=allOpenWorkshopDamages();
-  host.querySelector('.workshop-open-pinned-v159')?.remove();
-  host.querySelector('.workshop-open-pinned-v196')?.remove();
-  host.querySelector('.workshop-open-pinned-v197')?.remove();
-  host.querySelector('.workshop-open-pinned-v198')?.remove();
-  host.querySelector('.workshop-open-pinned-v199')?.remove();
-  if(!tasks.length)return;
+  let section=host.querySelector('.workshop-open-pinned-v201');
+  if(!isWorkshop||completed){section?.remove();return}
 
+  const tasks=allOpenWorkshopDamages();
+  if(!tasks.length){section?.remove();return}
   clearEmptyMessage(host);
-  const section=document.createElement('section');
-  section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v199';
-  section.innerHTML=`<h3 class="view-list-date workshop-open-title-v199">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
-  host.prepend(section);
+
+  host.querySelectorAll('.workshop-open-pinned-v159:not(.workshop-open-pinned-v201),.workshop-open-pinned-v196,.workshop-open-pinned-v197,.workshop-open-pinned-v198,.workshop-open-pinned-v199').forEach(node=>node.remove());
+
+  const signature=tasks.map(task=>`${task.id}:${task.updated_at||task.created_at||''}:${task.status||''}`).join('|');
+  if(!section){
+    section=document.createElement('section');
+    section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v201';
+    section.dataset.signature='';
+  }
+  if(section.dataset.signature!==signature){
+    section.dataset.signature=signature;
+    section.innerHTML=`<h3 class="view-list-date workshop-open-title-v201">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
+  }
+  if(host.firstElementChild!==section)host.prepend(section);
 }
 
 function applyWorkshopAlerts(){
@@ -111,20 +143,15 @@ function applyWorkshopAlerts(){
   markCalendarCountBar();
 }
 
-function scheduleWorkshopAlerts(){
-  requestAnimationFrame(()=>requestAnimationFrame(applyWorkshopAlerts));
-}
+function scheduleWorkshopAlerts(){requestAnimationFrame(()=>requestAnimationFrame(applyWorkshopAlerts))}
 
-if(!document.getElementById('pala-workshop-alerts-v199-style')){
+if(!document.getElementById('pala-workshop-alerts-v201-style')){
   const style=document.createElement('style');
-  style.id='pala-workshop-alerts-v199-style';
+  style.id='pala-workshop-alerts-v201-style';
   style.textContent=`
-    .workshop-open-title-v199,
-    .workshop-open-damage-inline-v199,
-    .workshop-open-damage-label-v199{
-      color:#a12a2a!important;
-      font-weight:800!important;
-    }
+    .workshop-open-title-v201,
+    .workshop-open-damage-inline-v201,
+    .workshop-open-damage-label-v201{color:#a12a2a!important;font-weight:800!important}
   `;
   document.head.appendChild(style);
 }
@@ -145,15 +172,9 @@ if(appRoot){
   new MutationObserver(()=>{
     if(queued)return;
     queued=true;
-    requestAnimationFrame(()=>{
-      queued=false;
-      applyWorkshopAlerts();
-    });
+    requestAnimationFrame(()=>{queued=false;applyWorkshopAlerts()});
   }).observe(appRoot,{childList:true,subtree:true});
 }
 
-queueMicrotask(()=>{
-  applyWorkshopAlerts();
-  scheduleWorkshopAlerts();
-});
+queueMicrotask(()=>{applyWorkshopAlerts();scheduleWorkshopAlerts()});
 })();
