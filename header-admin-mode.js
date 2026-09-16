@@ -1,9 +1,9 @@
-/* PALA v185 · header admin mode access
-   Adminmode is toggled from the top bar. The user dropdown exposes Appindstillinger + Log ud. */
+/* PALA v193 · header admin mode access
+   Header order: search, notifications, admin mode, user. Admin mode uses the shared edit/pencil icon. */
 (()=>{
 'use strict';
-if(window.__palaHeaderAdminModeV185)return;
-window.__palaHeaderAdminModeV185=true;
+if(window.__palaHeaderAdminModeV193)return;
+window.__palaHeaderAdminModeV193=true;
 
 function adminModeOn(){
   try{return !!employeeIsAdmin&&!!adminModeEnabled}catch(_e){return false}
@@ -32,6 +32,18 @@ window.openAdminMenuFromUserV184=async function(){
 };
 window.openAppSettingsFromUserV185=window.openAdminMenuFromUserV184;
 
+function orderHeaderActions(actions,userMenu){
+  if(!actions||!userMenu)return;
+  const search=actions.querySelector('button.header-icon[onclick*="showSearch"]');
+  const notification=actions.querySelector('.header-notification');
+  const admin=actions.querySelector('.header-admin-mode-v184');
+
+  // Required order: search → notifications → admin mode → user.
+  if(search)actions.insertBefore(search,actions.firstElementChild);
+  if(notification)actions.insertBefore(notification,admin||userMenu);
+  if(admin)actions.insertBefore(admin,userMenu);
+}
+
 function applyHeaderAdminLayout(){
   const logged=typeof isEmployeeLoggedIn==='function'&&isEmployeeLoggedIn();
   const actions=document.querySelector('.header-actions');
@@ -51,7 +63,8 @@ function applyHeaderAdminLayout(){
   const userMenu=actions.querySelector('.user-menu');
   if(!userMenu){applyAppSettingsHeading();return}
 
-  // Dedicated Adminmode button, positioned between search and user.
+  // Dedicated Adminmode button. The shared edit icon has the same stroke weight
+  // and geometry system as the rest of PALA's interface icons.
   if(adminEmployee()){
     const active=adminModeOn();
     const button=document.createElement('button');
@@ -61,9 +74,11 @@ function applyHeaderAdminLayout(){
     button.setAttribute('aria-label',active?'Slå Adminmode fra':'Slå Adminmode til');
     button.setAttribute('aria-pressed',active?'true':'false');
     button.setAttribute('title',active?'Adminmode aktiv':'Adminmode');
-    button.innerHTML=typeof uiIcon==='function'?uiIcon('settings','ui-icon'):'';
+    button.innerHTML=typeof uiIcon==='function'?uiIcon('edit','ui-icon'):'';
     userMenu.insertAdjacentElement('beforebegin',button);
   }
+
+  orderHeaderActions(actions,userMenu);
 
   // Dropdown: identity + Appindstillinger (admins only) + Log ud. Nothing else.
   const popover=userMenu.querySelector('#userMenuPopover');
@@ -114,11 +129,12 @@ if(typeof baseNewEmployeeEditor==='function'){
   };
 }
 
-if(!document.getElementById('pala-header-admin-v185-style')){
+if(!document.getElementById('pala-header-admin-v193-style')){
   const style=document.createElement('style');
-  style.id='pala-header-admin-v185-style';
+  style.id='pala-header-admin-v193-style';
   style.textContent=`
     #na{display:none!important}
+    .header-admin-mode-v184 .ui-icon{width:22px;height:22px;stroke-width:1.8}
     .header-admin-mode-v184.active{background:var(--b)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 3px 12px rgba(44,91,143,.22)!important}
     .header-admin-mode-v184.active:hover{background:var(--b)!important;color:#fff!important}
     @media(max-width:600px){.header-admin-mode-v184{flex:0 0 auto}}
