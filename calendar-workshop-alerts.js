@@ -1,8 +1,8 @@
-/* PALA v198 · open workshop damages stay active and warning text stays red */
+/* PALA v199 · open workshop damages stay active and warning label is always red */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV198)return;
-window.__palaCalendarWorkshopAlertsV198=true;
+if(window.__palaCalendarWorkshopAlertsV199)return;
+window.__palaCalendarWorkshopAlertsV199=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -41,6 +41,8 @@ function markCalendarCountBar(){
 
   bar.querySelector('.workshop-open-damage-separator-v198')?.remove();
   bar.querySelector('.workshop-open-damage-inline-v198')?.remove();
+  bar.querySelector('.workshop-open-damage-separator-v199')?.remove();
+  bar.querySelector('.workshop-open-damage-inline-v199')?.remove();
 
   const items=[...bar.querySelectorAll('.calendar-count-item-v174')];
   const workshopItem=items.find(node=>/\bsystue\b/i.test(String(node.textContent||'')));
@@ -52,13 +54,13 @@ function markCalendarCountBar(){
   if(status==='completed'||!['all','workshop'].includes(type)||!count||!workshopItem)return;
 
   const separator=document.createElement('span');
-  separator.className='calendar-count-separator-v174 workshop-open-damage-separator-v198';
+  separator.className='calendar-count-separator-v174 workshop-open-damage-separator-v199';
   separator.setAttribute('aria-hidden','true');
   separator.textContent='•';
 
   const warning=document.createElement('span');
-  warning.className='calendar-count-item-v174 warning workshop-open-damage-inline-v198';
-  warning.textContent=`${count} ${count===1?'åben skade':'åbne skader'}`;
+  warning.className='calendar-count-item-v174 warning workshop-open-damage-inline-v199';
+  warning.innerHTML=`<span class="workshop-open-damage-number-v199">${count}</span> <span class="workshop-open-damage-label-v199">${count===1?'åben skade':'åbne skader'}</span>`;
 
   workshopItem.insertAdjacentElement('afterend',separator);
   separator.insertAdjacentElement('afterend',warning);
@@ -93,12 +95,13 @@ function ensureOpenDamageSection(){
   host.querySelector('.workshop-open-pinned-v196')?.remove();
   host.querySelector('.workshop-open-pinned-v197')?.remove();
   host.querySelector('.workshop-open-pinned-v198')?.remove();
+  host.querySelector('.workshop-open-pinned-v199')?.remove();
   if(!tasks.length)return;
 
   clearEmptyMessage(host);
   const section=document.createElement('section');
-  section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v198';
-  section.innerHTML=`<h3 class="view-list-date workshop-open-title-v198">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
+  section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v199';
+  section.innerHTML=`<h3 class="view-list-date workshop-open-title-v199">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
   host.prepend(section);
 }
 
@@ -112,13 +115,14 @@ function scheduleWorkshopAlerts(){
   requestAnimationFrame(()=>requestAnimationFrame(applyWorkshopAlerts));
 }
 
-if(!document.getElementById('pala-workshop-alerts-v198-style')){
+if(!document.getElementById('pala-workshop-alerts-v199-style')){
   const style=document.createElement('style');
-  style.id='pala-workshop-alerts-v198-style';
+  style.id='pala-workshop-alerts-v199-style';
   style.textContent=`
-    .workshop-open-title-v198,
-    .workshop-open-damage-inline-v198{
-      color:var(--red,#bf1f1f)!important;
+    .workshop-open-title-v199,
+    .workshop-open-damage-inline-v199,
+    .workshop-open-damage-label-v199{
+      color:#a12a2a!important;
       font-weight:800!important;
     }
   `;
