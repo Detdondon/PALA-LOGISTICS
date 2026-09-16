@@ -1,8 +1,8 @@
-/* PALA v196 · open workshop damages stay active until completed */
+/* PALA v197 · open workshop damages stay active and visibly red */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV196)return;
-window.__palaCalendarWorkshopAlertsV196=true;
+if(window.__palaCalendarWorkshopAlertsV197)return;
+window.__palaCalendarWorkshopAlertsV197=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -16,13 +16,14 @@ function allOpenWorkshopDamages(){
 function markWorkshopSummary(){
   const button=document.querySelector('.unified-calendar-summary-v123 .reference-button[onclick*="setUnifiedCalendarTypeV123(\'workshop\')"]');
   if(!button)return;
+  button.querySelector('.workshop-open-damage-count-v197')?.remove();
   button.querySelector('.workshop-open-damage-count-v196')?.remove();
   button.querySelector('.workshop-open-damage-count-v195')?.remove();
   const count=allOpenWorkshopDamages().length;
   button.classList.toggle('red',count>0);
   if(count>0){
     const note=document.createElement('span');
-    note.className='workshop-open-damage-count-v196';
+    note.className='workshop-open-damage-count-v197';
     note.textContent=` · ${count} ${count===1?'åben skade':'åbne skader'}`;
     button.appendChild(note);
     button.title=`${count} ${count===1?'uafsluttet skade':'uafsluttede skader'} i systuen`;
@@ -58,18 +59,32 @@ function ensureOpenDamageSection(){
   const tasks=allOpenWorkshopDamages();
   host.querySelector('.workshop-open-pinned-v159')?.remove();
   host.querySelector('.workshop-open-pinned-v196')?.remove();
+  host.querySelector('.workshop-open-pinned-v197')?.remove();
   if(!tasks.length)return;
 
   clearEmptyMessage(host);
   const section=document.createElement('section');
-  section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v196';
-  section.innerHTML=`<h3 class="view-list-date">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
+  section.className='view-list-group workshop-open-pinned-v159 workshop-open-pinned-v197';
+  section.innerHTML=`<h3 class="view-list-date workshop-open-title-v197">Åbne skader</h3>${tasks.map(taskCard).join('')}`;
   host.prepend(section);
 }
 
 function applyWorkshopAlerts(){
   markWorkshopSummary();
   ensureOpenDamageSection();
+}
+
+if(!document.getElementById('pala-workshop-alerts-v197-style')){
+  const style=document.createElement('style');
+  style.id='pala-workshop-alerts-v197-style';
+  style.textContent=`
+    .workshop-open-title-v197,
+    .workshop-open-damage-count-v197{
+      color:var(--red,#bf1f1f)!important;
+      font-weight:800;
+    }
+  `;
+  document.head.appendChild(style);
 }
 
 const baseShowCalendar=window.showCalendar;
