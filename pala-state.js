@@ -1,49 +1,22 @@
-/* PALA central state v207
-   Lightweight normalized in-memory state. Existing globals remain authoritative during migration. */
+/* PALA central state v220
+   Normalized in-memory state with explicit source sync.
+   Cached state is never wiped merely because legacy window globals are unavailable. */
 (function(global){
   'use strict';
   if(global.PALA_STATE)return;
-
   const TABLES=['tents','hardware','inventory','warehouseCategories','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
-  const maps=Object.create(null);
-  const listeners=new Set();
+  const maps=Object.create(null),listeners=new Set();
   TABLES.forEach(name=>maps[name]=new Map());
-
   function idOf(row){return row&&row.id!=null?String(row.id):null;}
-  function replace(name,rows){
-    const map=maps[name];if(!map)return;
-    map.clear();
-    (Array.isArray(rows)?rows:[]).forEach(row=>{const id=idOf(row);if(id!==null)map.set(id,row);});
-    emit(name,'replace');
-  }
-  function upsert(name,row){
-    const map=maps[name],id=idOf(row);if(!map||id===null)return false;
-    map.set(id,{...(map.get(id)||{}),...row});emit(name,'upsert',id);return true;
-  }
-  function remove(name,id){
-    const map=maps[name];if(!map||id==null)return false;
-    const changed=map.delete(String(id));if(changed)emit(name,'remove',String(id));return changed;
-  }
-  function emit(name,type,id){
-    const detail={name,type,id};
-    listeners.forEach(fn=>{try{fn(detail)}catch(_){}});
-    try{global.dispatchEvent(new CustomEvent('pala:state-change',{detail}))}catch(_){}
-  }
-  function hydrate(){
-    TABLES.forEach(name=>{
-      try{
-        const rows=global[name];
-        if(Array.isArray(rows))replace(name,rows);
-      }catch(_){}
-    });
-  }
+  function emit(name,type,id,source){const detail={name,type,id,source:source||'runtime'};listeners.forEach(fn=>{try{fn(detail)}catch(_){}});try{global.dispatchEvent(new CustomEvent('pala:state-change',{detail}))}catch(_){}}
+  function replace(name,rows,options={}){const map=maps[name];if(!map||!Array.isArray(rows))return false;if(options.onlyIfEmpty&&map.size)return false;map.clear();rows.forEach(row=>{const id=idOf(row);if(id!==null)map.set(id,row);});emit(name,'replace',null,options.source);return true;}
+  function upsert(name,row,options={}){const map=maps[name],id=idOf(row);if(!map||id===null)return false;map.set(id,{...(map.get(id)||{}),...row});emit(name,'upsert',id,options.source);return true;}
+  function remove(name,id,options={}){const map=maps[name];if(!map||id==null)return false;const key=String(id),changed=map.delete(key);if(changed)emit(name,'remove',key,options.source);return changed;}
+  function hydrate(options={}){let changed=0;TABLES.forEach(name=>{try{const rows=global[name];if(Array.isArray(rows)&&replace(name,rows,{source:options.source||'legacy',onlyIfEmpty:!!options.onlyIfEmpty}))changed++;}catch(_){}});return changed;}
   function get(name,id){return maps[name]?.get(String(id));}
   function all(name){return maps[name]?[...maps[name].values()]:[];}
+  function size(name){return maps[name]?.size||0;}
   function subscribe(fn){if(typeof fn!=='function')return()=>{};listeners.add(fn);return()=>listeners.delete(fn);}
-
-  global.PALA_STATE={maps,get,all,replace,upsert,remove,hydrate,subscribe};
-
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hydrate,{once:true});
-  else queueMicrotask(hydrate);
-  global.addEventListener('pala:data-change',()=>queueMicrotask(hydrate));
+  global.PALA_STATE={maps,get,all,size,replace,upsert,remove,hydrate,subscribe};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>hydrate({source:'startup',onlyIfEmpty:true}),{once:true});else queueMicrotask(()=>hydrate({source:'startup',onlyIfEmpty:true}));
 })(window);
