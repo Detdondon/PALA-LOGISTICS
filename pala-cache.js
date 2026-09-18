@@ -1,8 +1,8 @@
-/* PALA IndexedDB cache v263 · cache-first startup + batched persistence */
+/* PALA IndexedDB cache v270 · cache-first startup + batched persistence */
 (function(global){
   'use strict';
   if(!('indexedDB'in global))return;
-  const DB='pala-cache',STORE='state',VERSION=1,NAMES=['tents','hardware','inventory','warehouseCategories','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
+  const DB='pala-cache',STORE='state',VERSION=1,NAMES=['tents','hardware','hardwareCatalog','inventory','warehouseCategories','tentParts','specialHardware','meetings','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
   const pending=new Set();let dbPromise=null,restoring=false,flushTimer=null;
 
   function db(){
