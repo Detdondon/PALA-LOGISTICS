@@ -1691,10 +1691,11 @@ async function copyNfcLink(value,button){
 function allHardware(){return Object.values(tents).flatMap(t=>(t.hardware||[]).map(h=>({...h,tent:t})))}
 function findHardware(id){return allHardware().find(h=>+h.id===+id)}
 async function load(){
-  let e=await sb.rpc('public_employee_directory');
+  let directoryPromise=sb.rpc('public_employee_directory');
+  let validationPromise=validateEmployeeSession();
+  let [e,loggedIn]=await Promise.all([directoryPromise,validationPromise]);
   if(e.error){app.innerHTML='<div class="card">Databasefejl</div>';return}
   employees=e.data||[];
-  let loggedIn=await validateEmployeeSession();
   if(!loggedIn){await loadPublicPreviewData();return showEmployeeLogin()}
 
   window.PALALegacyBridge?.installReloadWrapper?.();
