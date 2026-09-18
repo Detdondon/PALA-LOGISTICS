@@ -56,13 +56,15 @@ function completedMonthCounts(){
 }
 function fitCountBar(bar){
   if(!bar)return;
-  bar.style.setProperty('display','flex','important');
+  bar.style.setProperty('display','inline-flex','important');
   bar.style.setProperty('flex-wrap','nowrap','important');
   bar.style.setProperty('white-space','nowrap','important');
   bar.style.setProperty('overflow','hidden','important');
-  bar.style.setProperty('width','fit-content','important');
+  bar.style.setProperty('width','max-content','important');
   bar.style.setProperty('max-width','100%','important');
   bar.style.setProperty('box-sizing','border-box','important');
+  bar.style.setProperty('align-self','flex-start','important');
+  bar.style.setProperty('justify-self','start','important');
   bar.style.setProperty('padding-left','0','important');
   bar.style.setProperty('padding-right','0','important');
   bar.style.setProperty('justify-content','flex-start','important');
@@ -158,7 +160,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
     .calendar-action-row-v174 .calendar-status-control-v174>span{font-size:10px!important;line-height:1!important;font-weight:700!important;color:#667085!important;padding-left:2px!important}
     .calendar-action-row-v174 .calendar-status-control-v174 select{width:100%!important;min-width:0!important;margin:0!important;min-height:44px!important}
     .calendar-action-row-v174>.btn{width:100%!important;min-width:0!important;min-height:48px!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.15!important}
-    .calendar-count-summary-v174{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:4px!important;min-height:30px!important;min-width:0!important;width:100%!important;padding:8px 0 0!important;border-top:0!important;color:#667085!important;font-size:12px!important;font-weight:750!important;line-height:1!important;flex-wrap:nowrap!important;white-space:nowrap!important;overflow:visible!important}.calendar-count-summary-v174>*{flex:0 0 auto!important;min-width:0!important;white-space:nowrap!important}
+    .calendar-count-summary-v174{display:inline-flex!important;align-items:center!important;align-self:flex-start!important;justify-self:start!important;justify-content:flex-start!important;gap:4px!important;min-height:30px!important;min-width:0!important;width:max-content!important;max-width:100%!important;padding:8px 0 0!important;border-top:0!important;color:#667085!important;font-size:12px!important;font-weight:750!important;line-height:1!important;flex-wrap:nowrap!important;white-space:nowrap!important;overflow:hidden!important}.calendar-count-summary-v174>*{flex:0 0 auto!important;min-width:0!important;white-space:nowrap!important}
     .calendar-count-item-v174.warning{color:#a12a2a!important}
     .calendar-count-separator-v174{color:#b0b7c3!important}
     @media(max-width:620px){.calendar-type-buttons-v174{gap:5px!important}.calendar-type-icon-v174{min-height:52px!important;border-radius:13px!important;padding:6px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-type-label-v174{font-size:9.5px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:clamp(8px,2.25vw,10px)!important;gap:2px!important;letter-spacing:-.045em!important;transform-origin:left center!important}.calendar-count-separator-v174,.calendar-count-item-v174{flex:0 0 auto!important}}
