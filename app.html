@@ -4925,7 +4925,30 @@ showTents=async function(filter='all',keepFocus=false){
 };
 function editTentBasics(id){
   if(!requireAdmin())return;let t=tents[+id]||{},fields=[['area_m2','Areal (m²)'],['diameter_m','Diameter (m)'],['length_m','Længde (m)'],['width_m','Bredde (m)'],['side_height_m','Sidehøjde (m)'],['ridge_height_m','Kiphøjde (m)']];
-  openEditSheet(id?'Redigér telt':'Nyt telt',`${sheetField('name','Navn',t.name,'text','required')}${sheetField('stock_count','Samlet lagerantal',t.stock_count,'number','min="0" step="1" placeholder="Ikke angivet"')}${sheetText('description','Beskrivelse',t.description)}<details class="sheet-group" open><summary>Mål</summary><div class="two">${fields.map(([k,l])=>sheetField(k,l,t[k],'number','min="0" step="0.01"')).join('')}</div></details><details class="sheet-group"><summary>Version af et andet telt</summary><label for="s_parent_tent_id">Hovedtelt</label><select id="s_parent_tent_id"><option value="">Selvstændigt telt / frakobl</option>${tentParentOptions(t).map(r=>`<option value="${r.id}" ${+r.id===+t.parent_tent_id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></details>`,async()=>{let data={name:sheetValue('name'),description:sheetValue('description'),stock_count:sheetNumber('stock_count'),parent_tent_id:sheetValue('parent_tent_id')};fields.forEach(([k])=>data[k]=sheetNumber(k));let tid=await checkedRpc('admin_save_tent_basics',{p_token:adminToken,p_id:id||null,p_data:data});await reloadData();await openTent(tid)});
+  openEditSheet(id?'Redigér telt':'Nyt telt',`${sheetField('name','Navn',t.name,'text','required')}${sheetField('stock_count','Samlet lagerantal',t.stock_count,'number','min="0" step="1" placeholder="Ikke angivet"')}${sheetText('description','Beskrivelse',t.description)}<details class="sheet-group" open><summary>Mål</summary><div class="two">${fields.map(([k,l])=>sheetField(k,l,t[k],'number','min="0" step="0.01"')).join('')}</div></details><details class="sheet-group"><summary>Version af et andet telt</summary><label for="s_parent_tent_id">Hovedtelt</label><select id="s_parent_tent_id"><option value="">Selvstændigt telt / frakobl</option>${tentParentOptions(t).map(r=>`<option value="${r.id}" ${+r.id===+t.parent_tent_id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></details>`,async()=>{
+    let data={name:sheetValue('name'),description:sheetValue('description'),stock_count:sheetNumber('stock_count'),parent_tent_id:sheetValue('parent_tent_id')};
+    fields.forEach(([k])=>data[k]=sheetNumber(k));
+    let args={p_token:adminToken,p_id:id||null,p_data:data};
+
+    if(id&&window.PALAOptimistic){
+      let key=+id,current=tents[key]||{},hardware=current.hardware||[],next={...current,...data,id:key,hardware};
+      await window.PALAOptimistic.mutate({
+        name:'tents',
+        id:key,
+        next,
+        apply:()=>{tents[key]={...next,hardware};},
+        rollback:({previous})=>{if(previous)tents[key]={...previous,hardware:previous.hardware||hardware};},
+        commit:async()=>{let tid=await checkedRpc('admin_save_tent_basics',args);return {data:{...next,id:+tid||key}};},
+        offline:{type:'rpc',payload:{name:'admin_save_tent_basics',args},baseVersion:current.updated_at??current.version??null}
+      });
+      await openTent(key);
+      return;
+    }
+
+    let tid=await checkedRpc('admin_save_tent_basics',args);
+    await reloadData();
+    await openTent(tid);
+  });
 }
 function filterSelectChoices(input,id){let q=normalizedSearchText(input.value);document.getElementById(id)?.querySelectorAll('option').forEach(o=>o.hidden=!!o.value&&!o.selected&&!normalizedSearchText(o.textContent).includes(q))}
 function editCatalogHardware(id){
