@@ -56,7 +56,29 @@ function showMissingList(){
 }
 function enhanceWarning(node){
   if(!node||node.dataset.palaMissingStaffingClickable==='1')return;
-  if(!/mangler\s+bemanding/i.test(node.textContent||''))return;
+  const text=String(node.textContent||'').replace(/\s+/g,' ').trim();
+  if(!/mangler\s+bemanding/i.test(text))return;
+
+  // The total number of shifts is neutral. Only the understaffing count is a red warning/link.
+  const combined=text.match(/^(\d+\s+vagt(?:er)?)\s*·\s*(\d+\s+mangler\s+bemanding)$/i);
+  if(combined){
+    const total=document.createElement('span');
+    total.className='calendar-count-item-v174 calendar-staffing-total-v237';
+    total.textContent=combined[1];
+
+    const separator=document.createElement('span');
+    separator.className='calendar-count-separator-v174';
+    separator.setAttribute('aria-hidden','true');
+    separator.textContent='•';
+
+    const warning=document.createElement('span');
+    warning.className='calendar-count-item-v174 warning';
+    warning.textContent=combined[2];
+
+    node.replaceWith(total,separator,warning);
+    node=warning;
+  }
+
   node.dataset.palaMissingStaffingClickable='1';
   node.classList.add('calendar-missing-staffing-link-v187');
   node.setAttribute('role','button');
@@ -84,7 +106,7 @@ if(!document.getElementById('pala-calendar-missing-staffing-v187-style')){
   const style=document.createElement('style');
   style.id='pala-calendar-missing-staffing-v187-style';
   style.textContent=`
-    .calendar-missing-staffing-link-v187{cursor:pointer!important;text-decoration:underline!important;text-decoration-thickness:1px!important;text-underline-offset:3px!important;border-radius:6px!important;padding:2px 3px!important;margin:-2px -3px!important}
+    .calendar-staffing-total-v237{color:#667085!important;text-decoration:none!important;background:transparent!important}\n    .calendar-missing-staffing-link-v187{cursor:pointer!important;text-decoration:underline!important;text-decoration-thickness:1px!important;text-underline-offset:3px!important;border-radius:6px!important;padding:2px 3px!important;margin:-2px -3px!important}
     .calendar-missing-staffing-link-v187:hover{background:#fff0f0!important}
     .calendar-missing-staffing-link-v187:focus-visible{outline:2px solid rgba(161,42,42,.28)!important;outline-offset:2px!important}
     .calendar-missing-staffing-v187{scroll-margin-top:90px!important}
