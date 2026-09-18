@@ -1,4 +1,4 @@
-/* PALA legacy data bridge v266 · cache hydration + central-state sync */
+/* PALA legacy data bridge v267 · cache hydration + central-state sync */
 (function(global){
   'use strict';
   try{global.palaSupabase=sb;}catch(_){}
@@ -100,6 +100,7 @@
   }
 
   function installReloadWrapper(){
+    try{global.palaSupabase=sb;}catch(_){}
     const current=global.reloadData;
     if(typeof current!=='function')return false;
     if(current.__palaStateWrapped)return true;
