@@ -1,4 +1,4 @@
-/* PALA PWA bootstrap v272 · exact service-worker registration */
+/* PALA PWA bootstrap v273 · exact service-worker registration */
 (function(){
   'use strict';
   if(!('serviceWorker'in navigator))return;
