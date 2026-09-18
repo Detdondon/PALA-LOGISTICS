@@ -8,7 +8,7 @@
     const tentRows=Object.values(tents||{});
     const hardwareRows=[];
     tentRows.forEach(tent=>{if(Array.isArray(tent?.hardware))tent.hardware.forEach(row=>hardwareRows.push(row));});
-    return {tents:tentRows,hardware:hardwareRows,inventory:[...(inventory||[])],bookings:[...(bookings||[])],staffingShifts:[...(staffingShifts||[])],staffingAssignments:[...(staffingAssignments||[])],employees:[...(employees||[])],workshopJobs:[...(workshopJobs||[])],workshopTasks:[...(workshopTasks||[])]};
+    return {tents:tentRows,hardware:hardwareRows,inventory:[...(inventory||[])],warehouseCategories:Array.isArray(global.warehouseCategories)?[...global.warehouseCategories]:[],bookings:[...(bookings||[])],staffingShifts:[...(staffingShifts||[])],staffingAssignments:[...(staffingAssignments||[])],employees:[...(employees||[])],workshopJobs:[...(workshopJobs||[])],workshopTasks:[...(workshopTasks||[])]};
   }
   function syncState(source='legacy'){const state=global.PALA_STATE;if(!state)return false;const data=snapshot();Object.entries(data).forEach(([name,rows])=>state.replace(name,rows,{source}));return true;}
   try{const originalReload=reloadData;global.reloadData=async function(){const result=await originalReload.apply(this,arguments);syncState('network');return result;};}catch(_){}
