@@ -1,4 +1,4 @@
-/* PALA service worker v272 · precached bundled runtime + safe network-first HTML */
+/* PALA service worker v272 · exact bundled-runtime precache */
 const CACHE_NAME='pala-static-v272';
 const CACHE_PREFIX='pala-';
 const STATIC_EXT=/\.(?:js|css|svg|png|jpg|jpeg|webp|gif|ico|ttf|otf|woff2?|webmanifest)$/i;
@@ -6,9 +6,9 @@ const CORE_ASSETS=[
   './',
   './Logo.png',
   './manifest.webmanifest',
-  './pala-core-runtime.js?v=269',
-  './pala-ui-runtime.js?v=269',
-  './pala-shell-runtime.js?v=269'
+  './pala-core-runtime.js?v=272',
+  './pala-ui-runtime.js?v=272',
+  './pala-shell-runtime.js?v=272'
 ];
 
 self.addEventListener('install',event=>{
