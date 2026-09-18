@@ -349,4 +349,52 @@ if(!document.getElementById('pala-calendar-status-row-v155')){
   document.head.appendChild(rowStyle);
 }
 
+
+/* PALA v160 · calendar summary is always exactly one line */
+if(!document.getElementById('pala-calendar-summary-single-line-v160')){
+  let summaryStyle=document.createElement('style');
+  summaryStyle.id='pala-calendar-summary-single-line-v160';
+  summaryStyle.textContent=`
+  .unified-calendar-summary-v123{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:center!important;
+    gap:4px!important;
+    min-width:0!important;
+    white-space:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scrollbar-width:none!important;
+    -webkit-overflow-scrolling:touch;
+  }
+  .unified-calendar-summary-v123::-webkit-scrollbar{display:none!important}
+  .unified-calendar-summary-v123 .reference-button,
+  .unified-calendar-summary-v123 .pill{
+    flex:0 1 auto!important;
+    min-width:0!important;
+    width:auto!important;
+    white-space:nowrap!important;
+    margin:0!important;
+    padding-left:2px!important;
+    padding-right:2px!important;
+  }
+  @media(max-width:620px){
+    .unified-calendar-summary-v123{gap:2px!important}
+    .unified-calendar-summary-v123 .reference-button,
+    .unified-calendar-summary-v123 .pill{
+      font-size:clamp(10px,2.75vw,12px)!important;
+      letter-spacing:-.02em!important;
+      gap:2px!important;
+      padding-left:1px!important;
+      padding-right:1px!important;
+    }
+    .unified-calendar-summary-v123 .ui-icon{
+      width:10px!important;
+      height:10px!important;
+      flex:0 0 10px!important;
+    }
+  }`;
+  document.head.appendChild(summaryStyle);
+}
+
 })();
