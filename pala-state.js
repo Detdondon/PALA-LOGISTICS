@@ -1,4 +1,4 @@
-/* PALA central state v270 · change-aware record store */
+/* PALA central state v273 · cache-preserving change-aware record store */
 (function(global){
   'use strict';
   if(global.PALA_STATE)return;
@@ -87,6 +87,9 @@
   };
 
   function boot(){
+    // IndexedDB may already have restored state before DOMContentLoaded.
+    // Never overwrite a valid cache with still-empty legacy globals during startup.
+    if(TABLES.some(name=>maps[name]?.size))return;
     if(global.PALALegacyBridge?.syncState)global.PALALegacyBridge.syncState('startup');
     else hydrate({source:'startup',onlyIfEmpty:true});
   }
