@@ -1,10 +1,12 @@
-/* PALA performance baseline v263 · passive diagnostics only */
+/* PALA performance baseline v270 · passive persisted diagnostics */
 (function(global){
   'use strict';
   if(global.PALAPerformance)return;
 
   const marks=[];
   const longTasks=[];
+  const STORAGE_KEY='pala_perf_latest_v270';
+  const PREVIOUS_KEY='pala_perf_previous_v270';
   const now=()=>Math.round(performance.now()*10)/10;
 
   function mark(name,detail){
@@ -46,11 +48,41 @@
     };
   }
 
+  function persist(){
+    try{
+      const previous=localStorage.getItem(STORAGE_KEY);
+      if(previous)localStorage.setItem(PREVIOUS_KEY,previous);
+      const current=snapshot();
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(current));
+      return current;
+    }catch(_){return snapshot();}
+  }
+
+  function previous(){
+    try{return JSON.parse(localStorage.getItem(PREVIOUS_KEY)||'null');}catch(_){return null;}
+  }
+
+  function compare(){
+    const before=previous(),after=snapshot();
+    if(!before?.navigation||!after?.navigation)return {before,after,diff:null};
+    return {
+      before,
+      after,
+      diff:{
+        domInteractive:after.navigation.domInteractive-before.navigation.domInteractive,
+        domContentLoaded:after.navigation.domContentLoaded-before.navigation.domContentLoaded,
+        load:after.navigation.load-before.navigation.load,
+        resourceCount:(after.resources?.count||0)-(before.resources?.count||0),
+        transferSize:(after.resources?.transferSize||0)-(before.resources?.transferSize||0)
+      }
+    };
+  }
+
   global.addEventListener('DOMContentLoaded',()=>mark('dom-content-loaded'),{once:true});
-  global.addEventListener('load',()=>mark('window-load'),{once:true});
+  global.addEventListener('load',()=>{mark('window-load');setTimeout(persist,250);},{once:true});
   global.addEventListener('pala:cache-ready',event=>mark('cache-ready',event.detail),{once:true});
   global.addEventListener('pala:cached-state-visible',()=>mark('cached-state-visible'),{once:true});
   mark('instrumentation-ready');
 
-  global.PALAPerformance={mark,snapshot};
+  global.PALAPerformance={mark,snapshot,persist,previous,compare};
 })(window);
