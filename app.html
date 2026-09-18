@@ -4052,8 +4052,40 @@ async function saveAdminInv(id){
   if(!requireAdmin())return;
   let quantityValue=document.getElementById('iqty').value;if(quantityValue==='')return alert('Angiv antal på lager.');
   let old=inventory.find(x=>+x.id===+id),category=old?.category||'Inventar',name=document.getElementById('iname').value.trim()||'Inventar',description=document.getElementById('idsc').value,quantity_total=Math.max(0,+quantityValue||0),im=await imgdata(document.getElementById('ifile').files[0]),image=im??old?.image??'';
-  let r=await sb.rpc('admin_save_inventory_v2',{p_token:adminToken,p_id:id||null,p_category:category,p_name:name,p_description:description,p_quantity_total:quantity_total,p_image:image});if(r.error)return alert(r.error.message);
-  let savedId=inventoryResultId(r.data,id);if(savedId)cacheInventoryItem({id:savedId,category,name,description,quantity_total});
+  let args={p_token:adminToken,p_id:id||null,p_category:category,p_name:name,p_description:description,p_quantity_total:quantity_total,p_image:image};
+
+  if(id&&window.PALAOptimistic){
+    let key=+id,next={...(old||{}),id:key,category,name,description,quantity_total,image};
+    try{
+      await window.PALAOptimistic.mutate({
+        name:'inventory',
+        id:key,
+        next,
+        apply:()=>{
+          let i=inventory.findIndex(x=>+x.id===key);
+          if(i>=0)inventory[i]=next;else inventory.push(next);
+          cacheInventoryItem(next);
+        },
+        rollback:({previous})=>{
+          let i=inventory.findIndex(x=>+x.id===key);
+          if(previous){if(i>=0)inventory[i]=previous;else inventory.push(previous);cacheInventoryItem(previous);}
+          else{if(i>=0)inventory.splice(i,1);removeInventoryCacheItem(key);}
+        },
+        commit:async()=>{
+          let r=await sb.rpc('admin_save_inventory_v2',args);
+          if(r.error)throw new Error(r.error.message);
+          return {data:next};
+        },
+        offline:{type:'rpc',payload:{name:'admin_save_inventory_v2',args},baseVersion:old?.updated_at??old?.version??null}
+      });
+    }catch(error){return alert(error.message||String(error));}
+    showAdminInventory();
+    setTimeout(()=>{let select=document.getElementById('adminInventorySelect');if(select){select.value=String(key);adminInvForm(key)}},0);
+    return;
+  }
+
+  let r=await sb.rpc('admin_save_inventory_v2',args);if(r.error)return alert(r.error.message);
+  let savedId=inventoryResultId(r.data,id);if(savedId)cacheInventoryItem({id:savedId,category,name,description,quantity_total,image});
   await reloadData();showAdminInventory();if(savedId)setTimeout(()=>{let select=document.getElementById('adminInventorySelect');if(select){select.value=String(savedId);adminInvForm(savedId)}},0);
 }
 async function deleteAdminInv(id){if(!requireAdmin())return;if(!confirm('Slet inventar?'))return;let r=await sb.rpc('admin_delete_inventory',{p_token:adminToken,p_id:id});if(r.error)return alert(r.error.message);removeInventoryCacheItem(id);await reloadData();showAdminInventory()}
