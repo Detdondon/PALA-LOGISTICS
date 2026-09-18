@@ -60,30 +60,37 @@ function fitCountBar(bar){
   bar.style.setProperty('flex-wrap','nowrap','important');
   bar.style.setProperty('white-space','nowrap','important');
   bar.style.setProperty('overflow','hidden','important');
-  bar.style.setProperty('column-gap','2px','important');
-  bar.querySelectorAll('*').forEach(el=>{
-    el.style.setProperty('white-space','nowrap','important');
-    el.style.setProperty('flex','0 0 auto','important');
-  });
-  // Fit the complete summary to one line, then distribute any spare width
-  // evenly so the row visually spans the full available screen/card width.
-  // Start at normal app-readable size and only reduce as much as strictly necessary.
-  // Tight spacing/letter spacing lets the row stay readable while remaining one line.
-  let size=13;
-  bar.style.setProperty('font-size',size+'px','important');
-  bar.style.setProperty('letter-spacing','-.055em','important');
-  while(bar.scrollWidth>bar.clientWidth&&size>9){
-    size-=.2;
-    bar.style.setProperty('font-size',size+'px','important');
-  }
-  // Use the full visual width: first item at the left edge, last item at the right edge.
-  // The summary itself must not inherit inner horizontal padding from the card.
   bar.style.setProperty('width','100%','important');
   bar.style.setProperty('max-width','none','important');
   bar.style.setProperty('padding-left','0','important');
   bar.style.setProperty('padding-right','0','important');
   bar.style.setProperty('justify-content','space-between','important');
   bar.style.setProperty('column-gap','0','important');
+
+  // Keep the same readable type scale as the rest of PALA. Never shrink the text.
+  const appSize=parseFloat(getComputedStyle(document.body).fontSize)||16;
+  const size=Math.max(14,Math.min(16,appSize));
+  bar.style.setProperty('font-size',size+'px','important');
+  bar.style.setProperty('letter-spacing','-.035em','important');
+  bar.style.setProperty('font-weight','700','important');
+
+  const items=[...bar.children];
+  items.forEach(el=>{
+    el.style.setProperty('white-space','nowrap','important');
+    el.style.setProperty('flex','0 0 auto','important');
+  });
+
+  // If the full wording is too wide, compact labels instead of making the font tiny.
+  const compact=()=>{
+    items.forEach(el=>{
+      if(!el.dataset.fullText)el.dataset.fullText=el.textContent;
+      const t=el.dataset.fullText;
+      if(/mangler bemanding/i.test(t))el.textContent=t.replace(/mangler bemanding/i,'mangler');
+      else if(/åbne skader/i.test(t))el.textContent=t.replace(/åbne skader/i,'skader');
+    });
+  };
+  items.forEach(el=>{if(el.dataset.fullText)el.textContent=el.dataset.fullText});
+  if(bar.scrollWidth>bar.clientWidth)compact();
 }
 function enhanceCalendar(){
   try{
