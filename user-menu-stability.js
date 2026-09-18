@@ -1,26 +1,31 @@
-/* PALA v231 · stable header user menu
-   Prevents the global document click handlers from immediately closing the popover. */
+/* PALA v232 · stable header user menu
+   Preserve open state when background data refresh calls syncLoginUi and rebuilds header-actions. */
 (()=>{
 'use strict';
-if(window.__palaStableUserMenuV231)return;
-window.__palaStableUserMenuV231=true;
+if(window.__palaStableUserMenuV232)return;
+window.__palaStableUserMenuV232=true;
 
-function bind(root=document){
-  root.querySelectorAll?.('.user-menu').forEach(menu=>{
-    if(menu.dataset.palaStableMenu==='1')return;
-    menu.dataset.palaStableMenu='1';
-    menu.addEventListener('click',event=>event.stopPropagation());
-    menu.addEventListener('pointerup',event=>event.stopPropagation());
-  });
+function menuOpen(){return document.getElementById('userMenuPopover')?.classList.contains('open')||false}
+function restoreOpen(){
+  const menu=document.getElementById('userMenuPopover'),button=document.querySelector('.header-user-button');
+  if(menu){menu.classList.add('open');if(button)button.setAttribute('aria-expanded','true')}
 }
-bind();
-new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>{
-  if(node.nodeType===1){if(node.matches?.('.user-menu'))bind(node.parentElement||document);else bind(node);}
-}))).observe(document.documentElement,{childList:true,subtree:true});
+const base=window.syncLoginUi;
+if(typeof base==='function'&&!base.__palaMenuStateV232){
+  const wrapped=function(){
+    const wasOpen=menuOpen();
+    const result=base.apply(this,arguments);
+    if(wasOpen)queueMicrotask(restoreOpen);
+    return result;
+  };
+  wrapped.__palaMenuStateV232=true;
+  window.syncLoginUi=wrapped;
+}
 
 document.addEventListener('keydown',event=>{
-  if(event.key==='Escape'&&document.getElementById('userMenuPopover')?.classList.contains('open')){
-    closeUserMenu?.();document.querySelector('.header-user-button')?.focus();
+  if(event.key==='Escape'&&menuOpen()){
+    if(typeof closeUserMenu==='function')closeUserMenu();
+    document.querySelector('.header-user-button')?.focus();
   }
 });
 })();
