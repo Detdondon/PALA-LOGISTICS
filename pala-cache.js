@@ -2,7 +2,7 @@
 (function(global){
   'use strict';
   if(!('indexedDB'in global))return;
-  const DB='pala-cache',STORE='state',VERSION=1,NAMES=['tents','hardware','inventory','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
+  const DB='pala-cache',STORE='state',VERSION=1,NAMES=['tents','hardware','inventory','warehouseCategories','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
   const pending=new Set();let dbPromise=null,restoring=false,flushTimer=null;
 
   function db(){
