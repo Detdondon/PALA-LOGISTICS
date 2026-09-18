@@ -23,19 +23,7 @@ function iconButton(type,icon,label,ariaLabel,active){
 }
 function countNode(text,warning=false){
   const span=document.createElement('span');
-  span.className='calendar-count-item-v174';
-  if(warning){
-    const match=String(text||'').match(/^(.*?\\bvagter)(.*)$/i);
-    if(match&&match[2].trim()){
-      span.append(document.createTextNode(match[1]));
-      const alert=document.createElement('span');
-      alert.className='calendar-count-warning-v233';
-      alert.textContent=match[2];
-      span.appendChild(alert);
-      return span;
-    }
-    span.classList.add('warning');
-  }
+  span.className='calendar-count-item-v174'+(warning?' warning':'');
   span.textContent=text;
   return span;
 }
@@ -115,7 +103,11 @@ function enhanceCalendar(){
     countBar.setAttribute('aria-live','polite');
     const parts=[];
     if(type==='all'||type==='orders')parts.push(countNode(counts.orders));
-    if(type==='all'||type==='staffing')parts.push(countNode(counts.staffing,counts.staffingMissing));
+    if(type==='all'||type==='staffing'){
+      const staffingParts=String(counts.staffing||'').split(/\s*·\s*/).filter(Boolean);
+      parts.push(countNode(staffingParts[0]||'0 vagter'));
+      if(counts.staffingMissing&&staffingParts.length>1)parts.push(countNode(staffingParts.slice(1).join(' · '),true));
+    }
     if(type==='all'||type==='workshop')parts.push(countNode(counts.workshop));
     parts.forEach((node,index)=>{if(index)countBar.appendChild(separator());countBar.appendChild(node)});
     tools.appendChild(countBar);
@@ -139,7 +131,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
     .calendar-action-row-v174 .calendar-status-control-v174 select{width:100%!important;min-width:0!important;margin:0!important;min-height:44px!important}
     .calendar-action-row-v174>.btn{width:100%!important;min-width:0!important;min-height:48px!important;justify-content:center!important;text-align:center!important;white-space:normal!important;line-height:1.15!important}
     .calendar-count-summary-v174{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:7px!important;min-height:30px!important;padding:8px 2px 0!important;border-top:1px solid #e4e8ef!important;color:#667085!important;font-size:12px!important;font-weight:750!important;line-height:1.3!important;flex-wrap:wrap!important}
-    .calendar-count-item-v174.warning,.calendar-count-warning-v233{color:#a12a2a!important}
+    .calendar-count-item-v174.warning{color:#a12a2a!important}
     .calendar-count-separator-v174{color:#b0b7c3!important}
     @media(max-width:620px){.calendar-type-buttons-v174{gap:5px!important}.calendar-type-icon-v174{min-height:52px!important;border-radius:13px!important;padding:6px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-type-label-v174{font-size:9.5px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:11px!important;gap:6px!important}}
   `;
