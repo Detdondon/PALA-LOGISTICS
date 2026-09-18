@@ -1373,8 +1373,13 @@ function closeUserMenu(){let menu=document.getElementById('userMenuPopover'),but
 if(document.addEventListener)document.addEventListener('click',event=>{if(!event.target.closest||!event.target.closest('.user-menu'))closeUserMenu()});
 async function validateEmployeeSession(){
   if(!employeeToken)return false;
+  if(!navigator.onLine){syncLoginUi();return true}
   let r=await sb.rpc('employee_validate',{p_token:employeeToken}),row=Array.isArray(r.data)?r.data[0]:r.data;
-  if(r.error||!row){clearEmployeeSession();syncLoginUi();return false}
+  if(r.error){
+    if(!navigator.onLine||/network|fetch|offline/i.test(String(r.error.message||r.error))){syncLoginUi();return true}
+    clearEmployeeSession();syncLoginUi();return false;
+  }
+  if(!row){clearEmployeeSession();syncLoginUi();return false}
   saveEmployeeSession(row);syncLoginUi();return true;
 }
 async function validateAdminSession(){let valid=await validateEmployeeSession();return valid&&isAdminLoggedIn()}
@@ -1691,24 +1696,42 @@ async function copyNfcLink(value,button){
 function allHardware(){return Object.values(tents).flatMap(t=>(t.hardware||[]).map(h=>({...h,tent:t})))}
 function findHardware(id){return allHardware().find(h=>+h.id===+id)}
 async function load(){
-  let directoryPromise=sb.rpc('public_employee_directory');
+  let offline=!navigator.onLine;
+  let directoryPromise=offline?Promise.resolve({data:[],error:null}):sb.rpc('public_employee_directory');
   let validationPromise=validateEmployeeSession();
   let [e,loggedIn]=await Promise.all([directoryPromise,validationPromise]);
-  if(e.error){app.innerHTML='<div class="card">Databasefejl</div>';return}
-  employees=e.data||[];
-  if(!loggedIn){await loadPublicPreviewData();return showEmployeeLogin()}
+
+  if(e.error&&!loggedIn){app.innerHTML='<div class="card">Databasefejl</div>';return}
+  if(Array.isArray(e.data)&&e.data.length)employees=e.data;
 
   window.PALALegacyBridge?.installReloadWrapper?.();
 
-  // Show safe cached data immediately while the authoritative network refresh runs.
+  let cacheHydrated=false;
   try{
     if(window.PALACache?.ready){
       await Promise.race([window.PALACache.ready,new Promise(resolve=>setTimeout(resolve,90))]);
-      let p=new URLSearchParams(location.search);
-      let cachePreviewSafe=!p.has('admin')&&!p.has('order')&&!p.has('damage')&&!p.has('check')&&!p.has('workshopEdit');
-      if(cachePreviewSafe&&window.PALALegacyBridge?.hydrateLegacyFromState?.())route();
+      cacheHydrated=!!window.PALALegacyBridge?.hydrateLegacyFromState?.();
     }
   }catch(_){}
+
+  if(!loggedIn){
+    if(offline){
+      if(cacheHydrated&&employees.length)return showEmployeeLogin();
+      app.innerHTML='<div class="card"><h2>Offline</h2><p>Forbind til internettet for at logge ind første gang.</p></div>';
+      return;
+    }
+    await loadPublicPreviewData();
+    return showEmployeeLogin();
+  }
+
+  let p=new URLSearchParams(location.search);
+  let cachePreviewSafe=!p.has('admin')&&!p.has('order')&&!p.has('damage')&&!p.has('check')&&!p.has('workshopEdit');
+  if(cacheHydrated&&cachePreviewSafe)route();
+
+  if(offline){
+    if(!cacheHydrated)app.innerHTML='<div class="card"><h2>Offline</h2><p>Der er endnu ingen lokale PALA-data på denne enhed.</p></div>';
+    return;
+  }
 
   await reloadData();
   setupCloudSync();
