@@ -69,7 +69,7 @@ function fitCountBar(bar){
 
   // Keep the same readable type scale as the rest of PALA. Never shrink the text.
   const appSize=parseFloat(getComputedStyle(document.body).fontSize)||16;
-  const size=Math.max(14,Math.min(16,appSize));
+  const size=Math.max(13,Math.min(15,appSize-1));
   bar.style.setProperty('font-size',size+'px','important');
   bar.style.setProperty('letter-spacing','-.035em','important');
   bar.style.setProperty('font-weight','700','important');
