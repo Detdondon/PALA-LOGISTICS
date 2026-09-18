@@ -1,9 +1,9 @@
-/* PALA v240 · order file attachments
+/* PALA v241 · order file attachments
    Admins can upload/delete files on an order. All logged-in employees can open/download them. */
 (()=>{
 'use strict';
-if(window.__palaOrderFilesV240)return;
-window.__palaOrderFilesV240=true;
+if(window.__palaOrderFilesV241)return;
+window.__palaOrderFilesV241=true;
 
 const MAX_BYTES=7*1024*1024;
 const escText=value=>typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -167,19 +167,9 @@ if(typeof baseViewOrder==='function'){
   };
 }
 
-// Admins open existing orders directly in orderForm(), so attach the same file panel there too.
-const baseOrderForm=window.orderForm;
-if(typeof baseOrderForm==='function'){
-  window.orderForm=function(booking){
-    const result=baseOrderForm.apply(this,arguments);
-    const id=+booking?.id||0;
-    if(id)queueMicrotask(()=>render(id));
-    return result;
-  };
-}
-
+// The order editor has its own built-in upload section in app.html.
 const current=new URLSearchParams(location.search);
-const currentId=+(current.get('job')||current.get('order')||0);
+const currentId=+(current.get('job')||0);
 if(currentId)queueMicrotask(()=>render(currentId));
 
 if(!document.getElementById('pala-order-files-v239-style')){
