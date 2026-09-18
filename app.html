@@ -1696,6 +1696,19 @@ async function load(){
   employees=e.data||[];
   let loggedIn=await validateEmployeeSession();
   if(!loggedIn){await loadPublicPreviewData();return showEmployeeLogin()}
+
+  window.PALALegacyBridge?.installReloadWrapper?.();
+
+  // Show safe cached data immediately while the authoritative network refresh runs.
+  try{
+    if(window.PALACache?.ready){
+      await Promise.race([window.PALACache.ready,new Promise(resolve=>setTimeout(resolve,90))]);
+      let p=new URLSearchParams(location.search);
+      let cachePreviewSafe=!p.has('admin')&&!p.has('order')&&!p.has('damage')&&!p.has('check')&&!p.has('workshopEdit');
+      if(cachePreviewSafe&&window.PALALegacyBridge?.hydrateLegacyFromState?.())route();
+    }
+  }catch(_){}
+
   await reloadData();
   setupCloudSync();
   route();
