@@ -25,7 +25,7 @@ function countNode(text,warning=false){
   const span=document.createElement('span');
   span.className='calendar-count-item-v174';
   if(warning){
-    const match=String(text||'').match(/^(.*?\\bvagter?)(.*)$/i);
+    const match=String(text||'').match(/^(.*?\\bvagter)(.*)$/i);
     if(match&&match[2].trim()){
       span.append(document.createTextNode(match[1]));
       const alert=document.createElement('span');
