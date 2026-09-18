@@ -60,26 +60,14 @@ function fitCountBar(bar){
   bar.style.setProperty('flex-wrap','nowrap','important');
   bar.style.setProperty('white-space','nowrap','important');
   bar.style.setProperty('overflow','hidden','important');
-  bar.style.setProperty('width','100%','important');
+  bar.style.setProperty('width','fit-content','important');
   bar.style.setProperty('max-width','100%','important');
   bar.style.setProperty('box-sizing','border-box','important');
-  const statusSelect=bar.parentElement?.querySelector('.calendar-status-control-v174 select');
-  if(statusSelect){
-    const barRect=bar.getBoundingClientRect();
-    const selectRect=statusSelect.getBoundingClientRect();
-    const leftInset=Math.max(0,selectRect.left-barRect.left);
-    const rightInset=Math.max(0,barRect.right-selectRect.right);
-    bar.style.setProperty('padding-left',leftInset+'px','important');
-    bar.style.setProperty('padding-right',rightInset+'px','important');
-  }else{
-    bar.style.setProperty('padding-left','0','important');
-    bar.style.setProperty('padding-right','0','important');
-  }
+  bar.style.setProperty('padding-left','0','important');
   bar.style.setProperty('padding-right','0','important');
-  bar.style.setProperty('justify-content','space-between','important');
-  bar.style.setProperty('column-gap','0','important');
+  bar.style.setProperty('justify-content','flex-start','important');
+  bar.style.setProperty('column-gap','4px','important');
 
-  // Keep the same readable type scale as the rest of PALA. Never shrink the text.
   const appSize=parseFloat(getComputedStyle(document.body).fontSize)||16;
   const size=Math.max(11,Math.min(13,appSize-3));
   bar.style.setProperty('font-size',size+'px','important');
@@ -91,18 +79,6 @@ function fitCountBar(bar){
     el.style.setProperty('white-space','nowrap','important');
     el.style.setProperty('flex','0 0 auto','important');
   });
-
-  // If the full wording is too wide, compact labels instead of making the font tiny.
-  const compact=()=>{
-    items.forEach(el=>{
-      if(!el.dataset.fullText)el.dataset.fullText=el.textContent;
-      const t=el.dataset.fullText;
-      if(/mangler bemanding/i.test(t))el.textContent=t.replace(/mangler bemanding/i,'mangler');
-      else if(/åbne skader/i.test(t))el.textContent=t.replace(/åbne skader/i,'skader');
-    });
-  };
-  items.forEach(el=>{if(el.dataset.fullText)el.textContent=el.dataset.fullText});
-  if(bar.scrollWidth>bar.clientWidth)compact();
 }
 function enhanceCalendar(){
   try{
