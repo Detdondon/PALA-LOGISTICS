@@ -1,9 +1,9 @@
-/* PALA v241 · order file attachments
+/* PALA v243 · order file attachments
    Admins can upload/delete files on an order. All logged-in employees can open/download them. */
 (()=>{
 'use strict';
-if(window.__palaOrderFilesV241)return;
-window.__palaOrderFilesV241=true;
+if(window.__palaOrderFilesV243)return;
+window.__palaOrderFilesV243=true;
 
 const MAX_BYTES=7*1024*1024;
 const escText=value=>typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -129,8 +129,25 @@ window.openBookingDocumentV239=async function(id){
   try{
     const doc=await payload(id);
     if(!doc)throw new Error('Filen blev ikke fundet.');
-    if(popup){try{popup.location.href=doc.file_data;return}catch(_e){}}
-    const a=document.createElement('a');a.href=doc.file_data;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+    const response=await fetch(doc.file_data);
+    const blob=await response.blob();
+    const url=URL.createObjectURL(blob);
+    const mime=String(doc.mime_type||blob.type||'').toLowerCase();
+    const name=String(doc.file_name||doc.title||'ordre-fil');
+    if(popup){
+      if(mime.startsWith('image/')){
+        popup.document.open();
+        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title></title><style>html,body{margin:0;width:100%;height:100%;background:#111}body{display:grid;place-items:center}img{max-width:100%;max-height:100%;object-fit:contain}</style></head><body><img></body></html>');
+        popup.document.close();
+        popup.document.title=name;
+        popup.document.querySelector('img').src=url;
+      }else{
+        popup.location.replace(url);
+      }
+    }else{
+      const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),60*60*1000);
   }catch(error){
     try{popup?.close()}catch(_e){}
     alert('Kunne ikke åbne filen: '+(error.message||error));
