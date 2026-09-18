@@ -3272,7 +3272,65 @@ function viewOrder(b){
   </section>`:''}`;
 }
 
+let orderFilesPendingV241=[];
+function orderFilesSelectedV241(fileList){
+  const files=[...(fileList||[])],valid=[],rejected=[];
+  for(const file of files){
+    if(file.size>7*1024*1024)rejected.push(file.name);
+    else valid.push(file);
+  }
+  orderFilesPendingV241=valid;
+  const host=document.getElementById('orderFilesPendingV241');
+  if(host)host.innerHTML=valid.length?valid.map(file=>`<div class="small" style="padding:4px 0">• ${esc(file.name)}</div>`).join(''):'<div class="small muted">Ingen nye filer valgt.</div>';
+  if(rejected.length)alert('Disse filer er større end 7 MB og blev ikke valgt:\n'+rejected.join('\n'));
+}
+async function loadOrderExistingFilesV241(bookingId){
+  const host=document.getElementById('orderExistingFilesV241');
+  if(!host||!bookingId||!employeeToken)return;
+  const r=await sb.rpc('employee_booking_documents',{p_token:employeeToken,p_booking_id:+bookingId});
+  if(r.error){host.innerHTML='<div class="small muted">Eksisterende filer kunne ikke hentes.</div>';return}
+  const docs=Array.isArray(r.data)?r.data:[];
+  host.innerHTML=docs.length?docs.map(doc=>`<div class="order-selection-row"><div style="min-width:0"><b>${esc(doc.title||doc.file_name||'Fil')}</b><div class="small muted">${esc(doc.file_name||'')}</div></div><div class="row" style="gap:6px"><button type="button" class="btn" onclick="openOrderDocumentV241(${+doc.id})">${uiIcon('document')} Åbn</button><button type="button" class="btn bad" onclick="deleteOrderDocumentV241(${+doc.id},${+bookingId})">${uiIcon('trash')} Slet</button></div></div>`).join(''):'<div class="small muted">Ingen filer er tilknyttet ordren endnu.</div>';
+}
+async function openOrderDocumentV241(id){
+  const r=await sb.rpc('employee_booking_document',{p_token:employeeToken,p_id:+id});
+  if(r.error)return alert('Kunne ikke åbne filen: '+r.error.message);
+  const doc=Array.isArray(r.data)?r.data[0]:r.data;
+  if(!doc)return alert('Filen blev ikke fundet.');
+  const popup=window.open(doc.file_data,'_blank');
+  if(!popup){const a=document.createElement('a');a.href=doc.file_data;a.download=doc.file_name||doc.title||'ordre-fil';document.body.appendChild(a);a.click();a.remove()}
+}
+async function deleteOrderDocumentV241(id,bookingId){
+  if(!requireAdmin()||!confirm('Slet filen fra ordren?'))return;
+  const r=await sb.rpc('admin_delete_booking_document',{p_token:adminToken,p_id:+id});
+  if(r.error)return alert(r.error.message);
+  await loadOrderExistingFilesV241(+bookingId);
+}
+async function uploadOrderPendingFilesV241(bookingId){
+  if(!bookingId||!orderFilesPendingV241.length)return;
+  const failed=[];
+  for(const file of orderFilesPendingV241){
+    try{
+      const data=await readFileDataUrl(file);
+      const r=await sb.rpc('admin_add_booking_document',{p_token:adminToken,p_booking_id:+bookingId,p_title:file.name,p_file_name:file.name,p_mime_type:file.type||'application/octet-stream',p_file_data:data});
+      if(r.error)throw r.error;
+    }catch(error){failed.push(file.name+' — '+(error.message||error))}
+  }
+  orderFilesPendingV241=[];
+  if(failed.length)alert('Ordren blev gemt, men disse filer kunne ikke uploades:\n'+failed.join('\n'));
+}
+function orderFilesEditorHtmlV241(id){
+  return `<div class="card">
+    <div class="order-section-head"><h3><span class="order-step">5</span> Filer og dokumenter</h3></div>
+    <p class="small muted">Tilføj PDF’er, tegninger, regneark, billeder eller andre dokumenter til ordren. Maks. 7 MB pr. fil.</p>
+    <input id="orderFilesInputV241" type="file" multiple onchange="orderFilesSelectedV241(this.files)">
+    <div id="orderFilesPendingV241" style="margin-top:8px"><div class="small muted">Ingen nye filer valgt.</div></div>
+    ${id?`<div style="margin-top:14px"><div class="small muted" style="margin-bottom:6px">EKSISTERENDE FILER</div><div id="orderExistingFilesV241"><div class="small muted">Henter filer…</div></div></div>`:''}
+  </div>`;
+}
+
 function orderForm(b){
+  orderFilesPendingV241=[];
   let id=b?.id||0,
       T=Object.fromEntries(bt.filter(x=>+x.booking_id===+id).map(x=>[+x.tent_id,+x.quantity||1])),
       I=Object.fromEntries(bi.filter(x=>+x.booking_id===+id).map(x=>[+x.inventory_id,+x.quantity||1])),
@@ -3344,14 +3402,14 @@ function orderForm(b){
     <div id="orderInventoryEmpty" class="order-empty" ${selectedInventoryCount?'hidden':''}>${inventory.length?'Der er endnu ikke tilføjet inventar til ordren.':inventoryCatalogMessage()}</div>
   </div>
 
-  <div class="order-save-bar">
+  ${orderFilesEditorHtmlV241(id)}\n\n  <div class="order-save-bar">
     <button class="btn" onclick="${id?`viewOrder(bookings.find(x=>+x.id===${id}))`:`history.replaceState(null,'',location.pathname);showCalendar()`}">${uiIcon('close')} Annuller</button>
     <button class="btn primary" onclick="saveOrder(${id||'null'})">${uiIcon('check')} Gem ordre</button>
   </div>
 
   ${id?orderStaffingAdminHtml(id):''}
   </div>`;
-  setTimeout(()=>{updateTentConflictWarning(id);refreshOrderTentUi(id);refreshOrderInventoryUi();updateOrderAddressLink();installOrderStaffingInviteEditor(id,b)},0);
+  setTimeout(()=>{updateTentConflictWarning(id);refreshOrderTentUi(id);refreshOrderInventoryUi();updateOrderAddressLink();installOrderStaffingInviteEditor(id,b);if(id)loadOrderExistingFilesV241(id)},0);
 }
 
 function selectedOrderTentIds(){return Object.values(tents).filter(t=>document.getElementById('t'+t.id)?.checked).map(t=>+t.id)}
@@ -3392,7 +3450,7 @@ function orderStaffingAdminHtml(bookingId){
 
   return `<div class="card">
     <div class="order-section-head">
-      <div><h3><span class="order-step">5</span> Bemanding / vagter</h3><p class="small muted" style="margin:8px 0 0">Vagter oprettes her og vises derefter i kalenderen.</p></div>
+      <div><h3><span class="order-step">6</span> Bemanding / vagter</h3><p class="small muted" style="margin:8px 0 0">Vagter oprettes her og vises derefter i kalenderen.</p></div>
       <button class="btn primary" onclick="showOrderShiftForm(${bookingId})">${uiIcon('plus','ui-icon icon-action')} Opret vagt</button>
     </div>
     <div id="orderShiftHost"></div>
@@ -5024,7 +5082,7 @@ async function saveOrderBundle107(id){
   let warnings=tentOverlapWarnings(id||0,p.start_date,p.end_date,p.tents,p.status);if(warnings.length&&!confirm('TELT OVERLAP\n\n'+warnings.map(w=>`${w.tent?.name||'Telt'} — samlet ${w.total}, lager ${w.available}.`).join('\n')+'\n\nGem alligevel?'))return;
   inventory.forEach(i=>{if(document.getElementById('i'+i.id)?.checked)p.inventory.push({inventory_id:i.id,quantity:+read('iq'+i.id)||1})});
   orderSaveInProgress=true;document.querySelector('.order-save-bar')?.classList.add('save-busy');
-  try{await checkedRpc('admin_save_order_bundle',{p_token:adminToken,p_id:id||null,p_booking:p,p_shift:shift});await reloadData();history.replaceState(null,'',location.pathname);showOrders()}
+  try{let savedId=await checkedRpc('admin_save_order_bundle',{p_token:adminToken,p_id:id||null,p_booking:p,p_shift:shift});await uploadOrderPendingFilesV241(+savedId||+id||0);await reloadData();history.replaceState(null,'',location.pathname);showOrders()}
   catch(error){alert('Ordren og den eventuelle vagt blev ikke gemt: '+error.message)}
   finally{orderSaveInProgress=false;document.querySelector('.order-save-bar')?.classList.remove('save-busy')}
 }
