@@ -1,4 +1,4 @@
-/* PALA legacy data bridge v267 · cache hydration + central-state sync */
+/* PALA legacy data bridge v270 · cache hydration + central-state sync */
 (function(global){
   'use strict';
   try{global.palaSupabase=sb;}catch(_){}
@@ -104,10 +104,18 @@
     const current=global.reloadData;
     if(typeof current!=='function')return false;
     if(current.__palaStateWrapped)return true;
-    const wrapped=async function(){
-      const result=await current.apply(this,arguments);
-      syncState('network');
-      return result;
+
+    let inFlight=null;
+    const wrapped=function(){
+      if(inFlight)return inFlight;
+      const self=this,args=arguments;
+      try{global.PALAPerformance?.mark?.('reload-start');}catch(_){}
+      inFlight=Promise.resolve(current.apply(self,args)).then(result=>{
+        syncState('network');
+        try{global.PALAPerformance?.mark?.('reload-end');}catch(_){}
+        return result;
+      }).finally(()=>{inFlight=null;});
+      return inFlight;
     };
     wrapped.__palaStateWrapped=true;
     wrapped.__palaOriginalReload=current;
