@@ -63,7 +63,18 @@ function fitCountBar(bar){
   bar.style.setProperty('width','100%','important');
   bar.style.setProperty('max-width','100%','important');
   bar.style.setProperty('box-sizing','border-box','important');
-  bar.style.setProperty('padding-left','0','important');
+  const statusSelect=bar.parentElement?.querySelector('.calendar-status-control-v174 select');
+  if(statusSelect){
+    const barRect=bar.getBoundingClientRect();
+    const selectRect=statusSelect.getBoundingClientRect();
+    const leftInset=Math.max(0,selectRect.left-barRect.left);
+    const rightInset=Math.max(0,barRect.right-selectRect.right);
+    bar.style.setProperty('padding-left',leftInset+'px','important');
+    bar.style.setProperty('padding-right',rightInset+'px','important');
+  }else{
+    bar.style.setProperty('padding-left','0','important');
+    bar.style.setProperty('padding-right','0','important');
+  }
   bar.style.setProperty('padding-right','0','important');
   bar.style.setProperty('justify-content','space-between','important');
   bar.style.setProperty('column-gap','0','important');
