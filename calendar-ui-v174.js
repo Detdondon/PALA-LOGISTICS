@@ -25,6 +25,8 @@ function countNode(text,warning=false){
   const span=document.createElement('span');
   span.className='calendar-count-item-v174'+(warning?' warning':'');
   span.textContent=text;
+  span.style.whiteSpace='nowrap';
+  span.style.flex='0 0 auto';
   return span;
 }
 function separator(){const span=document.createElement('span');span.className='calendar-count-separator-v174';span.setAttribute('aria-hidden','true');span.textContent='•';return span}
@@ -54,14 +56,21 @@ function completedMonthCounts(){
 }
 function fitCountBar(bar){
   if(!bar)return;
-  bar.style.transform='';
-  bar.style.width='100%';
-  const available=bar.clientWidth;
-  const needed=bar.scrollWidth;
-  if(available>0&&needed>available){
-    const scale=Math.max(.72,available/needed);
-    bar.style.transform='scale('+scale+')';
-    bar.style.width=(100/scale)+'%';
+  bar.style.setProperty('display','flex','important');
+  bar.style.setProperty('flex-wrap','nowrap','important');
+  bar.style.setProperty('white-space','nowrap','important');
+  bar.style.setProperty('overflow','hidden','important');
+  bar.style.setProperty('column-gap','2px','important');
+  bar.querySelectorAll('*').forEach(el=>{
+    el.style.setProperty('white-space','nowrap','important');
+    el.style.setProperty('flex','0 0 auto','important');
+  });
+  // Reduce only this summary's typography until the complete content fits.
+  let size=10;
+  bar.style.setProperty('font-size',size+'px','important');
+  while(bar.scrollWidth>bar.clientWidth&&size>7){
+    size-=.25;
+    bar.style.setProperty('font-size',size+'px','important');
   }
 }
 function enhanceCalendar(){
@@ -122,7 +131,7 @@ function enhanceCalendar(){
     }
     if(type==='all'||type==='workshop')parts.push(countNode(counts.workshop));
     parts.forEach((node,index)=>{if(index)countBar.appendChild(separator());countBar.appendChild(node)});
-    tools.appendChild(countBar); requestAnimationFrame(()=>fitCountBar(countBar));
+    tools.appendChild(countBar); requestAnimationFrame(()=>{fitCountBar(countBar);setTimeout(()=>fitCountBar(countBar),80);setTimeout(()=>fitCountBar(countBar),300)});
   }catch(error){console.warn('PALA calendar UI enhancement skipped',error)}
 }
 
@@ -153,6 +162,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
 let queued=false;
 const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhanceCalendar()})};
 const root=document.getElementById('app');
-if(root)new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+if(root)new MutationObserver(()=>{schedule();const bar=document.querySelector('.calendar-count-summary-v174');if(bar)requestAnimationFrame(()=>fitCountBar(bar))}).observe(root,{childList:true,subtree:true,characterData:true});
+addEventListener('resize',()=>{const bar=document.querySelector('.calendar-count-summary-v174');if(bar)fitCountBar(bar)},{passive:true});
 schedule();
 })();
