@@ -1,5 +1,5 @@
-/* PALA service worker v272 · exact bundled-runtime precache */
-const CACHE_NAME='pala-static-v272';
+/* PALA service worker v273 · exact bundled-runtime precache */
+const CACHE_NAME='pala-static-v273';
 const CACHE_PREFIX='pala-';
 const STATIC_EXT=/\.(?:js|css|svg|png|jpg|jpeg|webp|gif|ico|ttf|otf|woff2?|webmanifest)$/i;
 const CORE_ASSETS=[
