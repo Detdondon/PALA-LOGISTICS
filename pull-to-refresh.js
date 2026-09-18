@@ -33,11 +33,12 @@ async function refresh(){
   indicator.style.transform='translate3d(-50%,14px,0)';
   indicator.style.opacity='1';
   try{
-    if(typeof window.refreshFromCloud==='function')await window.refreshFromCloud();
-    else if(typeof window.loadCloud==='function')await window.loadCloud();
-    else { location.reload(); return; }
-    if(typeof window.showCalendar==='function'&&document.querySelector('.calendar-controller-v150'))await window.showCalendar();
-    setTimeout(()=>{refreshing=false;indicator.classList.remove('refreshing');reset()},350);
+    // A pull-to-refresh must behave like the browser reload gesture: reload the document itself.
+    // Add a cache-busting query so an installed PWA cannot keep serving an old shell.
+    const url=new URL(location.href);
+    url.searchParams.set('_pala_refresh',Date.now().toString(36));
+    location.replace(url.href);
+    return;
   }catch(_e){ location.reload(); }
 }
 addEventListener('touchstart',e=>{
