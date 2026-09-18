@@ -1,15 +1,15 @@
-/* PALA pull-to-refresh v244 · native-style refresh gesture for installed/web app */
+/* PALA pull-to-refresh v251 · native-style refresh gesture for installed/web app */
 (()=>{
 'use strict';
-if(window.__palaPullToRefreshV244)return;
-window.__palaPullToRefreshV244=true;
+if(window.__palaPullToRefreshV251)return;
+window.__palaPullToRefreshV251=true;
 const THRESHOLD=72,MAX=112;
 let startY=0,pull=0,tracking=false,refreshing=false;
 const indicator=document.createElement('div');
-indicator.className='pala-pull-refresh-v244';
-indicator.innerHTML='<span class="pala-pull-refresh-spinner-v244" aria-hidden="true"></span><span class="pala-pull-refresh-label-v244">Træk for at opdatere</span>';
+indicator.className='pala-pull-refresh-v251';
+indicator.innerHTML='<span class="pala-pull-refresh-spinner-v251" aria-hidden="true"></span><span class="pala-pull-refresh-label-v251">Træk for at opdatere</span>';
 document.body.appendChild(indicator);
-const label=indicator.querySelector('.pala-pull-refresh-label-v244');
+const label=indicator.querySelector('.pala-pull-refresh-label-v251');
 function atTop(){return window.scrollY<=0&&document.documentElement.scrollTop<=0}
 function interactive(target){return !!target?.closest?.('input,textarea,select,[contenteditable="true"],.modal,.sheet,.drawer')}
 function paint(){
@@ -32,14 +32,22 @@ async function refresh(){
   label.textContent='Opdaterer…';
   indicator.style.transform='translate3d(-50%,14px,0)';
   indicator.style.opacity='1';
+
+  // Refresh PALA's actual data first. A document navigation alone is unreliable
+  // in standalone iOS/PWA mode and can leave this overlay visible indefinitely.
   try{
-    // A pull-to-refresh must behave like the browser reload gesture: reload the document itself.
-    // Add a cache-busting query so an installed PWA cannot keep serving an old shell.
-    const url=new URL(location.href);
-    url.searchParams.set('_pala_refresh',Date.now().toString(36));
-    location.replace(url.href);
-    return;
-  }catch(_e){ location.reload(); }
+    if(typeof window.reloadData==='function')await window.reloadData();
+    if(typeof window.loadWarehouseExtensions==='function')await window.loadWarehouseExtensions();
+    if(typeof window.showCalendar==='function'&&document.querySelector('.calendar-controller-v150'))await window.showCalendar();
+    else if(typeof window.render==='function')await window.render();
+  }catch(error){
+    console.warn('[PALA] pull refresh data reload failed',error);
+  }finally{
+    refreshing=false;
+    indicator.classList.remove('refreshing');
+    label.textContent='Opdateret';
+    setTimeout(reset,300);
+  }
 }
 addEventListener('touchstart',e=>{
   if(refreshing||e.touches.length!==1||!atTop()||interactive(e.target))return;
@@ -63,11 +71,11 @@ addEventListener('touchend',()=>{
 addEventListener('touchcancel',()=>{if(!refreshing)reset()},{passive:true});
 const style=document.createElement('style');
 style.textContent=`
-.pala-pull-refresh-v244{position:fixed;z-index:10000;left:50%;top:env(safe-area-inset-top,0px);transform:translate3d(-50%,-54px,0);opacity:0;display:flex;align-items:center;gap:7px;height:38px;padding:0 12px;border:1px solid rgba(38,51,75,.12);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 5px 18px rgba(23,33,58,.13);color:#42526b;font:700 11px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;pointer-events:none;transition:opacity .12s ease,transform .12s ease}
-.pala-pull-refresh-spinner-v244{width:14px;height:14px;border:2px solid #cbd4e1;border-top-color:#2f80ed;border-radius:50%;transform:rotate(0)}
-.pala-pull-refresh-v244.ready .pala-pull-refresh-spinner-v244{border-color:#2f80ed}
-.pala-pull-refresh-v244.refreshing .pala-pull-refresh-spinner-v244{animation:pala-spin-v244 .7s linear infinite}
-@keyframes pala-spin-v244{to{transform:rotate(360deg)}}
+.pala-pull-refresh-v251{position:fixed;z-index:10000;left:50%;top:env(safe-area-inset-top,0px);transform:translate3d(-50%,-54px,0);opacity:0;display:flex;align-items:center;gap:7px;height:38px;padding:0 12px;border:1px solid rgba(38,51,75,.12);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 5px 18px rgba(23,33,58,.13);color:#42526b;font:700 11px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;pointer-events:none;transition:opacity .12s ease,transform .12s ease}
+.pala-pull-refresh-spinner-v251{width:14px;height:14px;border:2px solid #cbd4e1;border-top-color:#2f80ed;border-radius:50%;transform:rotate(0)}
+.pala-pull-refresh-v251.ready .pala-pull-refresh-spinner-v251{border-color:#2f80ed}
+.pala-pull-refresh-v251.refreshing .pala-pull-refresh-spinner-v251{animation:pala-spin-v251 .7s linear infinite}
+@keyframes pala-spin-v251{to{transform:rotate(360deg)}}
 `;
 document.head.appendChild(style);
 })();
