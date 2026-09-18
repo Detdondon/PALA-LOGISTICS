@@ -591,6 +591,32 @@ main{padding-top:18px;padding-bottom:110px}
   .order-save-bar{align-items:stretch;flex-direction:column-reverse}.order-save-bar .btn{width:100%;min-width:0}
 }
 
+/* v242 · stabil ordre-editor på desktop */
+.order-editor-page{
+  width:min(100%,1120px)!important;
+  max-width:1120px!important;
+  margin:0 auto!important;
+  align-items:stretch!important;
+}
+.order-editor-page>.card,
+.order-editor-page>.order-save-bar,
+.order-editor-page>#newOrderStaffingCard{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  align-self:stretch!important;
+}
+.order-editor-page>.order-save-bar{
+  position:static!important;
+  inset:auto!important;
+  transform:none!important;
+  margin:0!important;
+}
+@media(min-width:900px){
+  .order-editor-page{gap:16px!important}
+  .order-editor-page>.card{padding:24px}
+}
+
 /* v87 Google Calendar-inspireret kalendergrid */
 .calendar-grid-card{overflow:hidden;padding:0;border-radius:22px;background:#fff}
 .calendar-large-wrap{overflow:visible;padding:0;margin:0;touch-action:pan-y}
@@ -3402,12 +3428,13 @@ function orderForm(b){
     <div id="orderInventoryEmpty" class="order-empty" ${selectedInventoryCount?'hidden':''}>${inventory.length?'Der er endnu ikke tilføjet inventar til ordren.':inventoryCatalogMessage()}</div>
   </div>
 
-  ${orderFilesEditorHtmlV241(id)}\n\n  <div class="order-save-bar">
+  ${orderFilesEditorHtmlV241(id)}
+  ${id?orderStaffingAdminHtml(id):''}
+
+  <div class="order-save-bar">
     <button class="btn" onclick="${id?`viewOrder(bookings.find(x=>+x.id===${id}))`:`history.replaceState(null,'',location.pathname);showCalendar()`}">${uiIcon('close')} Annuller</button>
     <button class="btn primary" onclick="saveOrder(${id||'null'})">${uiIcon('check')} Gem ordre</button>
   </div>
-
-  ${id?orderStaffingAdminHtml(id):''}
   </div>`;
   setTimeout(()=>{updateTentConflictWarning(id);refreshOrderTentUi(id);refreshOrderInventoryUi();updateOrderAddressLink();installOrderStaffingInviteEditor(id,b);if(id)loadOrderExistingFilesV241(id)},0);
 }
@@ -4090,7 +4117,7 @@ async function addEmployee(){if(!requireAdmin())return;let name=document.getElem
 async function saveEmployee(id){if(!requireAdmin())return;let row=employees.find(e=>+e.id===+id),name=document.getElementById('empName'+id)?.value.trim();if(!name)return alert('Medarbejderen skal have et navn.');let checkbox=document.getElementById('empAdmin'+id),isAdmin=checkbox?checkbox.checked:!!row?.is_admin;let result=await sb.rpc('admin_save_employee',{p_token:adminToken,p_id:+id,p_name:name,p_is_admin:isAdmin});if(result.error)return alert(result.error.message);await reloadData();showAdminEmployees()}
 
 function installOrderStaffingInviteEditor(id,b){
-  if(id&&staffingShifts.some(s=>+s.booking_id===+id))return;let bar=document.querySelector('.order-save-bar');if(!bar||document.getElementById('newOrderStaffingCard'))return;let people=employees.filter(e=>e.active!==false).sort((a,b)=>alpha(a.name,b.name));bar.insertAdjacentHTML('beforebegin',`<div id="newOrderStaffingCard" class="card"><div class="order-section-head"><div><h3><span class="order-step">5</span> Bemanding ved oprettelse</h3><p class="small muted" style="margin:8px 0 0">Opret første vagt og send medarbejderne en forespørgsel sammen med ordren.</p></div><label class="role-switch"><input id="newShiftEnabled" type="checkbox" onchange="document.getElementById('newShiftFields').hidden=!this.checked"><span>Opret vagt</span></label></div><div id="newShiftFields" class="order-staffing-create" hidden><div class="two"><div><label>Vagtens navn</label><input id="newShiftTitle" placeholder="Fx Opstilling"></div><div><label>Antal medarbejdere</label><input id="newShiftNeeded" type="number" min="1" value="2"></div></div><div class="three"><div><label>Dato</label><input id="newShiftDate" type="date"></div><div><label>Fra kl.</label><input id="newShiftStart" type="time"></div><div><label>Til kl.</label><input id="newShiftEnd" type="time"></div></div><label>Send forespørgsel til</label><div class="employee-choice-grid">${people.map(e=>`<label class="employee-choice"><input class="newOrderInviteEmployee" type="checkbox" value="${e.id}"><span>${esc(e.name)}</span></label>`).join('')}</div></div></div>`);
+  if(id&&staffingShifts.some(s=>+s.booking_id===+id))return;let bar=document.querySelector('.order-save-bar');if(!bar||document.getElementById('newOrderStaffingCard'))return;let people=employees.filter(e=>e.active!==false).sort((a,b)=>alpha(a.name,b.name));bar.insertAdjacentHTML('beforebegin',`<div id="newOrderStaffingCard" class="card"><div class="order-section-head"><div><h3><span class="order-step">6</span> Bemanding ved oprettelse</h3><p class="small muted" style="margin:8px 0 0">Opret første vagt og send medarbejderne en forespørgsel sammen med ordren.</p></div><label class="role-switch"><input id="newShiftEnabled" type="checkbox" onchange="document.getElementById('newShiftFields').hidden=!this.checked"><span>Opret vagt</span></label></div><div id="newShiftFields" class="order-staffing-create" hidden><div class="two"><div><label>Vagtens navn</label><input id="newShiftTitle" placeholder="Fx Opstilling"></div><div><label>Antal medarbejdere</label><input id="newShiftNeeded" type="number" min="1" value="2"></div></div><div class="three"><div><label>Dato</label><input id="newShiftDate" type="date"></div><div><label>Fra kl.</label><input id="newShiftStart" type="time"></div><div><label>Til kl.</label><input id="newShiftEnd" type="time"></div></div><label>Send forespørgsel til</label><div class="employee-choice-grid">${people.map(e=>`<label class="employee-choice"><input class="newOrderInviteEmployee" type="checkbox" value="${e.id}"><span>${esc(e.name)}</span></label>`).join('')}</div></div></div>`);
 }
 async function saveOrder(id){
   if(!requireAdmin())return;let p={order_no:document.getElementById('on').value,customer_name:document.getElementById('oc').value,title:document.getElementById('otitle').value,address:document.getElementById('oaddress').value,start_date:document.getElementById('os').value,end_date:document.getElementById('oe').value,delivery_date:document.getElementById('odelivery').value||null,pickup_date:document.getElementById('opickup').value||null,status:document.getElementById('ost').value,color:document.getElementById('ocolor').value,notes:document.getElementById('onotes').value};
@@ -4272,7 +4299,7 @@ async function saveSpecialHardware(id){
 async function deleteSpecialHardware(id){if(!requireAdmin()||!confirm('Slet denne specialhardware?'))return;let r=await sb.rpc('admin_delete_special_hardware',{p_token:adminToken,p_id:+id});if(r.error)return alert(r.error.message);await reloadData();showAdminSpecialHardware()}
 
 installOrderStaffingInviteEditor=function(id,b){
-  if(id&&staffingShifts.some(s=>+s.booking_id===+id))return;let bar=document.querySelector('.order-save-bar');if(!bar||document.getElementById('newOrderStaffingCard'))return;bar.insertAdjacentHTML('beforebegin',`<div id="newOrderStaffingCard" class="card"><div class="order-section-head"><div><h3><span class="order-step">5</span> Bemanding ved oprettelse</h3><p class="small muted" style="margin:8px 0 0">Job og første vagt gemmes samlet med knappen nederst.</p></div><label class="role-switch"><input id="newShiftEnabled" type="checkbox" onchange="document.getElementById('newShiftFields').hidden=!this.checked;updateNewOrderSaveLabel()"><span>Opret vagt</span></label></div><div id="newShiftFields" class="order-staffing-create" hidden><div class="two"><div><label>Vagtens navn</label><input id="newShiftTitle" placeholder="Fx Opstilling"></div><div><label>Antal medarbejdere</label><input id="newShiftNeeded" type="number" min="1" value="2"></div></div><div class="three"><div><label>Dato</label><input id="newShiftDate" type="date"></div><div><label>Fra kl.</label><input id="newShiftStart" type="time"></div><div><label>Til kl.</label><input id="newShiftEnd" type="time"></div></div><label>Medarbejdere</label><p class="small muted">Tilknyt direkte uden varsel, eller send en forespørgsel som skal accepteres.</p>${staffChoiceRows('newOrder',null)}</div></div>`);updateNewOrderSaveLabel();
+  if(id&&staffingShifts.some(s=>+s.booking_id===+id))return;let bar=document.querySelector('.order-save-bar');if(!bar||document.getElementById('newOrderStaffingCard'))return;bar.insertAdjacentHTML('beforebegin',`<div id="newOrderStaffingCard" class="card"><div class="order-section-head"><div><h3><span class="order-step">6</span> Bemanding ved oprettelse</h3><p class="small muted" style="margin:8px 0 0">Job og første vagt gemmes samlet med knappen nederst.</p></div><label class="role-switch"><input id="newShiftEnabled" type="checkbox" onchange="document.getElementById('newShiftFields').hidden=!this.checked;updateNewOrderSaveLabel()"><span>Opret vagt</span></label></div><div id="newShiftFields" class="order-staffing-create" hidden><div class="two"><div><label>Vagtens navn</label><input id="newShiftTitle" placeholder="Fx Opstilling"></div><div><label>Antal medarbejdere</label><input id="newShiftNeeded" type="number" min="1" value="2"></div></div><div class="three"><div><label>Dato</label><input id="newShiftDate" type="date"></div><div><label>Fra kl.</label><input id="newShiftStart" type="time"></div><div><label>Til kl.</label><input id="newShiftEnd" type="time"></div></div><label>Medarbejdere</label><p class="small muted">Tilknyt direkte uden varsel, eller send en forespørgsel som skal accepteres.</p>${staffChoiceRows('newOrder',null)}</div></div>`);updateNewOrderSaveLabel();
 };
 function updateNewOrderSaveLabel(){let btn=document.querySelector('.order-save-bar .btn.primary');if(btn)btn.innerHTML=`${uiIcon('check')} ${document.getElementById('newShiftEnabled')?.checked?'Gem job og vagt':'Gem job'}`}
 saveOrder=async function(id){
