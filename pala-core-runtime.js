@@ -1,4 +1,4 @@
-/* PALA core runtime bundle v266 · cache-first state, optimistic UI and offline queue */
+/* PALA core runtime bundle v267 · cache-first state, optimistic UI and offline conflict queue */
 
 /* --- pala-performance.js --- */
 /* PALA performance baseline v263 · passive diagnostics only */
@@ -61,7 +61,7 @@
 ;
 
 /* --- pala-legacy-bridge.js --- */
-/* PALA legacy data bridge v266 · cache hydration + central-state sync */
+/* PALA legacy data bridge v267 · cache hydration + central-state sync */
 (function(global){
   'use strict';
   try{global.palaSupabase=sb;}catch(_){}
@@ -163,6 +163,7 @@
   }
 
   function installReloadWrapper(){
+    try{global.palaSupabase=sb;}catch(_){}
     const current=global.reloadData;
     if(typeof current!=='function')return false;
     if(current.__palaStateWrapped)return true;
@@ -343,7 +344,7 @@
 ;
 
 /* --- pala-offline-queue.js --- */
-/* PALA offline mutation queue v266 · conflict-aware persistent queue */
+/* PALA offline mutation queue v267 · conflict-aware persistent queue */
 (function(global){
   'use strict';
   if(global.PALAOfflineQueue||!('indexedDB'in global))return;
@@ -471,6 +472,18 @@
       conflicts:items.filter(x=>x.status==='conflict').length
     };
   }
+
+  register('rpc',async(payload,item)=>{
+    const client=global.palaSupabase||global.sb||global.supabaseClient;
+    if(!client||typeof client.rpc!=='function')throw new Error('Supabase-klienten er ikke klar');
+    const result=await client.rpc(payload?.name,payload?.args||{});
+    if(result?.error){
+      const message=String(result.error.message||result.error);
+      if(/conflict|stale|version|newer/i.test(message))return {conflict:true,message,remote:null};
+      throw new Error(message);
+    }
+    return result?.data;
+  });
 
   global.addEventListener('online',()=>setTimeout(flush,250));
   global.PALAOfflineQueue={enqueue,register,flush,all,resolve,stats};
