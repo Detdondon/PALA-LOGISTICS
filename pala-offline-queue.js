@@ -1,8 +1,7 @@
-/* PALA offline mutation queue v264 · opt-in foundation, no legacy writes are intercepted */
+/* PALA offline mutation queue v266 · conflict-aware persistent queue */
 (function(global){
   'use strict';
-  if(global.PALAOfflineQueue)return;
-  if(!('indexedDB'in global))return;
+  if(global.PALAOfflineQueue||!('indexedDB'in global))return;
 
   const DB='pala-offline',STORE='queue',VERSION=1;
   const handlers=new Map();
@@ -45,7 +44,17 @@
   }
 
   async function enqueue(type,payload,meta={}){
-    const item={id:meta.id||crypto.randomUUID?.()||('pala-'+Date.now()+'-'+Math.random().toString(36).slice(2)),type:String(type),payload,createdAt:Date.now(),attempts:0};
+    const item={
+      id:meta.id||crypto.randomUUID?.()||('pala-'+Date.now()+'-'+Math.random().toString(36).slice(2)),
+      type:String(type),
+      payload,
+      entity:meta.entity||null,
+      entityId:meta.entityId??null,
+      baseVersion:meta.baseVersion??null,
+      createdAt:Date.now(),
+      attempts:0,
+      status:'pending'
+    };
     await put(item);
     try{global.dispatchEvent(new CustomEvent('pala:offline-queued',{detail:item}))}catch(_){}
     return item;
@@ -57,22 +66,50 @@
     return()=>handlers.delete(String(type));
   }
 
+  async function resolve(id,action,payload){
+    const items=await all(),item=items.find(x=>x.id===id);
+    if(!item)return false;
+    if(action==='discard'){await remove(id);return true;}
+    if(action==='retry'){
+      item.status='pending';item.lastError=null;item.remote=null;
+      if(payload!==undefined)item.payload=payload;
+      await put(item);if(navigator.onLine)setTimeout(flush,0);return true;
+    }
+    if(action==='overwrite'){
+      item.status='pending';item.force=true;item.lastError=null;item.remote=null;
+      if(payload!==undefined)item.payload=payload;
+      await put(item);if(navigator.onLine)setTimeout(flush,0);return true;
+    }
+    return false;
+  }
+
   async function flush(){
     if(flushing||!navigator.onLine)return false;
     flushing=true;
     try{
       const items=await all();
       for(const item of items){
+        if(item.status==='conflict')continue;
         const handler=handlers.get(item.type);
         if(!handler)continue;
         try{
-          await handler(item.payload,item);
+          const result=await handler(item.payload,item);
+          if(result&&result.conflict){
+            item.status='conflict';
+            item.remote=result.remote??null;
+            item.lastError=result.message||'Konflikt med en nyere ændring';
+            item.lastAttemptAt=Date.now();
+            await put(item);
+            try{global.dispatchEvent(new CustomEvent('pala:offline-conflict',{detail:item}))}catch(_){}
+            continue;
+          }
           await remove(item.id);
-          try{global.dispatchEvent(new CustomEvent('pala:offline-committed',{detail:item}))}catch(_){}
+          try{global.dispatchEvent(new CustomEvent('pala:offline-committed',{detail:{item,result}}))}catch(_){}
         }catch(error){
           item.attempts=(item.attempts||0)+1;
           item.lastError=String(error?.message||error||'Ukendt fejl');
           item.lastAttemptAt=Date.now();
+          item.status='pending';
           await put(item);
           break;
         }
@@ -81,6 +118,15 @@
     }finally{flushing=false;}
   }
 
+  async function stats(){
+    const items=await all();
+    return {
+      total:items.length,
+      pending:items.filter(x=>x.status!=='conflict').length,
+      conflicts:items.filter(x=>x.status==='conflict').length
+    };
+  }
+
   global.addEventListener('online',()=>setTimeout(flush,250));
-  global.PALAOfflineQueue={enqueue,register,flush,all};
+  global.PALAOfflineQueue={enqueue,register,flush,all,resolve,stats};
 })(window);
