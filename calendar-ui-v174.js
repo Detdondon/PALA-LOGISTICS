@@ -61,7 +61,8 @@ function fitCountBar(bar){
   bar.style.setProperty('white-space','nowrap','important');
   bar.style.setProperty('overflow','hidden','important');
   bar.style.setProperty('width','100%','important');
-  bar.style.setProperty('max-width','none','important');
+  bar.style.setProperty('max-width','100%','important');
+  bar.style.setProperty('box-sizing','border-box','important');
   bar.style.setProperty('padding-left','0','important');
   bar.style.setProperty('padding-right','0','important');
   bar.style.setProperty('justify-content','space-between','important');
