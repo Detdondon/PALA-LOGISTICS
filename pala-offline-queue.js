@@ -1,4 +1,4 @@
-/* PALA offline mutation queue v266 · conflict-aware persistent queue */
+/* PALA offline mutation queue v267 · conflict-aware persistent queue */
 (function(global){
   'use strict';
   if(global.PALAOfflineQueue||!('indexedDB'in global))return;
@@ -126,6 +126,18 @@
       conflicts:items.filter(x=>x.status==='conflict').length
     };
   }
+
+  register('rpc',async(payload,item)=>{
+    const client=global.palaSupabase||global.sb||global.supabaseClient;
+    if(!client||typeof client.rpc!=='function')throw new Error('Supabase-klienten er ikke klar');
+    const result=await client.rpc(payload?.name,payload?.args||{});
+    if(result?.error){
+      const message=String(result.error.message||result.error);
+      if(/conflict|stale|version|newer/i.test(message))return {conflict:true,message,remote:null};
+      throw new Error(message);
+    }
+    return result?.data;
+  });
 
   global.addEventListener('online',()=>setTimeout(flush,250));
   global.PALAOfflineQueue={enqueue,register,flush,all,resolve,stats};
