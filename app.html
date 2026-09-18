@@ -6713,21 +6713,17 @@ const syncVersionBadgeV142Base=syncVersionBadgeV134;
 syncVersionBadgeV134=function(){
   let result=syncVersionBadgeV142Base.apply(this,arguments);
   let badge=document.querySelector('.app-version');
-  if(badge)badge.textContent='v252';
+  if(badge)badge.textContent='v254';
   return result;
 };
 
-// Current deployed PALA version. Keep the visible badge independent of legacy wrappers.
-window.PALA_APP_VERSION='v252';
-function syncCurrentPalaVersionV252(){
+// Current deployed PALA version.
+window.PALA_APP_VERSION='v254';
+function syncCurrentPalaVersionV254(){
   let badge=document.querySelector('.app-version');
   if(badge)badge.textContent=window.PALA_APP_VERSION;
 }
-const palaVersionObserverV252=new MutationObserver(syncCurrentPalaVersionV252);
-palaVersionObserverV252.observe(document.documentElement,{childList:true,subtree:true});
-queueMicrotask(syncCurrentPalaVersionV252);
-
 syncLoginUi();
-syncCurrentPalaVersionV252();
+syncCurrentPalaVersionV254();
 
 </script><script src="calendar-controller.js?v=9"></script><!-- PALA_RUNTIME_SCRIPTS --></body></html>
