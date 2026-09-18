@@ -3319,12 +3319,43 @@ async function loadOrderExistingFilesV241(bookingId){
   host.innerHTML=docs.length?docs.map(doc=>`<div class="order-selection-row"><div style="min-width:0"><b>${esc(doc.title||doc.file_name||'Fil')}</b><div class="small muted">${esc(doc.file_name||'')}</div></div><div class="row" style="gap:6px"><button type="button" class="btn" onclick="openOrderDocumentV241(${+doc.id})">${uiIcon('document')} Åbn</button><button type="button" class="btn bad" onclick="deleteOrderDocumentV241(${+doc.id},${+bookingId})">${uiIcon('trash')} Slet</button></div></div>`).join(''):'<div class="small muted">Ingen filer er tilknyttet ordren endnu.</div>';
 }
 async function openOrderDocumentV241(id){
-  const r=await sb.rpc('employee_booking_document',{p_token:employeeToken,p_id:+id});
-  if(r.error)return alert('Kunne ikke åbne filen: '+r.error.message);
-  const doc=Array.isArray(r.data)?r.data[0]:r.data;
-  if(!doc)return alert('Filen blev ikke fundet.');
-  const popup=window.open(doc.file_data,'_blank');
-  if(!popup){const a=document.createElement('a');a.href=doc.file_data;a.download=doc.file_name||doc.title||'ordre-fil';document.body.appendChild(a);a.click();a.remove()}
+  const popup=window.open('about:blank','_blank');
+  if(popup){
+    try{
+      popup.document.title='Åbner fil…';
+      popup.document.body.innerHTML='<p style="font-family:system-ui;padding:20px">Åbner fil…</p>';
+    }catch(_e){}
+  }
+  try{
+    const r=await sb.rpc('employee_booking_document',{p_token:employeeToken,p_id:+id});
+    if(r.error)throw r.error;
+    const doc=Array.isArray(r.data)?r.data[0]:r.data;
+    if(!doc)throw new Error('Filen blev ikke fundet.');
+    const response=await fetch(doc.file_data);
+    const blob=await response.blob();
+    const url=URL.createObjectURL(blob);
+    const mime=String(doc.mime_type||blob.type||'').toLowerCase();
+    const name=String(doc.file_name||doc.title||'ordre-fil');
+    if(popup){
+      if(mime.startsWith('image/')){
+        popup.document.open();
+        popup.document.write('<!doctype html><html><head><meta charset="utf-8"><title></title><style>html,body{margin:0;width:100%;height:100%;background:#111}body{display:grid;place-items:center}img{max-width:100%;max-height:100%;object-fit:contain}</style></head><body><img></body></html>');
+        popup.document.close();
+        popup.document.title=name;
+        popup.document.querySelector('img').src=url;
+      }else{
+        popup.location.replace(url);
+      }
+    }else{
+      const a=document.createElement('a');
+      a.href=url;a.target='_blank';a.rel='noopener';
+      document.body.appendChild(a);a.click();a.remove();
+    }
+    setTimeout(()=>URL.revokeObjectURL(url),60*60*1000);
+  }catch(error){
+    try{popup?.close()}catch(_e){}
+    alert('Kunne ikke åbne filen: '+(error.message||error));
+  }
 }
 async function deleteOrderDocumentV241(id,bookingId){
   if(!requireAdmin()||!confirm('Slet filen fra ordren?'))return;
