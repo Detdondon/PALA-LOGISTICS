@@ -4091,10 +4091,12 @@ async function reloadData(){
   inventory=i.data||[];bookings=b.data||[];applyReturnedCompletionCache();bt=x.data||[];bi=y.data||[];
   employees=e.data||[];staffingShifts=ss.data||[];staffingAssignments=sa.data||[];tentDocuments=td.data||[];
   rebuildDataIndexes();
-  await loadWarehouseExtensions();
-  await loadWorkshopData();
-  await loadStaffingInvitations();
-  await refreshWarehouseStatus();
+  await Promise.all([
+    loadWarehouseExtensions(),
+    loadWorkshopData(),
+    loadStaffingInvitations(),
+    refreshWarehouseStatus()
+  ]);
 }
 
 
