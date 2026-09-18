@@ -42,20 +42,25 @@
   }
 
   function snapshot(){
+    const copy=getter=>{try{const rows=getter();return Array.isArray(rows)?[...rows]:[]}catch(_){return[]}};
     const tentRows=Object.values(tents||{});
     const hardwareRows=[];
     tentRows.forEach(tent=>{if(Array.isArray(tent?.hardware))tent.hardware.forEach(row=>hardwareRows.push(row));});
     return {
       tents:tentRows,
       hardware:hardwareRows,
-      inventory:[...(inventory||[])],
-      warehouseCategories:Array.isArray(global.warehouseCategories)?[...global.warehouseCategories]:[],
-      bookings:[...(bookings||[])],
-      staffingShifts:[...(staffingShifts||[])],
-      staffingAssignments:[...(staffingAssignments||[])],
-      employees:[...(employees||[])],
-      workshopJobs:[...(workshopJobs||[])],
-      workshopTasks:[...(workshopTasks||[])]
+      hardwareCatalog:copy(()=>hardwareCatalog),
+      inventory:copy(()=>inventory),
+      warehouseCategories:copy(()=>warehouseCategories),
+      tentParts:copy(()=>tentParts),
+      specialHardware:copy(()=>specialHardware),
+      meetings:copy(()=>palaMeetings),
+      bookings:copy(()=>bookings),
+      staffingShifts:copy(()=>staffingShifts),
+      staffingAssignments:copy(()=>staffingAssignments),
+      employees:copy(()=>employees),
+      workshopJobs:copy(()=>workshopJobs),
+      workshopTasks:copy(()=>workshopTasks)
     };
   }
 
@@ -75,7 +80,11 @@
       state.all('hardware').forEach(row=>{if(nextTents[row.tent_id])nextTents[row.tent_id].hardware.push({...row});});
       tents=nextTents;
 
+      if(state.size('hardwareCatalog'))hardwareCatalog=state.all('hardwareCatalog').map(row=>({...row}));
       if(state.size('inventory'))inventory=state.all('inventory').map(row=>({...row}));
+      if(state.size('tentParts'))tentParts=state.all('tentParts').map(row=>({...row}));
+      if(state.size('specialHardware'))specialHardware=state.all('specialHardware').map(row=>({...row}));
+      if(state.size('meetings'))palaMeetings=state.all('meetings').map(row=>({...row}));
       if(state.size('bookings'))bookings=state.all('bookings').map(row=>({...row}));
       if(state.size('staffingShifts'))staffingShifts=state.all('staffingShifts').map(row=>({...row}));
       if(state.size('staffingAssignments'))staffingAssignments=state.all('staffingAssignments').map(row=>({...row}));
