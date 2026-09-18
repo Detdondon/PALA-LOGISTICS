@@ -1696,41 +1696,48 @@ async function copyNfcLink(value,button){
 function allHardware(){return Object.values(tents).flatMap(t=>(t.hardware||[]).map(h=>({...h,tent:t})))}
 function findHardware(id){return allHardware().find(h=>+h.id===+id)}
 async function load(){
-  let offline=!navigator.onLine;
-  let directoryPromise=offline?Promise.resolve({data:[],error:null}):sb.rpc('public_employee_directory');
-  let validationPromise=validateEmployeeSession();
-  let [e,loggedIn]=await Promise.all([directoryPromise,validationPromise]);
+  window.PALALegacyBridge?.installReloadWrapper?.();
+
+  const offline=!navigator.onLine;
+  const hadStoredSession=!!employeeToken;
+  let cacheHydrated=false;
+
+  // Restore and render cached PALA data before waiting on network/session validation.
+  if(hadStoredSession){
+    try{
+      if(window.PALACache?.ready){
+        await Promise.race([window.PALACache.ready,new Promise(resolve=>setTimeout(resolve,140))]);
+        cacheHydrated=!!window.PALALegacyBridge?.hydrateLegacyFromState?.();
+        if(cacheHydrated){
+          const p=new URLSearchParams(location.search);
+          const cachePreviewSafe=!p.has('admin')&&!p.has('order')&&!p.has('damage')&&!p.has('check')&&!p.has('workshopEdit');
+          if(cachePreviewSafe)route();
+        }
+      }
+    }catch(error){console.warn('[PALA] cache-first startup failed',error)}
+  }
+
+  if(offline){
+    if(hadStoredSession&&cacheHydrated)return;
+    if(hadStoredSession){
+      app.innerHTML='<div class="card"><h2>Offline</h2><p>Der er endnu ingen lokale PALA-data på denne enhed.</p></div>';
+      return;
+    }
+    app.innerHTML='<div class="card"><h2>Offline</h2><p>Forbind til internettet for at logge ind første gang.</p></div>';
+    return;
+  }
+
+  const [e,loggedIn]=await Promise.all([
+    sb.rpc('public_employee_directory'),
+    validateEmployeeSession()
+  ]);
 
   if(e.error&&!loggedIn){app.innerHTML='<div class="card">Databasefejl</div>';return}
   if(Array.isArray(e.data)&&e.data.length)employees=e.data;
 
-  window.PALALegacyBridge?.installReloadWrapper?.();
-
-  let cacheHydrated=false;
-  try{
-    if(window.PALACache?.ready){
-      await Promise.race([window.PALACache.ready,new Promise(resolve=>setTimeout(resolve,90))]);
-      cacheHydrated=!!window.PALALegacyBridge?.hydrateLegacyFromState?.();
-    }
-  }catch(_){}
-
   if(!loggedIn){
-    if(offline){
-      if(cacheHydrated&&employees.length)return showEmployeeLogin();
-      app.innerHTML='<div class="card"><h2>Offline</h2><p>Forbind til internettet for at logge ind første gang.</p></div>';
-      return;
-    }
     await loadPublicPreviewData();
     return showEmployeeLogin();
-  }
-
-  let p=new URLSearchParams(location.search);
-  let cachePreviewSafe=!p.has('admin')&&!p.has('order')&&!p.has('damage')&&!p.has('check')&&!p.has('workshopEdit');
-  if(cacheHydrated&&cachePreviewSafe)route();
-
-  if(offline){
-    if(!cacheHydrated)app.innerHTML='<div class="card"><h2>Offline</h2><p>Der er endnu ingen lokale PALA-data på denne enhed.</p></div>';
-    return;
   }
 
   await reloadData();
@@ -4230,7 +4237,7 @@ async function saveOrder(id){
 }
 
 function showStaffingExportDialog(){
-  let anchor=new Date(staffCalDate),start=new Date(anchor);start.setDate(anchor.getDate()-((anchor.getDay()+6)%7));let end=new Date(start);end.setDate(start.getDate()+(staffingViewMode==='calendar'?27:13));closeDialog('staffingExportDialog');document.body.insertAdjacentHTML('beforeend',`<div id="staffingExportDialog" class="dialog-backdrop" onclick="if(event.target===this)closeDialog('staffingExportDialog')"><div class="dialog-card"><h2>Eksportér bemandingsplan</h2><p class="muted">Vælg præcis den periode, der skal med i PDF-filen.</p><div class="two"><div><label>Fra dato</label><input id="staffExportStart" type="date" value="${staffDateString(start)}"></div><div><label>Til dato</label><input id="staffExportEnd" type="date" value="${staffDateString(end)}"></div></div><div class="dialog-actions"><button class="btn" onclick="closeDialog('staffingExportDialog')">Annuller</button><button class="btn primary" onclick="exportStaffingPlanPDF(document.getElementById('staffExportStart').value,document.getElementById('staffExportEnd').value)">${uiIcon('document')} Eksportér PDF</button></div></div></div>`);
+  let anchor=new Date(staffCalDate),start=new Date(anchor);start.setDate(anchor.getDate()-((anchor.getDay()+6)%7));let end=new Date(start);end.setDate(start.getDate()+(staffingViewMode==='calendar'?27:13));closeDialog('staffingExportDialog');document.body.insertAdjacentHTML('beforeend',`<div id="staffingExportDialog" class="dialog-backdrop" onclick="if(event.target===this)closeDialog('staffingExportDialog')"><div class="dialog-card"><h2>Eksportér bemandingsplan</h2><p class="muted">Vælg præcis den periode, der skal med i PDF-filen.</p><div class="two"><div><label>Fra dato</label><input id="staffExportStart" type="date" value="${staffDateString(start)}"></div><div><label>Til dato</label><input id="staffExportEnd" type="date" value="${staffDateString(end)}"></div></div><div class="dialog-actions"><button class="btn" onclick="closeDialog('staffingExportDialog')">Annuller</button><button class="btn primary" onclick="exportStaffingPlanPDF(document.getElementById('staffExportStart').value,document.getElementById('staffExportEnd').value)">Eksportér PDF</button></div></div></div>`);
 }
 async function exportStaffingPlanPDF(periodStart,periodEnd){
   if(!periodStart||!periodEnd)return showStaffingExportDialog();
@@ -5306,7 +5313,7 @@ let brandLogoHost=document.querySelector('.brand-name');if(brandLogoHost){brandL
 syncLoginUi();
 document.querySelector('.app-version').textContent='v138';
 document.querySelector('meta[name="theme-color"]')?.setAttribute('content','#f5f6f8');
-if('serviceWorker'in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('./sw.js').catch(()=>{});
+// Service worker registration is handled once by pala-pwa.js.
 load();
 
 
