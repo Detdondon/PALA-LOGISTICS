@@ -65,13 +65,16 @@ function fitCountBar(bar){
     el.style.setProperty('white-space','nowrap','important');
     el.style.setProperty('flex','0 0 auto','important');
   });
-  // Reduce only this summary's typography until the complete content fits.
+  // Fit the complete summary to one line, then distribute any spare width
+  // evenly so the row visually spans the full available screen/card width.
   let size=10;
   bar.style.setProperty('font-size',size+'px','important');
   while(bar.scrollWidth>bar.clientWidth&&size>7){
     size-=.25;
     bar.style.setProperty('font-size',size+'px','important');
   }
+  bar.style.setProperty('justify-content','space-between','important');
+  bar.style.setProperty('column-gap','0','important');
 }
 function enhanceCalendar(){
   try{
