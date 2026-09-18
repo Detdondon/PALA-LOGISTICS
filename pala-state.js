@@ -3,7 +3,7 @@
   'use strict';
   if(global.PALA_STATE)return;
 
-  const TABLES=['tents','hardware','inventory','warehouseCategories','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
+  const TABLES=['tents','hardware','hardwareCatalog','inventory','warehouseCategories','tentParts','specialHardware','meetings','bookings','staffingShifts','staffingAssignments','employees','workshopJobs','workshopTasks'];
   const maps=Object.create(null),listeners=new Set();
   TABLES.forEach(name=>maps[name]=new Map());
   let revision=0;
