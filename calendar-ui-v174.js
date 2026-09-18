@@ -67,10 +67,13 @@ function fitCountBar(bar){
   });
   // Fit the complete summary to one line, then distribute any spare width
   // evenly so the row visually spans the full available screen/card width.
-  let size=10;
+  // Start at normal app-readable size and only reduce as much as strictly necessary.
+  // Tight spacing/letter spacing lets the row stay readable while remaining one line.
+  let size=13;
   bar.style.setProperty('font-size',size+'px','important');
-  while(bar.scrollWidth>bar.clientWidth&&size>7){
-    size-=.25;
+  bar.style.setProperty('letter-spacing','-.055em','important');
+  while(bar.scrollWidth>bar.clientWidth&&size>9){
+    size-=.2;
     bar.style.setProperty('font-size',size+'px','important');
   }
   // Use the full visual width: first item at the left edge, last item at the right edge.
