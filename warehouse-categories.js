@@ -83,7 +83,7 @@ function isStandardPermanent(item){
 }
 function stockInfo(entry){
   const {kind,item}=entry;
-  if(kind==='hardware'&&isStandardPermanent(item))return {permanent:true,copy:'Standard hardware · følger altid teltet',states:''};
+  if(kind==='hardware'&&isStandardPermanent(item))return {permanent:true,copy:'Standard hardware · følger altid teltet',states:typeof warehouseStateMarkup==='function'?warehouseStateMarkup('in-stock','Følger teltet'):''};
   let total=null,out=0,drying=0,known=false;
   if(kind==='tent'){
     total=item.stock_count;known=typeof knownStock==='function'?knownStock(total):total!==null&&total!==undefined&&total!=='';
@@ -128,8 +128,8 @@ function renderItem(entry){
       <strong>${escText(i.name||'Uden navn')}</strong>
       <small>${escText(itemMeta(entry))}</small>
       ${s.copy?`<span class="warehouse-stock${s.permanent?' standard-permanent':''}">${escText(s.copy)}</span>`:''}
-      ${s.states?`<span class="warehouse-state-row">${s.states}</span>`:''}
     </span>
+    ${s.states?`<span class="warehouse-state-row warehouse-item-status-v281">${s.states}</span>`:''}
     <span class="warehouse-item-chevron-v183">${typeof uiIcon==='function'?uiIcon('chevronRight'):''}</span>
   </button>`;
 }
@@ -353,8 +353,8 @@ if(!document.getElementById('pala-warehouse-categories-v183-style')){
     .warehouse-category-v183.depth-1>summary,.warehouse-category-v183.depth-2>summary,.warehouse-category-v183.depth-3>summary{background:#fff;padding:11px 12px;font-weight:650}
     .warehouse-category-title-v183{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.warehouse-category-count-v183{font-size:11px;color:#687487;background:#eef2f6;border-radius:999px;padding:3px 7px;min-width:24px;text-align:center}
     .warehouse-category-chevron-v183{display:flex;align-items:center;justify-content:center;transition:transform .16s ease}.warehouse-category-v183[open]>summary>.warehouse-category-chevron-v183{transform:rotate(90deg)}
-    .warehouse-category-body-v183{padding:0 8px 8px}.warehouse-category-children-v183{display:grid;gap:6px;margin:6px 0 0 12px;padding-left:8px;border-left:2px solid #e8edf3}
-    .warehouse-list-v183{display:grid;gap:5px;padding:7px 0}.warehouse-item-v183{min-height:58px}.warehouse-item-chevron-v183{display:flex;align-items:center}.warehouse-stock.standard-permanent{color:#5f6f82;font-weight:650}
+    .warehouse-category-body-v183{padding:0 8px 8px}.warehouse-category-children-v183{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:6px;margin:6px 0 0 12px;padding-left:8px;border-left:2px solid #e8edf3}
+    .warehouse-list-v183{display:grid;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row!important;gap:5px;padding:7px 0}.warehouse-item-v183{min-height:58px;width:100%!important;border-right:0!important}.warehouse-item-chevron-v183{display:flex;align-items:center}.warehouse-stock.standard-permanent{color:#5f6f82;font-weight:650}
     .warehouse-empty-v183,.warehouse-manager-empty-v183{margin:6px 0;padding:8px 4px}.warehouse-structure-actions-v183{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
     .warehouse-manager-grid-v183{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.warehouse-manager-card-v183{background:#fff;border:1px solid var(--line,#e2e6ec);border-radius:14px;padding:12px}
     .warehouse-manager-head-v183{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.warehouse-manager-tree-v183{display:grid;gap:4px}.warehouse-manager-tree-v183.nested{margin:4px 0 0 13px;padding-left:8px;border-left:1px solid #dfe6ef}
