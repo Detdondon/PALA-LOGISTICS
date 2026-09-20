@@ -72,8 +72,10 @@ if(!document.getElementById('pala-warehouse-list-consistency-v188-style')){
   const style=document.createElement('style');
   style.id='pala-warehouse-list-consistency-v188-style';
   style.textContent=`
-    .warehouse-root-list-v183{gap:0!important}
-    .warehouse-root-list-v183>.warehouse-list-v183{gap:0!important;padding:0!important}
+    .warehouse-root-list-v183{gap:0!important;grid-template-columns:minmax(0,1fr)!important}
+    .warehouse-root-list-v183 .warehouse-list-v183{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:0!important}
+    .warehouse-root-list-v183 .warehouse-category-children-v183{grid-template-columns:minmax(0,1fr)!important}
+    .warehouse-root-list-v183>.warehouse-list-v183{padding:0!important}
     .warehouse-category-unified-v187{border:0!important;border-radius:0!important;background:#fff!important;overflow:visible!important;margin:0!important}
     .warehouse-category-unified-v187>summary{list-style:none!important;display:flex!important;align-items:center!important;gap:12px!important;min-height:58px!important;padding:14px!important;background:#fff!important;border:0!important;border-bottom:1px solid #edf0f5!important;border-radius:0!important;font-weight:400!important;cursor:pointer!important}
     .warehouse-category-unified-v187>summary::-webkit-details-marker{display:none!important}
