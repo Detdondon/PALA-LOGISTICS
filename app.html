@@ -2894,19 +2894,32 @@ function showStaffingOverview(mode='all'){
   let content=dates.map(ds=>`<section class="view-list-group"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${period.rows.filter(sh=>sh.shift_date===ds).map(staffShiftCard).join('')}</section>`).join('');
   app.innerHTML=`<section class="card"><div class="row"><div><div class="small muted">BEMANDINGSOVERSIGT</div><h2 style="margin:3px 0">${esc(title)}</h2><p class="muted" style="margin:5px 0 0">${esc(fmtDateDa(period.start))} – ${esc(fmtDateDa(period.end))}</p></div><button class="btn" onclick="showStaffing()">${uiIcon('chevronLeft')} Tilbage</button></div></section><div class="card staff-overview-grid">${content||`<p class="muted">${mode==='missing'?'Alle vagter i perioden er fuldt bemandet.':'Der er ingen vagter i perioden.'}</p>`}</div>`;
 }
-async function editShiftFromOverview(id){
+function editShiftFromOverview(id){
   if(!requireAdmin())return;
-  let sh=staffingShifts.find(row=>+row.id===+id);
+  const sh=staffingShifts.find(row=>+row.id===+id);
   if(!sh)return alert('Vagten kunne ikke findes.');
+
   staffSelectedDate=sh.shift_date;
   staffCalDate=localDateFromISO(sh.shift_date)||staffCalDate;
 
-  // showStaffing() now renders through async showCalendar(); wait until its edit host exists.
-  await Promise.resolve(showStaffing());
-  if(typeof ensureUnifiedFormHostV123==='function')ensureUnifiedFormHostV123();
+  // Open the editor directly from the current screen. Do not re-render the calendar first:
+  // that used to replace the DOM node the button was trying to open the editor into.
   let host=document.getElementById('staffAdminEditHost');
-  if(!host)return alert('Redigeringen kunne ikke åbnes. Prøv at genindlæse siden.');
-  editExistingStaffShift(id);
+  if(!host){
+    host=document.createElement('div');
+    host.id='staffAdminEditHost';
+    const detail=document.querySelector('#app > .card, #app > section.card');
+    if(detail)detail.insertAdjacentElement('afterend',host);
+    else app.prepend(host);
+  }
+
+  try{
+    editExistingStaffShift(id);
+    if(!host.querySelector('.staff-form'))throw new Error('Redigeringsformularen blev ikke oprettet');
+  }catch(error){
+    console.error('[PALA] Vagtredigering kunne ikke åbnes',error);
+    alert('Redigeringen kunne ikke åbnes. Genindlæs siden og prøv igen.');
+  }
 }
 function openStaffShift(id){
   if(!requireEmployee())return;let sh=staffingShifts.find(row=>+row.id===+id);if(!sh||isStaffLeave(sh))return showStaffing();act('ns');history.replaceState(null,'',`${location.pathname}?shift=${id}`);
@@ -6728,7 +6741,7 @@ const syncVersionBadgeV142Base=syncVersionBadgeV134;
 syncVersionBadgeV134=function(){
   let result=syncVersionBadgeV142Base.apply(this,arguments);
   let badge=document.querySelector('.app-version');
-  if(badge)badge.textContent=window.PALA_APP_VERSION||'v278';
+  if(badge)badge.textContent=window.PALA_APP_VERSION||'v279';
   return result;
 };
 
