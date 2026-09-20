@@ -1,8 +1,8 @@
-/* PALA v276 · open workshop damages stay in the list, not the info line */
+/* PALA v277 · open workshop damages stay in the list, never the info line */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV201)return;
-window.__palaCalendarWorkshopAlertsV201=true;
+if(window.__palaCalendarWorkshopAlertsV277)return;
+window.__palaCalendarWorkshopAlertsV277=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -56,6 +56,15 @@ function markCalendarCountBar(){
   const items=[...bar.querySelectorAll('.calendar-count-item-v174')];
   const workshopItem=items.find(node=>/\bsystue\b/i.test(String(node.textContent||'')));
   if(workshopItem)clearLegacyOpenDamageText(workshopItem);
+
+  // Remove any stale damage item left by an older cached runtime.
+  [...bar.querySelectorAll('.calendar-count-item-v174')].forEach(node=>{
+    const label=String(node.textContent||'');
+    if(!/åbn(?:e)?\s+skad(?:e|er)/i.test(label)||/\bsystue\b/i.test(label))return;
+    const previous=node.previousElementSibling;
+    node.remove();
+    if(previous?.classList?.contains('calendar-count-separator-v174'))previous.remove();
+  });
 }
 function taskCard(task){
   if(typeof workshopTaskCard==='function')return workshopTaskCard(task);
