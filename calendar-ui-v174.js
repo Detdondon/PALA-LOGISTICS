@@ -73,7 +73,7 @@ function enhanceCalendar(){
     const counts={
       orders:textOf(original[0])||'0 ordrer',
       staffing:(textOf(original[1])||'0 vagter').replace(/mangler folk/gi,'mangler bemanding'),
-      workshop:textOf(original[2])||'0 systue',
+      workshop:(textOf(original[2])||'0 systue').replace(/\s*·\s*\d+\s+åbn(?:e)?\s+skad(?:e|er)\s*$/i,'').trim(),
       staffingMissing:original[1].classList.contains('red')||/mangler/i.test(textOf(original[1]))
     };
     if(status==='completed'){
