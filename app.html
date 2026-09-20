@@ -2894,7 +2894,20 @@ function showStaffingOverview(mode='all'){
   let content=dates.map(ds=>`<section class="view-list-group"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${period.rows.filter(sh=>sh.shift_date===ds).map(staffShiftCard).join('')}</section>`).join('');
   app.innerHTML=`<section class="card"><div class="row"><div><div class="small muted">BEMANDINGSOVERSIGT</div><h2 style="margin:3px 0">${esc(title)}</h2><p class="muted" style="margin:5px 0 0">${esc(fmtDateDa(period.start))} – ${esc(fmtDateDa(period.end))}</p></div><button class="btn" onclick="showStaffing()">${uiIcon('chevronLeft')} Tilbage</button></div></section><div class="card staff-overview-grid">${content||`<p class="muted">${mode==='missing'?'Alle vagter i perioden er fuldt bemandet.':'Der er ingen vagter i perioden.'}</p>`}</div>`;
 }
-function editShiftFromOverview(id){let sh=staffingShifts.find(row=>+row.id===+id);if(sh){staffSelectedDate=sh.shift_date;staffCalDate=localDateFromISO(sh.shift_date)||staffCalDate}showStaffing();setTimeout(()=>editExistingStaffShift(id),0)}
+async function editShiftFromOverview(id){
+  if(!requireAdmin())return;
+  let sh=staffingShifts.find(row=>+row.id===+id);
+  if(!sh)return alert('Vagten kunne ikke findes.');
+  staffSelectedDate=sh.shift_date;
+  staffCalDate=localDateFromISO(sh.shift_date)||staffCalDate;
+
+  // showStaffing() now renders through async showCalendar(); wait until its edit host exists.
+  await Promise.resolve(showStaffing());
+  if(typeof ensureUnifiedFormHostV123==='function')ensureUnifiedFormHostV123();
+  let host=document.getElementById('staffAdminEditHost');
+  if(!host)return alert('Redigeringen kunne ikke åbnes. Prøv at genindlæse siden.');
+  editExistingStaffShift(id);
+}
 function openStaffShift(id){
   if(!requireEmployee())return;let sh=staffingShifts.find(row=>+row.id===+id);if(!sh||isStaffLeave(sh))return showStaffing();act('ns');history.replaceState(null,'',`${location.pathname}?shift=${id}`);
   let matched=staffCalendarBookings(sh),workshop=staffWorkshopJob(sh),assignments=staffAssignmentsFor(sh.id),people=assignments.map(a=>staffEmployee(a.employee_id)).filter(Boolean).sort((a,b)=>alpha(a.name,b.name)),leader=staffLeader(sh),needed=+sh.workers_needed||0,full=people.length>=needed,meAssigned=assignments.some(a=>+a.employee_id===+employeeId),past=sh.shift_date<todayISO(),time=[staffTime(sh.start_time),staffTime(sh.end_time)].filter(Boolean).join(' – '),note=staffDisplayNotes(sh.notes),color=staffLinkedJobColor(sh);
@@ -6715,7 +6728,7 @@ const syncVersionBadgeV142Base=syncVersionBadgeV134;
 syncVersionBadgeV134=function(){
   let result=syncVersionBadgeV142Base.apply(this,arguments);
   let badge=document.querySelector('.app-version');
-  if(badge)badge.textContent=window.PALA_APP_VERSION||'v277';
+  if(badge)badge.textContent=window.PALA_APP_VERSION||'v278';
   return result;
 };
 
