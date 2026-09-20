@@ -14,11 +14,27 @@
   let running=false;
   let rerun=false;
 
+  let deferredRender=false,deferredReload=false,reloadRunning=false,reloadAgain=false;
+  function safeToRefresh(){return typeof global.PALARealtime?.canRefresh!=='function'||global.PALARealtime.canRefresh();}
+  function resume(){
+    if(!deferredRender&&!deferredReload)return;
+    requestAnimationFrame(()=>{
+      if(!safeToRefresh())return;
+      if(deferredReload){deferredReload=deferredRender=false;queueReload();}
+      else if(deferredRender){deferredRender=false;queueRender();}
+    });
+  }
+  document.addEventListener('click',resume,true);
+  document.addEventListener('focusout',resume);
+  document.addEventListener('close',resume,true);
+  document.addEventListener('visibilitychange',resume);
+  global.addEventListener('focus',resume);
   function warehouseVisible(){
     return !!document.querySelector('.warehouse-root-list-v183,.warehouse-tabs');
   }
 
   async function renderWarehouse(){
+    if(!safeToRefresh()){deferredRender=true;return true;}
     if(!warehouseVisible()||typeof global.showTents!=='function')return true;
     if(running){rerun=true;return true;}
     running=true;
@@ -57,12 +73,16 @@
   }
 
   function queueReload(){
+    if(!safeToRefresh()){deferredReload=true;return;}
+    if(reloadRunning){reloadAgain=true;return;}
     if(reloadQueued)return;
     reloadQueued=true;
     setTimeout(async()=>{
       reloadQueued=false;
-      const handled=await reloadWarehouse();
-      if(!handled&&typeof global.scheduleCloudSync==='function')global.scheduleCloudSync();
+      if(!safeToRefresh()){deferredReload=true;return;}
+      reloadRunning=true;
+      try{if(!await reloadWarehouse()&&typeof global.scheduleCloudSync==='function')global.scheduleCloudSync();}
+      finally{reloadRunning=false;if(reloadAgain){reloadAgain=false;queueReload();}}
     },80);
   }
 

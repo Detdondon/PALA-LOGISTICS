@@ -1,14 +1,56 @@
 /* PALA Realtime sync bridge v230 · sync-events are authoritative invalidations when table RLS blocks Postgres Changes */
 (function(global){
-  'use strict';let channel=null,refreshTimer=null,started=false,lastEventId=null,retryTimer=null;const pendingSources=new Set(),handlers=new Map();const directTables={tents:'tents',hardware:'hardware',inventory:'inventory',bookings:'bookings',staffing_shifts:'staffingShifts',staffing_assignments:'staffingAssignments',employees:'employees',workshop_jobs:'workshopJobs',tent_workshop_tasks:'workshopTasks'};
+  'use strict';let channel=null,refreshTimer=null,started=false,lastEventId=null,retryTimer=null,removalPending=null;const pendingSources=new Set(),handlers=new Map();const directTables={tents:'tents',hardware:'hardware',inventory:'inventory',bookings:'bookings',staffing_shifts:'staffingShifts',staffing_assignments:'staffingAssignments',employees:'employees',workshop_jobs:'workshopJobs',tent_workshop_tasks:'workshopTasks'};
   function client(){const candidates=[global.sb,global.supabaseClient,global.palaSupabase,global.supabase];return candidates.find(value=>value&&typeof value.channel==='function'&&typeof value.from==='function')||null;}
   function on(source,handler){if(typeof handler!=='function')return()=>{};const key=String(source||'*');if(!handlers.has(key))handlers.set(key,new Set());handlers.get(key).add(handler);return()=>handlers.get(key)?.delete(handler);}
   function runHandlers(sources,detail={}){const unhandled=[];for(const source of sources){const callbacks=[...(handlers.get(source)||[]),...(handlers.get('*')||[])];let sourceHandled=false;for(const callback of callbacks){try{if(callback({source,sources,...detail})!==false)sourceHandled=true;}catch(error){console.warn('[PALA Realtime] targeted handler failed',source,error);}}if(!sourceHandled)unhandled.push(source);}return unhandled;}
   function broadFallback(sources){if(typeof global.reloadData==='function'){Promise.resolve(global.reloadData()).then(()=>global.PALALegacyBridge?.syncState('network')).catch(error=>console.warn('[PALA Realtime] reload fallback failed',error));return true;}console.warn('[PALA Realtime] no fallback loader for',sources);return false;}
   function applyRecord(table,payload){const stateName=directTables[table],state=global.PALA_STATE;if(!stateName||!state)return false;const event=String(payload?.eventType||'').toUpperCase(),row=event==='DELETE'?payload?.old:payload?.new,id=row&&row.id;if(id==null){scheduleRefresh(table);return false;}const legacyApplied=global.PALALegacyBridge?.apply(table,payload)===true;if(event==='DELETE')state.remove(stateName,id,{source:'realtime'});else state.upsert(stateName,row,{source:'realtime'});const detail={table,event,row,id:String(id),direct:legacyApplied};try{global.dispatchEvent(new CustomEvent('pala:record-change',{detail}))}catch(_){}if(legacyApplied)runHandlers([table],detail);else scheduleRefresh(table);return legacyApplied;}
   function scheduleRefresh(source){if(source)pendingSources.add(String(source));clearTimeout(refreshTimer);refreshTimer=setTimeout(()=>{const sources=[...pendingSources];pendingSources.clear();try{global.dispatchEvent(new CustomEvent('pala:data-change',{detail:{sources}}));const unhandled=runHandlers(sources);if(unhandled.length)broadFallback(unhandled);}catch(error){console.warn('[PALA Realtime] sync refresh failed',error)}},120);}
+  function canRefresh(){
+    return !document.hidden
+      &&(typeof global.cloudRefreshIsSafe!=='function'||global.cloudRefreshIsSafe())
+      &&!document.activeElement?.matches?.('input,textarea,select,[contenteditable="true"]');
+  }
   function retry(){clearTimeout(retryTimer);retryTimer=setTimeout(start,2000);}
-  function start(){if(started)return true;const c=client();if(!c||c.__palaLite){retry();return false;}started=true;channel=c.channel('pala-sync-v230');Object.keys(directTables).forEach(table=>channel.on('postgres_changes',{event:'*',schema:'public',table},payload=>applyRecord(table,payload)));channel.on('postgres_changes',{event:'INSERT',schema:'public',table:'pala_sync_events'},payload=>{const row=payload&&payload.new;if(row&&row.id!=null){const id=String(row.id);if(id===lastEventId)return;lastEventId=id;}const source=row&&row.source;scheduleRefresh(source);}).subscribe(status=>{global.__palaRealtimeStatus=status;if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){started=false;retry();}});global.__palaRealtimeChannel=channel;return true;}
-  function stop(){clearTimeout(refreshTimer);clearTimeout(retryTimer);refreshTimer=retryTimer=null;pendingSources.clear();if(channel){const c=client();try{c&&c.removeChannel?c.removeChannel(channel):channel.unsubscribe?.()}catch(_){}}channel=null;started=false;}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();global.addEventListener('online',start);global.PALARealtime={start,stop,on,get status(){return global.__palaRealtimeStatus||'IDLE';}};
+  function releaseChannel(){
+    const old=channel;channel=null;global.__palaRealtimeChannel=null;started=false;
+    if(!old)return;
+    const c=client();
+    try{
+      const pending=Promise.resolve(c&&c.removeChannel?c.removeChannel(old):old.unsubscribe?.()).catch(()=>{});
+      removalPending=pending;
+      pending.then(()=>{if(removalPending===pending)removalPending=null;});
+    }catch(_){}
+  }
+  function start(){
+    if(started)return true;
+    if(removalPending){retry();return false;}
+    const c=client();if(!c||c.__palaLite){retry();return false;}
+    clearTimeout(retryTimer);retryTimer=null;
+    started=true;
+    const active=c.channel('pala-sync-v230');channel=active;
+    global.__palaRealtimeChannel=active;
+    Object.keys(directTables).forEach(table=>active.on('postgres_changes',{event:'*',schema:'public',table},payload=>{if(channel===active)applyRecord(table,payload);}));
+    active.on('postgres_changes',{event:'INSERT',schema:'public',table:'pala_sync_events'},payload=>{
+      if(channel!==active)return;
+      const row=payload&&payload.new;
+      if(row&&row.id!=null){const id=String(row.id);if(id===lastEventId)return;lastEventId=id;}
+      scheduleRefresh(row&&row.source);
+    }).subscribe(status=>{
+      if(channel!==active)return;
+      global.__palaRealtimeStatus=status;
+      if(status==='SUBSCRIBED'){clearTimeout(retryTimer);retryTimer=null;}
+      if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){
+        releaseChannel();retry();
+      }
+    });
+    return true;
+  }
+  function stop(){
+    clearTimeout(refreshTimer);clearTimeout(retryTimer);
+    refreshTimer=retryTimer=null;pendingSources.clear();
+    releaseChannel();global.__palaRealtimeStatus='IDLE';
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();global.addEventListener('online',start);global.PALARealtime={start,stop,on,canRefresh,get status(){return global.__palaRealtimeStatus||'IDLE';}};
 })(window);

@@ -3830,7 +3830,7 @@ function backupFallbackTable(name){
 }
 async function collectSecurityBackup(){
   let valid=await validateAdminSession();if(!valid)throw new Error('Admin-login er udløbet. Log ind igen.');
-  setBackupProgress('Opdaterer PALA-data…');await reloadData();await Promise.all([loadWarehouseExtensions(),loadWorkshopData(),loadStaffingInvitations(),refreshWarehouseStatus()]);
+  setBackupProgress('Opdaterer PALA-data…');await reloadData();
   let errors=[],tables={};
   for(let name of PALA_BACKUP_TABLES){setBackupProgress(`Henter ${name}…`);try{tables[name]=await backupFetchAllTable(name)}catch(error){errors.push(error.message||String(error));tables[name]=backupFallbackTable(name)}}
   setBackupProgress('Henter billeder og dokumenter…');tables.tent_documents=await backupFullTentDocuments(errors);tables.tent_images=await backupFullTentImages(errors);
@@ -5249,7 +5249,7 @@ function productionPlanSection(doc,title,startY,head,body,columnStyles,styleCall
 async function exportProductionPlanPDF(periodStart,periodEnd){
   if(!periodStart||!periodEnd)return showProductionPlanExportDialog();if(!productionPlanValidDate(periodStart)||!productionPlanValidDate(periodEnd))return alert('Vælg gyldige datoer.');if(periodEnd<periodStart)return alert('Slutdatoen skal være samme dag eller senere end startdatoen.');if(!requireAdmin())return;
   if(!await validateAdminSession())return alert('Dit admin-login er udløbet. Log ind igen.');if(!await ensurePdfTools()||!window.jspdf?.jsPDF)return alert('PDF-funktionen kunne ikke indlæses. Tjek internetforbindelsen og prøv igen.');
-  await reloadData();await Promise.all([loadWarehouseExtensions(),loadWorkshopData()]);
+  await reloadData();
   let orders=productionPlanOrderRows(periodStart,periodEnd),shifts=productionPlanShiftRows(periodStart,periodEnd),meetings=productionPlanMeetingRows(periodStart,periodEnd),workshop=productionPlanWorkshopRows(periodStart,periodEnd);if(!orders.length&&!shifts.length&&!meetings.length&&!workshop.length)return alert('Der er ingen planlagte aktiviteter i den valgte periode.');
   const doc=new window.jspdf.jsPDF({orientation:'landscape',unit:'mm',format:'a4'});if(typeof doc.autoTable!=='function')return alert('PDF-tabellen kunne ikke indlæses.');if(!await palaPdfFonts(doc))return;
   let period=`${fmtDateDa(periodStart)} – ${fmtDateDa(periodEnd)}`,missing=shifts.filter(r=>r.underfilled).length,orderMissing=orders.filter(r=>r.underfilled).length,y=palaPdfHeader(doc,'Produktionsplan',`${period}  /  Produktionsmøde`);
