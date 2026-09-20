@@ -1,4 +1,4 @@
-/* PALA v201 · stable open workshop damage warning rendering */
+/* PALA v276 · open workshop damages stay in the list, not the info line */
 (()=>{
 'use strict';
 if(window.__palaCalendarWorkshopAlertsV201)return;
@@ -46,54 +46,17 @@ function markCalendarCountBar(){
   const bar=document.querySelector('.calendar-count-summary-v174');
   if(!bar)return;
 
+  // Open workshop damages are already pinned in the list below the calendar.
+  // Keep the compact info line limited to orders, staffing and workshop counts.
   removeLegacyCountNodes(bar);
+  bar.querySelectorAll(
+    '.workshop-open-damage-separator-v201,.workshop-open-damage-inline-v201'
+  ).forEach(node=>node.remove());
+
   const items=[...bar.querySelectorAll('.calendar-count-item-v174')];
   const workshopItem=items.find(node=>/\bsystue\b/i.test(String(node.textContent||'')));
   if(workshopItem)clearLegacyOpenDamageText(workshopItem);
-
-  const status=typeof mainCalendarStatusFilterV123!=='undefined'?mainCalendarStatusFilterV123:'all';
-  const type=typeof mainCalendarTypeFilterV120!=='undefined'?mainCalendarTypeFilterV120:'all';
-  const count=allOpenWorkshopDamages().length;
-  const shouldShow=status!=='completed'&&['all','workshop'].includes(type)&&count>0&&!!workshopItem;
-
-  let separator=bar.querySelector('.workshop-open-damage-separator-v201');
-  let warning=bar.querySelector('.workshop-open-damage-inline-v201');
-  if(!shouldShow){separator?.remove();warning?.remove();return}
-
-  if(!separator){
-    separator=document.createElement('span');
-    separator.className='calendar-count-separator-v174 workshop-open-damage-separator-v201';
-    separator.setAttribute('aria-hidden','true');
-    separator.textContent='•';
-    workshopItem.insertAdjacentElement('afterend',separator);
-  }else if(separator.previousElementSibling!==workshopItem){
-    workshopItem.insertAdjacentElement('afterend',separator);
-  }
-
-  if(!warning){
-    warning=document.createElement('span');
-    warning.className='calendar-count-item-v174 warning workshop-open-damage-inline-v201';
-    warning.setAttribute('role','button');
-    warning.setAttribute('tabindex','0');
-    warning.setAttribute('aria-label','Vis åbne skader i systuen');
-    warning.setAttribute('title','Vis åbne skader');
-    const number=document.createElement('span');
-    number.className='workshop-open-damage-number-v201';
-    const label=document.createElement('span');
-    label.className='workshop-open-damage-label-v201';
-    warning.append(number,document.createTextNode(' '),label);
-    separator.insertAdjacentElement('afterend',warning);
-  }else if(warning.previousElementSibling!==separator){
-    separator.insertAdjacentElement('afterend',warning);
-  }
-
-  const number=warning.querySelector('.workshop-open-damage-number-v201');
-  const label=warning.querySelector('.workshop-open-damage-label-v201');
-  const labelText=count===1?'åben skade':'åbne skader';
-  if(number&&number.textContent!==String(count))number.textContent=String(count);
-  if(label&&label.textContent!==labelText)label.textContent=labelText;
 }
-
 function taskCard(task){
   if(typeof workshopTaskCard==='function')return workshopTaskCard(task);
   const escape=value=>typeof esc==='function'?esc(value):String(value??'');
