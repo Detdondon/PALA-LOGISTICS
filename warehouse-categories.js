@@ -59,15 +59,22 @@ function categoryOptions(currentId=0,kindFilter=null,parentMode=false,editedId=0
   groups.forEach(group=>{
     const rows=flattenKind(group.kind).filter(x=>!blocked.has(+x.category.id));
     if(!rows.length)return;
-    html+=`<optgroup label="${escText(group.label)}">${rows.map(x=>`<option value="${x.category.id}" ${+x.category.id===+currentId?'selected':''}>${'— '.repeat(x.depth)}${escText(x.category.name)}</option>`).join('')}</optgroup>`;
+    html+=`<optgroup label="${escText(group.label)}">${rows.map(x=>`<option value="${x.category.id}" ${+x.category.id===+currentId?'selected':''}>${escText(x.path.join(' › '))}</option>`).join('')}</optgroup>`;
   });
   return html;
 }
 
 window.categoryName=function(_kind,item){return categoryPathById(item?.category_id)};
 window.categoryField=function(_kind,item){
-  const current=+item?.category_id||0;
-  return `<div class="sheet-field"><label for="s_category_id">Placering i lageret</label><select id="s_category_id" required>${categoryOptions(current)}</select><p class="small muted">Du kan flytte posten mellem alle hovedkategorier og underkategorier uden at ændre dens datatype.</p></div>`;
+  const current=categoryById(item?.category_id)?+item.category_id:0;
+  const placeholder=current?'':'<option value="" selected disabled>Vælg kategori eller underkategori…</option>';
+  return `<div class="sheet-field warehouse-category-field"><label for="s_category_id">Kategori / underkategori</label><select id="s_category_id" required>${placeholder}${categoryOptions(current)}</select><p class="small muted">Vælg hvor posten skal vises i lageret.</p></div>`;
+};
+const baseInstallSheetCategory=window.installSheetCategory;
+window.installSheetCategory=function(kind,item){
+  baseInstallSheetCategory(kind,item);
+  // This legacy text category is not part of the warehouse hierarchy.
+  if(kind==='hardware')document.querySelector('#palaEditSheet #s_category')?.parentElement?.remove();
 };
 
 function itemCurrentCategory(entry){return categoryById(entry.item?.category_id)}
@@ -275,7 +282,7 @@ window.filterTentLinkChoices=function(value){
 
 const baseCheckedRpc=window.checkedRpc;
 if(typeof baseCheckedRpc==='function')window.checkedRpc=async function(name,args){
-  if(name==='admin_save_tent_basics'&&document.getElementById('palaEditSheet')){
+  if(name==='admin_save_tent_basics'&&document.querySelector('#palaEditSheet .warehouse-tent-links-v183')){
     args={...args,p_data:{...(args?.p_data||{}),compatible_tent_ids:[...document.querySelectorAll('.warehouse-tent-link-choice-v183:checked')].map(x=>+x.value)}};
   }
   return baseCheckedRpc(name,args);

@@ -71,5 +71,6 @@ window.editTentBasics=function(id){
       await openTent(tid);
     }
   );
+  installSheetCategory('tent',t);
 };
 })();
