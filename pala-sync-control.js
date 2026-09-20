@@ -9,7 +9,7 @@
     installed=true;
     try{if(typeof stopCloudSync==='function')stopCloudSync();}catch(_){}
     if(typeof originalSetup==='function')global.setupCloudSync=function(){if(!realtimeLive())return originalSetup.apply(this,arguments);try{stopCloudSync();}catch(_){}return undefined;};
-    if(typeof originalSchedule==='function')global.scheduleCloudSync=function(){if(!realtimeLive())return originalSchedule.apply(this,arguments);return undefined;};
+    if(typeof originalSchedule==='function')global.scheduleCloudSync=function(){if(!realtimeLive()||!arguments[0])return originalSchedule.apply(this,arguments);return undefined;};
     global.__palaLegacySyncRetired=true;
     return true;
   }
