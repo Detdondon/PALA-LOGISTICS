@@ -142,6 +142,15 @@ sandbox.mainCalendarStatusFilterV123='all';
 sandbox.bookings=[{id:51,status:'På lager',start_date:'2026-09-29',end_date:'2026-09-29',customer_name:'Ny ordre'}];
 sandbox.setCalendarSortV150('date_desc');
 sandbox.renderMainCalendarListV121();
-assert.ok(host.innerHTML.indexOf('order-51')<host.innerHTML.indexOf('task-41'),'open damage must not be force-pinned when type filter is Alt');
+assert.ok(host.innerHTML.includes('order-51'),'Alt keeps orders');
+assert.ok(!host.innerHTML.includes('task-41')&&!host.innerHTML.includes('task-42'),'Alt excludes open and completed damage cards');
+for (const type of ['all','orders','staffing','workshop']) {
+  sandbox.mainCalendarTypeFilterV120=type;
+  const expected=type==='workshop';
+  assert.equal(sandbox.calendarMonthDetailHtmlV157().includes('task-41'),expected,'month details respect damage filter: '+type);
+  assert.equal(sandbox.mainCalendarDayHtmlV120('2026-09-02').includes('task-41'),expected,'day details respect damage filter: '+type);
+  sandbox.__events=[{key:'damage',kind:'workshopTask',item:sandbox.workshopTasks[0],start:'2026-09-02',end:'2026-09-02'}];
+  assert.equal(sandbox.calendarEvents(new Date(2026,8,1),30,'calendar').some(e=>e.kind==='workshopTask'),expected,'grid respects damage filter: '+type);
+}
 
 console.log('calendar-controller regression tests passed');
