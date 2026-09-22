@@ -1,10 +1,10 @@
-/* PALA calendar UI v306
+/* PALA calendar UI v307
    Safe DOM-only enhancer: icon filters with labels, contextual counts and compact action row.
    Completed status uses completed-only counts for the selected month.
    Does not override showCalendar or any startup/data function. */
 (()=>{
 'use strict';
-if(window.__palaCalendarUiV306)return;
+if(window.__palaCalendarUiV307)return;
 window.__palaCalendarUiV306=true;
 
 const textOf=el=>String(el?.textContent||'').replace(/\s+/g,' ').trim();
