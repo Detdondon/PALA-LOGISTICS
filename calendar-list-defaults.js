@@ -216,9 +216,9 @@ queueMicrotask(renderSelectedForwardV298);
    Keep native form controls native. For buttons/cards/links that already carry
    PALA's original inline onclick handler, execute that original handler exactly once. */
 const appRootV304=document.getElementById('app');
-if(appRootV300&&!window.__palaCalendarListClickFallbackV304){
-  window.__palaCalendarListClickFallbackV300=true;
-  appRootV300.addEventListener('click',event=>{
+if(appRootV304&&!window.__palaCalendarListClickFallbackV304){
+  window.__palaCalendarListClickFallbackV304=true;
+  appRootV304.addEventListener('click',event=>{
     const host=event.target?.closest?.('.calendar-detail-list,.view-list');
     if(!host)return;
     if(event.target?.closest?.('select,input,textarea,option,label'))return;
