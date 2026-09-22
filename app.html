@@ -2218,7 +2218,7 @@ function workshopTaskCard(task){
     <div class="workshop-task-meta"><span>Oprettet ${esc(workshopDate(task.created_at))}</span>${task.created_by_employee_name?`<span>af ${esc(task.created_by_employee_name)}</span>`:''}${task.booking_name?`<span>fra ${esc(task.booking_name)}</span>`:''}</div>
     ${done&&task.completion_note?`<div class="small" style="margin-top:9px"><b>Udført:</b> ${esc(task.completion_note)}</div>`:''}
     ${done&&task.completed_by_employee_name?`<div class="small muted" style="margin-top:4px">Tjekket af ${esc(task.completed_by_employee_name)} · ${esc(workshopDate(task.completed_at))}</div>`:''}
-    <div class="workshop-task-actions"><button class="btn" onclick="openTent(${task.tent_id})">${uiIcon('tent')} Åbn telt</button>${booking?`<button class="btn" onclick="viewOrder(bookings.find(b=>+b.id===${booking.id}))">${uiIcon('calendar')} Åbn job</button>`:''}<button class="btn ${done?'':'primary'}" onclick="toggleWorkshopTask(${task.id},${done})">${uiIcon(done?'refresh':'check')} ${done?'Genåbn':'Markér udført'}</button></div>
+    <div class="workshop-task-actions"><button class="btn ${done?'':'primary'}" onclick="toggleWorkshopTask(${task.id},${done})">${uiIcon(done?'refresh':'check')} ${done?'Genåbn':'Markér udført'}</button></div>
   </article>`;
 }
 async function showWorkshop(filter){
