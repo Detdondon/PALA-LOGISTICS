@@ -1,7 +1,7 @@
-/* PALA v306 · selected-date lists follow multi-selected categories. */
+/* PALA v307 · selected-date lists follow multi-selected categories. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV306)return;
+if(window.__palaCalendarListDefaultsV307)return;
 window.__palaCalendarListDefaultsV306=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
