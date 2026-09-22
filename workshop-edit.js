@@ -106,6 +106,12 @@
     addDeleteButtonToDamageSheet(+id);
   };
 
+  // Any legacy call to the old standalone photo editor is redirected into
+  // the damage editor, so photo changes cannot happen elsewhere.
+  window.editDamagePhoto = function(id) {
+    return window.editWorkshopDamage(id);
+  };
+
   window.deleteWorkshopDamage = async function(id) {
     const task = workshopTasks.find(x => +x.id === +id);
     if (!task) return alert('Skaden findes ikke.');
