@@ -1,7 +1,7 @@
-/* PALA v306 · workshop alerts respect multi-column calendar detail filtering */
+/* PALA v307 · workshop alerts respect multi-column calendar detail filtering */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV306)return;
+if(window.__palaCalendarWorkshopAlertsV307)return;
 window.__palaCalendarWorkshopAlertsV306=true;
 
 function allOpenWorkshopDamages(){
