@@ -2258,13 +2258,14 @@ async function saveTentDamage(){
 }
 async function toggleWorkshopTask(taskId,isCompleted){
   if(!workshopBackendReady)return alert('Databaseopsætningen til systuen skal aktiveres først.');
-  let note='';if(!isCompleted){note=prompt('Evt. bemærkning om det udførte arbejde:','');if(note===null)return}else if(!confirm('Genåbn denne systueopgave?'))return;
-  let r=await sb.rpc('employee_set_workshop_task_status',{p_token:employeeToken,p_task_id:+taskId,p_completed:!isCompleted,p_completion_note:note||''});if(r.error)return alert(r.error.message);await loadWorkshopData();showWorkshop(workshopFilter);
+  const save=async note=>{let r=await sb.rpc('employee_set_workshop_task_status',{p_token:employeeToken,p_task_id:+taskId,p_completed:!isCompleted,p_completion_note:note||''});if(r.error)throw new Error(r.error.message);await loadWorkshopData();showWorkshop(workshopFilter)};
+  if(isCompleted){if(!confirm('Genåbn denne systueopgave?'))return;try{await save('')}catch(error){alert(error.message)}return;}
+  openEditSheet('Markér skade udført',`${sheetText('completion_note','Bemærkning om det udførte arbejde')}<p class="small muted">Bemærkningen er valgfri.</p>`,()=>save(document.getElementById('s_completion_note').value),'Markér udført');
 }
 async function editTentNote(tentId){
   if(!workshopBackendReady)return alert('Databaseopsætningen til teltbemærkninger skal aktiveres først.');
-  let current=tentNoteFor(tentId)?.note||'',note=prompt('Bemærkning til teltet. Slet teksten for at fjerne bemærkningen:',current);if(note===null)return;
-  let r=await sb.rpc('employee_save_tent_note',{p_token:employeeToken,p_tent_id:+tentId,p_note:note});if(r.error)return alert(r.error.message);await loadWorkshopData();openTent(tentId);
+  let current=tentNoteFor(tentId)?.note||'';
+  openEditSheet('Bemærkning til teltet',`${sheetText('tent_note','Bemærkning',current)}<p class="small muted">Lad feltet være tomt for at fjerne bemærkningen.</p>`,async()=>{let note=document.getElementById('s_tent_note').value;let r=await sb.rpc('employee_save_tent_note',{p_token:employeeToken,p_tent_id:+tentId,p_note:note});if(r.error)throw new Error(r.error.message);await loadWorkshopData();openTent(tentId)});
 }
 
 function tentDocs(tentId){

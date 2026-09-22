@@ -1,0 +1,85 @@
+/* Shared PALA Editor tokens and responsive layouts. */
+.pala-editor{--pe-border:#dce3ed;--pe-text:#243550;--pe-muted:#66758b;--pe-blue:#255f9e;--pe-radius:10px;box-sizing:border-box;color:var(--pe-text);font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.5;background:#fff!important;border:1px solid var(--pe-border)!important;border-radius:18px!important;padding:0!important;width:min(920px,100%)!important;max-width:920px!important;margin:20px auto!important;overflow:visible;}
+.pala-editor *{box-sizing:border-box}
+#palaEditSheet.pala-editor{width:min(920px,calc(100vw - 32px))!important;max-height:calc(100dvh - 32px)!important;margin:auto!important;overflow:auto!important;padding:0!important}
+#palaEditSheet.pala-editor::backdrop{background:rgba(20,31,48,.42);backdrop-filter:blur(3px)}
+.pala-editor-header{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px;padding:20px 24px!important;border-bottom:1px solid var(--pe-border);background:#fff;border-radius:18px 18px 0 0}
+.pala-editor-header h2,.pala-editor-header h3{font-size:21px!important;font-weight:650!important;line-height:1.3!important;margin:0!important;min-width:0}
+.pala-editor-close{flex:none}
+.pala-editor-body,.pala-editor .sheet-body{padding:8px 24px 24px!important;display:block!important;overflow:visible!important}
+.pala-editor-section{padding:20px 0!important;margin:0!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:transparent!important;min-width:0}
+.pala-editor-section+.pala-editor-section{border-top:1px solid #edf0f5!important}
+.pala-editor-section-title{font-size:15px!important;line-height:1.4!important;font-weight:650!important;margin:0 0 16px!important;color:var(--pe-text)}
+.pala-editor-fields,.pala-editor .two,.pala-editor .three,.pala-editor .order-field-grid,.pala-editor .order-date-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:16px!important;align-items:start!important;min-width:0}
+.pala-editor-unit,.pala-editor-field,.pala-editor .sheet-field,.pala-editor .order-field{min-width:0;margin:0!important}
+.pala-editor-wide,.pala-editor .order-field-wide{grid-column:1/-1!important}
+.pala-editor label{display:block;font-size:13px!important;font-weight:600!important;color:var(--pe-text);line-height:1.4!important;margin:0 0 7px!important}
+.pala-editor :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=color]),select,textarea,.pala-select-button){width:100%;min-width:0;min-height:44px!important;border:1px solid var(--pe-border)!important;border-radius:var(--pe-radius)!important;padding:10px 12px!important;background:#fff!important;color:var(--pe-text)!important;font:inherit!important;font-size:16px!important;line-height:22px!important;box-shadow:none!important;margin:0!important}
+.pala-editor textarea{min-height:112px!important;resize:vertical}
+.pala-editor input[type=checkbox],.pala-editor input[type=radio]{width:20px;height:20px;flex:none;accent-color:var(--pe-blue)}
+.pala-editor input[type=file]{height:auto!important;white-space:normal}
+.pala-editor :is(input,textarea,select,button):focus-visible{outline:3px solid #afccef!important;outline-offset:2px}
+.pala-editor :is(input,select,textarea)[aria-invalid=true],.pala-editor .pala-select-button[aria-invalid=true]{border-color:#b52b35!important}
+.pala-editor .small,.pala-editor .muted,.pala-editor small,.pala-editor .relation-hint{font-size:12px!important;line-height:1.5!important;color:var(--pe-muted)}
+.pala-editor .sheet-group{margin:0!important;padding:12px!important;border:1px solid var(--pe-border)!important;border-radius:var(--pe-radius)!important}
+.pala-editor .sheet-group>summary{font-size:14px;font-weight:600;min-height:28px;cursor:pointer}
+.pala-editor .sheet-group[open]>summary{margin-bottom:14px}
+.pala-editor .sheet-checks{margin-top:12px;max-height:300px;overflow:auto}
+.pala-editor .sheet-checks label,.pala-editor .sheet-checkbox,.pala-editor .role-switch,.pala-editor .employee-admin-toggle-v183{display:flex!important;align-items:center;gap:10px;min-height:44px}
+.pala-editor .staff-choice-row{display:grid!important;grid-template-columns:minmax(100px,1fr) minmax(170px,1fr);gap:12px;align-items:center;padding:12px 0!important;border-bottom:1px solid #edf0f5}
+.pala-editor .staff-choice-row strong{font-size:14px;font-weight:600}
+.pala-editor-actions{position:sticky!important;bottom:0!important;z-index:20;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;flex-wrap:wrap;padding:16px 24px!important;margin:0!important;background:rgba(255,255,255,.98)!important;border-top:1px solid var(--pe-border)!important;border-radius:0 0 18px 18px!important;box-shadow:0 -5px 14px rgba(25,45,70,.035)}
+.pala-editor .btn{min-height:44px!important;padding:10px 16px!important;border-radius:var(--pe-radius)!important;font:inherit!important;font-size:14px!important;font-weight:600!important;line-height:22px!important;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:normal;width:auto}
+.pala-editor .btn.primary{background:var(--pe-blue)!important;color:#fff!important;border:1px solid var(--pe-blue)!important}
+.pala-editor-actions .pala-editor-delete{margin-right:auto!important;background:#fff!important;color:#ae2934!important;border:1px solid #e7b9bf!important;order:0}
+.pala-editor-cancel{order:1}.pala-editor-save{order:2}
+.pala-editor .order-inventory-add{display:grid!important;grid-template-columns:minmax(0,1fr) 100px auto!important;gap:12px!important;align-items:end!important;margin:12px 0!important}
+.pala-editor .order-section-head{margin-bottom:14px}.pala-editor .order-section-head h3{margin:0!important}
+.pala-editor .order-editor-actions{display:flex;gap:10px;flex-wrap:wrap}
+.pala-editor .order-selection-row{grid-template-columns:minmax(0,1fr) 80px 44px!important;gap:10px!important;min-width:0}
+.pala-editor .order-selection-row .btn{padding:8px!important}
+.pala-field-error{color:#b12230!important;font-size:12px!important;line-height:1.45!important;margin:7px 0 0!important}
+.pala-select{position:relative;min-width:0;width:100%}
+.pala-editor .pala-select-native,.pala-sr-only{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;max-height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.pala-select-button{display:flex!important;justify-content:space-between!important;align-items:center!important;gap:12px;text-align:left!important;cursor:pointer;padding-right:38px!important}
+.pala-select-value{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.pala-select-clear{position:absolute;right:30px;top:2px;width:36px;height:40px;border:0;background:#fff;color:#6c778a;font-size:24px;cursor:pointer}
+.pala-select-chevron{flex:none;color:#66758b}
+.pala-select-panel{position:relative;z-index:30;margin-top:6px;padding:8px;background:#fff;border:1px solid var(--pe-border);border-radius:12px;box-shadow:0 8px 24px rgba(24,44,65,.12)}
+.pala-select-options{max-height:240px;overflow:auto;overscroll-behavior:contain;margin-top:6px}
+.pala-select-option{min-height:44px;padding:10px 12px;border-radius:7px;cursor:pointer;line-height:24px;font-size:14px;overflow-wrap:anywhere}
+.pala-select-option[aria-selected=true]{font-weight:650;color:#174c84;background:#edf4fc}
+.pala-select-option[aria-selected=true]::after{content:' ✓';float:right}
+.pala-select-option.is-active{box-shadow:inset 0 0 0 2px #7da8d5;background:#f2f6fc}
+.pala-select-group{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#68788f;padding:12px 10px 4px}
+.pala-select-empty{padding:12px;color:#66758b;font-size:13px}
+.pala-select [hidden],.pala-editor [hidden]{display:none!important}
+@media(max-width:600px){
+ .pala-editor{border-radius:12px!important;margin:10px auto!important}
+ #palaEditSheet.pala-editor{width:calc(100vw - 16px)!important;max-height:calc(100dvh - 16px)!important}
+ .pala-editor-header{padding:16px!important}.pala-editor-header h2,.pala-editor-header h3{font-size:19px!important}
+ .pala-editor-body,.pala-editor .sheet-body{padding:0 16px 16px!important}
+ .pala-editor-fields,.pala-editor .two,.pala-editor .three,.pala-editor .order-field-grid,.pala-editor .order-date-grid,.pala-editor .staff-choice-row,.pala-editor .order-inventory-add{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+ .pala-editor-actions{padding:12px!important;gap:8px!important}.pala-editor-actions .btn{padding:10px 12px!important;flex:0 1 auto}
+ .pala-editor-actions .pala-editor-save{flex:1}.pala-editor-actions .pala-editor-delete{flex-basis:auto}
+ .pala-select-options{max-height:220px}
+ .pala-editor .order-selection-row{grid-template-columns:minmax(0,1fr) 64px 44px!important}
+ .pala-editor .requirement-row,.pala-editor .admin-part-row{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+}
+.pala-editor .pala-select-option .color-square{vertical-align:middle;margin-right:10px}
+.pala-editor.pala-complex-edit-popup-v185,.pala-editor.pala-complex-edit-card-v185{position:relative!important;inset:auto!important;transform:none!important;max-height:none!important;backdrop-filter:none!important;z-index:auto!important}
+body:has(.pala-editor.pala-complex-edit-popup-v185),body:has(.pala-editor.pala-complex-edit-card-v185){overflow:auto!important}
+body:has(.pala-editor.pala-complex-edit-card-v185)::before{display:none!important}
+#staffAdminEditHost:has(>.pala-editor){position:relative!important;inset:auto!important;background:none!important;backdrop-filter:none!important;padding:0!important;z-index:auto!important}
+.pala-editor:not(dialog){margin-bottom:110px!important}
+.pala-editor-header{position:static!important;width:auto!important;max-width:none!important;box-shadow:none!important;backdrop-filter:none!important}
+.pala-editor .warehouse-classification-hint{display:none}
+.pala-editor select.pala-select-native{width:1px!important;height:1px!important;min-height:0!important;padding:0!important;border:0!important}
+.dialog-backdrop>.pala-editor{margin:auto!important;max-height:calc(100dvh - 24px)!important;overflow:auto!important;width:min(920px,calc(100vw - 24px))!important}
+.pala-editor .staff-bulk-picker{background:transparent!important;border:0!important;padding:0!important;margin:0!important}
+.pala-editor .staff-choice-row.staff-bulk-row{grid-template-columns:20px minmax(100px,1fr) minmax(170px,1fr)!important}
+@media(max-width:600px){.pala-editor .staff-choice-row.staff-bulk-row{grid-template-columns:20px minmax(0,1fr)!important}.pala-editor .staff-bulk-row .pala-select{grid-column:2}}
+
+#palaEditSheet.pala-editor>form{display:block;max-height:none}
+
+.pala-editor:not(dialog):not(.dialog-card)>.pala-editor-actions{bottom:calc(100px + env(safe-area-inset-bottom))!important}
