@@ -1,8 +1,8 @@
-// PALA v308 · skadehandlinger findes kun i skadens editor.
+// PALA v309 · skadeoversigt samler relaterede links; lister holdes kompakte.
 (() => {
   'use strict';
 
-  if (window.__palaWorkshopDamageEditorV308) return;
+  if (window.__palaWorkshopDamageEditorV309) return;
   window.__palaWorkshopDamageEditorV308 = true;
 
   const baseWorkshopTaskCard = workshopTaskCard;
@@ -11,15 +11,88 @@
     return isAdminLoggedIn() || +task.created_by_employee_id === +employeeId;
   }
 
-  // Outside the editor there is only one mutation entry point: Redigér skade.
-  // Delete and add/change image are intentionally not exposed on cards/lists/calendar.
+  // Cards/lists contain only actions for the damage itself. Links to the related
+  // tent/order live exclusively on the dedicated damage overview.
   workshopTaskCard = function(task) {
-    const html = baseWorkshopTaskCard(task);
-    if (!canEditWorkshopDamage(task)) return html;
+    let html = baseWorkshopTaskCard(task);
+    const overviewButton=`<button class="btn" onclick="openWorkshopDamageOverview(${+task.id})">${uiIcon('eye')} Oversigt</button>`;
+    const editButton=canEditWorkshopDamage(task)
+      ?`<button class="btn" onclick="editWorkshopDamage(${+task.id})">${uiIcon('edit')} Redigér skade</button>`
+      :'';
     return html.replace(
       '<div class="workshop-task-actions">',
-      `<div class="workshop-task-actions"><button class="btn" onclick="editWorkshopDamage(${+task.id})">${uiIcon('edit')} Redigér skade</button>`
+      `<div class="workshop-task-actions">${overviewButton}${editButton}`
     );
+  };
+
+  function damageOverviewReturnQuery() {
+    const stored=sessionStorage.getItem('pala_damage_overview_return');
+    return stored===null?'':stored;
+  }
+
+  window.closeWorkshopDamageOverview=function(){
+    const query=damageOverviewReturnQuery();
+    sessionStorage.removeItem('pala_damage_overview_return');
+    history.replaceState(null,'',location.pathname+query);
+    return route();
+  };
+
+  window.openWorkshopDamageOverview=function(id,fromRoute=false){
+    if(!requireEmployee())return;
+    const task=workshopTasks.find(x=>+x.id===+id);
+    if(!task)return alert('Skaden findes ikke.');
+
+    if(!fromRoute){
+      const current=new URLSearchParams(location.search);
+      if(!current.has('damageView'))sessionStorage.setItem('pala_damage_overview_return',location.search||'');
+      history.replaceState(null,'',location.pathname+'?damageView='+encodeURIComponent(+id));
+    }
+
+    const tent=tents[task.tent_id];
+    const booking=bookings.find(b=>+b.id===+task.booking_id);
+    const done=task.status==='completed';
+    const canEdit=canEditWorkshopDamage(task);
+    const hasPhoto=typeof damagePhotoIds!=='undefined'&&damagePhotoIds.has(+id);
+
+    document.querySelectorAll('.nav .btn').forEach(button=>button.classList.remove('active'));
+    app.innerHTML=`<section class="card">
+      <div class="row">
+        <button class="btn submenu-back" onclick="closeWorkshopDamageOverview()">${uiIcon('chevronLeft')} Tilbage</button>
+        ${canEdit?`<button class="btn" onclick="editWorkshopDamage(${+id})">${uiIcon('edit')} Redigér skade</button>`:''}
+      </div>
+      <div class="detail-title">
+        <span class="warehouse-item-icon">${uiIcon('scissors')}</span>
+        <div><span class="small muted">${done?'AFSLUTTET SKADE':'SKADE TIL SYSTUEN'}</span><h2>${esc(task.tent_name||tent?.name||'Skade')}</h2></div>
+      </div>
+      <p style="white-space:pre-wrap">${esc(task.description||'')}</p>
+      <div class="workshop-task-meta">
+        ${task.created_at?`<span>Oprettet ${esc(workshopDate(task.created_at))}</span>`:''}
+        ${task.created_by_employee_name?`<span>af ${esc(task.created_by_employee_name)}</span>`:''}
+      </div>
+      ${done&&task.completion_note?`<div class="small" style="margin-top:12px"><b>Udført:</b> ${esc(task.completion_note)}</div>`:''}
+    </section>
+    <section class="card">
+      <h3>Relateret</h3>
+      <div class="row" style="justify-content:flex-start;flex-wrap:wrap">
+        ${task.tent_id?`<button class="btn" onclick="openTent(${+task.tent_id})">${uiIcon('tent')} Åbn telt</button>`:''}
+        ${booking?`<button class="btn" onclick="viewOrder(bookings.find(b=>+b.id===${+booking.id}))">${uiIcon('calendar')} Åbn job</button>`:''}
+      </div>
+      ${!task.tent_id&&!booking?'<p class="muted">Skaden er ikke knyttet til et telt eller job.</p>':''}
+    </section>
+    ${hasPhoto?`<section class="card"><h3>Skadebillede</h3><button class="btn" onclick="openDamagePhoto(${+id})">${uiIcon('eye')} Se skadebillede</button></section>`:''}`;
+  };
+
+  const baseRouteV309=window.route;
+  window.route=function(){
+    const params=new URLSearchParams(location.search);
+    const damageView=+params.get('damageView')||0;
+    if(damageView)return openWorkshopDamageOverview(damageView,true);
+    return baseRouteV309.apply(this,arguments);
+  };
+
+  // Calendar damage chips open the damage overview rather than jumping to the tent.
+  window.openWorkshopTaskFromCalendarV120=function(id){
+    return openWorkshopDamageOverview(+id);
   };
 
   function addDeleteButtonToDamageSheet(id) {
