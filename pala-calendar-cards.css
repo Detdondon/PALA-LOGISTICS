@@ -1,4 +1,4 @@
-/* PALA v307 · compact calendar cards + dynamic multi-select columns. */
+/* PALA v312 · readable calendar columns without card overlap. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -406,6 +406,108 @@
   -webkit-line-clamp:2!important;
   overflow:hidden!important;
 }
+
+/* PALA v312 · keep list information readable inside narrow category columns. */
+.calendar-detail-list>.calendar-all-columns-v304{
+  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(280px,1fr))!important;
+  padding-bottom:4px!important;
+}
+.calendar-all-column-v304,
+.calendar-all-column-body-v304,
+.calendar-all-column-body-v304 :is(.job-card,.staff-card,.workshop-job-card,.workshop-task,.meeting-card){
+  min-width:0!important;
+  max-width:100%!important;
+}
+.calendar-all-column-body-v304 :is(.job-head,.staff-card>.row,.workshop-job-card>.row,.workshop-task-head){
+  min-width:0!important;
+  max-width:100%!important;
+}
+.calendar-all-column-body-v304 .job-head{
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:6px!important;
+}
+.calendar-all-column-body-v304 .job-status-col{
+  grid-column:1!important;
+  align-items:flex-start!important;
+  min-width:0!important;
+  width:100%!important;
+}
+.calendar-all-column-body-v304 :is(.status-pill,.workshop-status){
+  max-width:100%!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+.calendar-all-column-body-v304 :is(.staff-card>.row,.workshop-job-card>.row,.workshop-task-head){
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:6px!important;
+}
+.calendar-all-column-body-v304 :is(.staff-card>.row,.workshop-job-card>.row) > :last-child{
+  justify-self:start!important;
+  width:100%!important;
+  max-width:100%!important;
+}
+.calendar-all-column-body-v304 .staff-card>.row>div:last-child{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  justify-content:flex-start!important;
+  gap:5px!important;
+}
+.calendar-all-column-body-v304 :is(.job-metrics,.staff-people,.staff-job-links,.workshop-job-meta,.workshop-task-meta,.workshop-task-actions){
+  min-width:0!important;
+  max-width:100%!important;
+  flex-wrap:wrap!important;
+}
+.calendar-all-column-body-v304 :is(.job-title,.job-date,.job-subline,.staff-card h3,.staff-card .small,.workshop-job-card h3,.workshop-job-meta,.workshop-task h3,.workshop-task p,.workshop-task-meta,.meeting-open h3,.meeting-open p,.meeting-open>span.small){
+  min-width:0!important;
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+  white-space:normal!important;
+}
+.calendar-all-column-body-v304 .job-actions{
+  grid-template-columns:minmax(0,1fr)!important;
+  width:100%!important;
+}
+.calendar-all-column-body-v304 .job-actions .btn,
+.calendar-all-column-body-v304 .workshop-job-card>.row>.btn,
+.calendar-all-column-body-v304 .workshop-task-actions .btn{
+  width:100%!important;
+  max-width:100%!important;
+  white-space:normal!important;
+}
+.calendar-all-column-body-v304 .meeting-open{
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:4px!important;
+}
+.calendar-all-column-body-v304 .meeting-open>*{
+  grid-column:1!important;
+}
+.calendar-all-column-body-v304 .meeting-open>span.small:first-child{
+  grid-column:1!important;
+}
+.calendar-all-column-body-v304 :is(.staff-person,.metric-chip,.leader-badge,.leader-missing,.staff-job-link,.reference-button){
+  max-width:100%!important;
+  overflow-wrap:anywhere!important;
+  white-space:normal!important;
+}
+.calendar-all-column-body-v304 .calendar-damage-card-v310{
+  overflow:hidden!important;
+}
+.calendar-all-column-body-v304 .calendar-damage-card-v310 .workshop-task-head{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+}
+.calendar-all-column-body-v304 .calendar-damage-card-v310 .workshop-status{
+  justify-self:start!important;
+}
+
 @media(max-width:620px){
-  .calendar-detail-list>.calendar-all-columns-v304{gap:7px!important}
+  .calendar-detail-list>.calendar-all-columns-v304{
+    grid-template-columns:repeat(var(--calendar-column-count,1),minmax(260px,1fr))!important;
+    gap:7px!important;
+  }
 }
