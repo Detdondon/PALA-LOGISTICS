@@ -1,4 +1,4 @@
-/* PALA v303 · compact calendar cards + three-column All list. */
+/* PALA v304 · compact calendar cards + four-column All list. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -301,23 +301,23 @@
   }
 }
 
-/* PALA v303 · Alt = Ordre | Vagter | Systue */
-.calendar-detail-list>.calendar-all-columns-v303{
+/* PALA v304 · Alt = Ordre | Vagter | Systue | Møder / opgaver */
+.calendar-detail-list>.calendar-all-columns-v304{
   display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
   gap:10px!important;
   width:100%!important;
   min-width:0!important;
   align-items:start!important;
 }
-.calendar-all-column-v303{
+.calendar-all-column-v304{
   min-width:0!important;
   border:1px solid #e1e6ee!important;
   border-radius:12px!important;
   background:#f8fafc!important;
   overflow:hidden!important;
 }
-.calendar-all-column-head-v303{
+.calendar-all-column-head-v304{
   display:flex!important;
   align-items:center!important;
   justify-content:space-between!important;
@@ -327,14 +327,14 @@
   background:#eef2f7!important;
   border-bottom:1px solid #e1e6ee!important;
 }
-.calendar-all-column-head-v303 h3{
+.calendar-all-column-head-v304 h3{
   margin:0!important;
   font-size:13px!important;
   line-height:1.15!important;
   font-weight:750!important;
   color:#263751!important;
 }
-.calendar-all-column-head-v303 span{
+.calendar-all-column-head-v304 span{
   display:inline-flex!important;
   align-items:center!important;
   justify-content:center!important;
@@ -348,59 +348,71 @@
   font-weight:700!important;
   color:#607087!important;
 }
-.calendar-all-column-body-v303{
+.calendar-all-column-body-v304{
   min-width:0!important;
   padding:5px!important;
 }
-.calendar-all-column-body-v303 .view-list-group{
+.calendar-all-column-body-v304 .view-list-group{
   padding-top:5px!important;
 }
-.calendar-all-column-body-v303 .view-list-group:first-child{
+.calendar-all-column-body-v304 .view-list-group:first-child{
   padding-top:0!important;
 }
-.calendar-all-column-body-v303 .list-date-heading{
+.calendar-all-column-body-v304 .list-date-heading{
   grid-template-columns:30px minmax(0,1fr)!important;
   min-height:36px!important;
   padding:3px 5px!important;
   column-gap:6px!important;
   border-radius:8px!important;
 }
-.calendar-all-column-body-v303 .list-date-number{
+.calendar-all-column-body-v304 .list-date-number{
   width:27px!important;
   height:27px!important;
   border-radius:7px!important;
   font-size:15px!important;
 }
-.calendar-all-column-body-v303 .list-date-weekday{
+.calendar-all-column-body-v304 .list-date-weekday{
   font-size:11px!important;
 }
-.calendar-all-column-body-v303 .list-date-month{
+.calendar-all-column-body-v304 .list-date-month{
   font-size:9px!important;
 }
-.calendar-all-column-body-v303 .pala-activity-card,
-.calendar-all-column-body-v303 .meeting-card{
+.calendar-all-column-body-v304 .pala-activity-card,
+.calendar-all-column-body-v304 .meeting-card{
   margin:2px 0!important;
 }
-.calendar-all-column-body-v303 .pala-activity-card{
+.calendar-all-column-body-v304 .pala-activity-card{
   padding:6px 7px!important;
 }
-.calendar-all-column-body-v303 .pala-activity-card h3,
-.calendar-all-column-body-v303 .meeting-open h3{
+.calendar-all-column-body-v304 .pala-activity-card h3,
+.calendar-all-column-body-v304 .meeting-open h3{
   font-size:13px!important;
 }
-.calendar-all-column-body-v303 .pala-activity-card .btn{
+.calendar-all-column-body-v304 .pala-activity-card .btn{
   min-height:28px!important;
   padding:4px 7px!important;
   font-size:10px!important;
 }
-.calendar-all-column-body-v303 .calendar-column-empty-v303{
+.calendar-all-column-body-v304 .calendar-column-empty-v304{
   margin:4px!important;
   font-size:10px!important;
   line-height:1.3!important;
 }
 
-@media(max-width:760px){
-  .calendar-detail-list>.calendar-all-columns-v303{
+.calendar-task-description-v304{
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  overflow:hidden!important;
+}
+@media(max-width:1000px){
+  .calendar-detail-list>.calendar-all-columns-v304{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+}
+@media(max-width:620px){
+  .calendar-detail-list>.calendar-all-columns-v304{
     grid-template-columns:1fr!important;
     gap:7px!important;
   }
