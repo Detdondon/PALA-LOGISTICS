@@ -1,8 +1,8 @@
-/* PALA v298 · calendar lists always start at the selected calendar date. */
+/* PALA v299 · selected-date calendar lists with stable interactive cards. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV298)return;
-window.__palaCalendarListDefaultsV298=true;
+if(window.__palaCalendarListDefaultsV299)return;
+window.__palaCalendarListDefaultsV299=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -160,15 +160,8 @@ if(typeof baseShowCalendarV298==='function'){
   };
 }
 
-const root=document.getElementById('app');
-if(root){
-  let queued=false;
-  new MutationObserver(()=>{
-    if(queued)return;
-    queued=true;
-    requestAnimationFrame(()=>{queued=false;renderSelectedForwardV298()});
-  }).observe(root,{childList:true,subtree:true});
-}
-
+/* Do not observe and rewrite the list continuously.
+   Continuous innerHTML replacement destroys the element between pointer-down
+   and click, which makes cards and buttons such as Pak / Retur feel dead. */
 queueMicrotask(renderSelectedForwardV298);
 })();
