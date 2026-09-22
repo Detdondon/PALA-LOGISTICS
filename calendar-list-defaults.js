@@ -1,8 +1,8 @@
-/* PALA v303 · selected-date lists with three-column All view. */
+/* PALA v304 · selected-date lists with four-column All view. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV303)return;
-window.__palaCalendarListDefaultsV303=true;
+if(window.__palaCalendarListDefaultsV304)return;
+window.__palaCalendarListDefaultsV304=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -36,6 +36,7 @@ function labelFor(kind,row){
   if(kind==='staffing')return row?.title||'Vagt';
   if(kind==='workshop')return row?.title||'Systuejob';
   if(kind==='workshopTask')return row?.tent_name||row?.description||'Skade';
+  if(kind==='task')return row?.title||'Anden opgave';
   return row?.title||'Møde';
 }
 function htmlFor(kind,row){
@@ -90,9 +91,9 @@ function selectedForwardEntriesV298(){
     }
   }
 
-  if(type==='all'&&meetingMatches()){
+  if((type==='all'||type==='calendarItems')&&meetingMatches()){
     (palaMeetings||[]).filter(row=>row&&!row.cancelled).forEach(row=>{
-      add('meeting',row,row.start_date,row.end_date,row.start_time,5);
+      add(row.kind==='task'?'task':'meeting',row,row.start_date,row.end_date,row.start_time,5);
     });
   }
 
@@ -105,8 +106,8 @@ function selectedForwardEntriesV298(){
   );
 }
 
-function groupedSingleColumnV303(entries,emptyText='Ingen aktiviteter fra den valgte dato og frem.'){
-  if(!entries.length)return `<p class="muted calendar-column-empty-v303">${emptyText}</p>`;
+function groupedSingleColumnV304(entries,emptyText='Ingen aktiviteter fra den valgte dato og frem.'){
+  if(!entries.length)return `<p class="muted calendar-column-empty-v304">${emptyText}</p>`;
   if(typeof groupedCalendarListV121==='function')return groupedCalendarListV121([...entries],'');
   const dates=[...new Set(entries.map(row=>row.date))];
   return dates.map(ds=>`<section class="view-list-group" data-date="${ds}"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${entries.filter(row=>row.date===ds).map(row=>row.html).join('')}</section>`).join('');
@@ -114,14 +115,14 @@ function groupedSingleColumnV303(entries,emptyText='Ingen aktiviteter fra den va
 
 function groupedHtmlV298(entries){
   if(typeFilter()!=='all'){
-    return groupedSingleColumnV303(entries,'Ingen aktiviteter matcher filtrene fra den valgte dato og frem.');
+    return groupedSingleColumnV304(entries,'Ingen aktiviteter matcher filtrene fra den valgte dato og frem.');
   }
 
   const columns=[
     {
       key:'orders',
       title:'Ordre',
-      entries:entries.filter(row=>row.kind==='order'||row.kind==='meeting'),
+      entries:entries.filter(row=>row.kind==='order'),
       empty:'Ingen ordrer fra den valgte dato og frem.'
     },
     {
@@ -135,17 +136,23 @@ function groupedHtmlV298(entries){
       title:'Systue',
       entries:entries.filter(row=>row.kind==='workshop'||row.kind==='workshopTask'),
       empty:'Ingen systuejobs fra den valgte dato og frem.'
+    },
+    {
+      key:'calendar-items',
+      title:'Møder / opgaver',
+      entries:entries.filter(row=>row.kind==='meeting'||row.kind==='task'),
+      empty:'Ingen møder eller andre opgaver fra den valgte dato og frem.'
     }
   ];
 
-  return `<div class="calendar-all-columns-v303">${columns.map(column=>`
-    <section class="calendar-all-column-v303 calendar-all-column-${column.key}-v303">
-      <div class="calendar-all-column-head-v303">
+  return `<div class="calendar-all-columns-v304">${columns.map(column=>`
+    <section class="calendar-all-column-v304 calendar-all-column-${column.key}-v304">
+      <div class="calendar-all-column-head-v304">
         <h3>${column.title}</h3>
         <span>${column.entries.length}</span>
       </div>
-      <div class="calendar-all-column-body-v303">
-        ${groupedSingleColumnV303(column.entries,column.empty)}
+      <div class="calendar-all-column-body-v304">
+        ${groupedSingleColumnV304(column.entries,column.empty)}
       </div>
     </section>
   `).join('')}</div>`;
@@ -208,8 +215,8 @@ queueMicrotask(renderSelectedForwardV298);
 /* Reliable click path for the calendar list.
    Keep native form controls native. For buttons/cards/links that already carry
    PALA's original inline onclick handler, execute that original handler exactly once. */
-const appRootV300=document.getElementById('app');
-if(appRootV300&&!window.__palaCalendarListClickFallbackV300){
+const appRootV304=document.getElementById('app');
+if(appRootV300&&!window.__palaCalendarListClickFallbackV304){
   window.__palaCalendarListClickFallbackV300=true;
   appRootV300.addEventListener('click',event=>{
     const host=event.target?.closest?.('.calendar-detail-list,.view-list');
