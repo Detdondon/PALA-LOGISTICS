@@ -1,8 +1,8 @@
-/* PALA v296 · workshop alerts respect selected-date calendar list filtering */
+/* PALA v297 · workshop alerts respect selected-date calendar detail filtering */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV296)return;
-window.__palaCalendarWorkshopAlertsV296=true;
+if(window.__palaCalendarWorkshopAlertsV297)return;
+window.__palaCalendarWorkshopAlertsV297=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -95,7 +95,12 @@ function ensureOpenDamageSection(){
   let section=host.querySelector('.workshop-open-pinned-v201');
   if(!isWorkshop||completed){section?.remove();return}
 
-  const tasks=allOpenWorkshopDamages();
+  const first=typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
+  const tasks=allOpenWorkshopDamages().filter(task=>{
+    if(!first||typeof workshopTaskRangeV120!=='function')return true;
+    const range=workshopTaskRangeV120(task);
+    return !!(range&&range.end>=first);
+  });
   if(!tasks.length){section?.remove();return}
   clearEmptyMessage(host);
 
