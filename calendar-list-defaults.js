@@ -1,8 +1,8 @@
-/* PALA v300 · selected-date calendar lists with guaranteed interactions. */
+/* PALA v303 · selected-date lists with three-column All view. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV300)return;
-window.__palaCalendarListDefaultsV300=true;
+if(window.__palaCalendarListDefaultsV303)return;
+window.__palaCalendarListDefaultsV303=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -54,6 +54,7 @@ function selectedForwardEntriesV298(){
     start=dateOnly(start);end=dateOnly(end||start);
     if(!start||!end||end<first)return;
     entries.push({
+      kind,
       date:maxDate(start,first),
       time:timeOnly(time),
       order,
@@ -104,11 +105,50 @@ function selectedForwardEntriesV298(){
   );
 }
 
-function groupedHtmlV298(entries){
-  if(!entries.length)return '<p class="muted">Ingen aktiviteter matcher filtrene fra den valgte dato og frem.</p>';
+function groupedSingleColumnV303(entries,emptyText='Ingen aktiviteter fra den valgte dato og frem.'){
+  if(!entries.length)return `<p class="muted calendar-column-empty-v303">${emptyText}</p>`;
   if(typeof groupedCalendarListV121==='function')return groupedCalendarListV121([...entries],'');
   const dates=[...new Set(entries.map(row=>row.date))];
   return dates.map(ds=>`<section class="view-list-group" data-date="${ds}"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${entries.filter(row=>row.date===ds).map(row=>row.html).join('')}</section>`).join('');
+}
+
+function groupedHtmlV298(entries){
+  if(typeFilter()!=='all'){
+    return groupedSingleColumnV303(entries,'Ingen aktiviteter matcher filtrene fra den valgte dato og frem.');
+  }
+
+  const columns=[
+    {
+      key:'orders',
+      title:'Ordre',
+      entries:entries.filter(row=>row.kind==='order'||row.kind==='meeting'),
+      empty:'Ingen ordrer fra den valgte dato og frem.'
+    },
+    {
+      key:'staffing',
+      title:'Vagter',
+      entries:entries.filter(row=>row.kind==='staffing'),
+      empty:'Ingen vagter fra den valgte dato og frem.'
+    },
+    {
+      key:'workshop',
+      title:'Systue',
+      entries:entries.filter(row=>row.kind==='workshop'||row.kind==='workshopTask'),
+      empty:'Ingen systuejobs fra den valgte dato og frem.'
+    }
+  ];
+
+  return `<div class="calendar-all-columns-v303">${columns.map(column=>`
+    <section class="calendar-all-column-v303 calendar-all-column-${column.key}-v303">
+      <div class="calendar-all-column-head-v303">
+        <h3>${column.title}</h3>
+        <span>${column.entries.length}</span>
+      </div>
+      <div class="calendar-all-column-body-v303">
+        ${groupedSingleColumnV303(column.entries,column.empty)}
+      </div>
+    </section>
+  `).join('')}</div>`;
 }
 
 function updateDetailHeadingV298(){
