@@ -1,4 +1,4 @@
-/* PALA Editor v285. Presentation adapters: original controls and callbacks stay authoritative. */
+/* PALA Editor v288. Presentation adapters: original controls and callbacks stay authoritative. */
 (()=>{
 'use strict';
 if(window.PALAEditor)return;
@@ -131,6 +131,15 @@ function arrangeFields(container){
     if(node.matches('details')||node.querySelector('textarea,input[type=file],.sheet-checks,.staff-choice-list,.tent-link-grid')||!node.querySelector('input,select'))node.classList.add('pala-editor-wide');
   });
   [...container.querySelectorAll(':scope > .pala-editor-section')].sort((a,b)=>+a.dataset.editorSection-+b.dataset.editorSection).forEach(n=>container.append(n));
+  const resources=[...container.querySelectorAll(':scope > .pala-editor-section')].find(n=>n.dataset.editorSection==='3');
+  if(resources){
+    const hardwareContext=!!resources.querySelector('#requirementRows,.requirement-row')||
+      [...resources.querySelectorAll('summary')].some(summary=>/^Standardhardware$/i.test(summary.textContent.trim()));
+    if(hardwareContext){
+      const title=resources.querySelector('.pala-editor-section-title');
+      if(title)title.textContent='Hardware';
+    }
+  }
 }
 function findSave(root){return [...root.querySelectorAll('button')].find(b=>owned(root,b)&&(b.type==='submit'&&root.id==='palaEditSheet'||/^save[A-Z]|^create[A-Z]|^changeOwnPin\(|^export(?:Staffing|Production)PlanPDF\(/.test(b.getAttribute('onclick')||'')));}
 function findCancel(root){return [...root.querySelectorAll('button')].find(b=>owned(root,b)&&/^(Annuller|Luk|Tilbage)$/.test(b.textContent.trim())&&!b.closest('.sheet-body'));}
