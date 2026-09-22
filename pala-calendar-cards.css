@@ -1,0 +1,27 @@
+/* Common order-style layout for every activity in both calendar list surfaces. */
+:is(.view-list,.calendar-detail-list) .pala-activity-card{display:block!important;position:relative;min-width:0;padding:14px 16px!important;margin:10px 0!important;border:1px solid #dce3ed!important;border-left:4px solid var(--activity-accent,#6483ac)!important;border-radius:12px!important;background:#fff!important;box-shadow:none!important;color:#243550!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-head{display:flex!important;align-items:flex-start!important;justify-content:space-between;gap:12px;min-width:0}
+.pala-activity-heading{min-width:0;flex:1}
+:is(.view-list,.calendar-detail-list) .pala-activity-card h3{font-size:17px!important;line-height:1.35!important;font-weight:700!important;margin:0!important;overflow-wrap:anywhere}
+.pala-activity-type{display:block;font-size:11px;font-weight:600;color:#69798d;letter-spacing:.03em;margin-bottom:4px}
+:is(.view-list,.calendar-detail-list) .pala-activity-status{flex:none;display:inline-flex!important;align-items:center;gap:5px;padding:5px 9px!important;border-radius:20px!important;font-size:12px!important;line-height:1.4!important;white-space:normal!important;max-width:45%}
+:is(.view-list,.calendar-detail-list) .pala-activity-meta{display:flex!important;flex-wrap:wrap;gap:6px 14px;margin-top:7px!important;font-size:13px!important;line-height:1.5!important;color:#66758b}
+:is(.view-list,.calendar-detail-list) .pala-activity-meta:empty,:is(.view-list,.calendar-detail-list) .pala-activity-body:empty{display:none!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-meta :is(.small,.job-date,.job-subline,.workshop-job-meta,.workshop-task-meta){font-size:13px!important;line-height:1.5!important;margin:0!important;white-space:normal!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-body{display:grid;gap:8px;margin-top:10px;min-width:0;font-size:13px;line-height:1.5}
+:is(.view-list,.calendar-detail-list) .pala-activity-body p{margin:0!important;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px!important;line-height:1.5!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-card :is(.staff-people,.staff-job-links,.job-metrics){display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin:0!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-card :is(.staff-person,.metric-chip,.leader-badge,.staff-job-link){font-size:12px!important;line-height:1.5!important;white-space:normal!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-footer{display:flex!important;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid #edf0f5}
+:is(.view-list,.calendar-detail-list) .pala-activity-footer:not(:has(button,a,input,select)){display:none!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-actions{display:flex!important;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:8px;margin-left:auto;min-width:0}
+:is(.view-list,.calendar-detail-list) .pala-activity-card .btn{width:auto!important;min-height:36px!important;padding:7px 11px!important;font-size:13px!important;line-height:20px!important;border-radius:9px!important;white-space:normal!important;margin:0!important;display:inline-flex!important;align-items:center;justify-content:center;gap:6px}
+:is(.view-list,.calendar-detail-list) .pala-activity-card .ui-icon{width:16px!important;height:16px!important;flex-shrink:0}
+:is(.view-list,.calendar-detail-list) .pala-activity-footer .job-quick-status{display:flex!important;align-items:center;flex-wrap:wrap;gap:6px;margin:0!important}
+:is(.view-list,.calendar-detail-list) .pala-activity-footer select{min-height:36px!important;font-size:13px!important;padding:6px 9px!important;border-radius:9px!important}
+@media(max-width:600px){
+ :is(.view-list,.calendar-detail-list) .pala-activity-card{padding:12px!important;margin:8px 0!important}
+ :is(.view-list,.calendar-detail-list) .pala-activity-card h3{font-size:16px!important}
+ :is(.view-list,.calendar-detail-list) .pala-activity-card .btn{min-height:44px!important}
+ :is(.view-list,.calendar-detail-list) .pala-activity-footer select{min-height:44px!important}
+}
