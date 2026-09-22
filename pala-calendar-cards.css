@@ -1,4 +1,4 @@
-/* PALA v306 · compact calendar cards + dynamic multi-select columns. */
+/* PALA v307 · compact calendar cards + dynamic multi-select columns. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -301,7 +301,7 @@
   }
 }
 
-/* PALA v306 · selected categories define the number of list columns. */
+/* PALA v307 · selected categories define the number of list columns. */
 .calendar-detail-list>.calendar-all-columns-v304{
   display:grid!important;
   grid-template-columns:repeat(var(--calendar-column-count,1),minmax(220px,1fr))!important;
