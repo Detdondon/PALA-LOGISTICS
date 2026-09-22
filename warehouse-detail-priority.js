@@ -1,11 +1,12 @@
-/* PALA v191 · warehouse detail priority
+/* PALA v290 · warehouse detail priority + hide unfilled information
    Operational facts first; drawings, photos, documents and sources last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV191)return;
-window.__palaWarehouseDetailPriorityV191=true;
+if(window.__palaWarehouseDetailPriorityV290)return;
+window.__palaWarehouseDetailPriorityV290=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
+const hasValue=value=>value!==null&&value!==undefined&&(typeof value!=='string'||value.trim()!=='')&&(!Array.isArray(value)||value.length>0)&&(typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>0);
 const escText=value=>typeof esc==='function'?esc(String(value??'')):String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
 const fmt=value=>{
   const n=Number(value);
@@ -34,7 +35,7 @@ function standardQty(tent,name){
     const type=standardHardwareType(hardwareDisplayName(row));
     return type===wanted?sum+(Number(row?.qty)||0):sum;
   },0);
-  return qty>0?`${fmt(qty)} stk. pr. telt`:'Pakkemængde mangler';
+  return qty>0?`${fmt(qty)} stk. pr. telt`:'';
 }
 function tentMeasure(t){
   const d=Number(t?.diameter_m),l=Number(t?.length_m),w=Number(t?.width_m);
@@ -43,26 +44,93 @@ function tentMeasure(t){
     if(hasLW&&(Math.abs(l-d)>.05||Math.abs(w-d)>.05))return `Ø ${fmt(d)} m · footprint ${fmt(l)} × ${fmt(w)} m`;
     return `Ø ${fmt(d)} m`;
   }
-  return hasLW?`${fmt(l)} × ${fmt(w)} m`:'Ikke angivet';
+  return hasLW?`${fmt(l)} × ${fmt(w)} m`:'';
 }
-function fact(label,value,warning=false){
-  return `<div class="tent-keyfact-v186${warning?' warning':''}"><span>${escText(label)}</span><strong>${escText(value)}</strong></div>`;
+function fact(label,value){
+  return `<div class="tent-keyfact-v186"><span>${escText(label)}</span><strong>${escText(value)}</strong></div>`;
 }
 function keyFactsCard(t){
-  const ploekker=standardQty(t,'Pløkker'),sides=standardQty(t,'Sidestænger');
+  const ploekker=standardQty(t,'Pløkker'),sides=standardQty(t,'Sidestænger'),measure=tentMeasure(t),facts=[];
+  if(hasValue(t.stock_count))facts.push(fact('Lagerantal',`${fmt(t.stock_count)} stk.`));
+  if(hasValue(t.area_m2))facts.push(fact('Areal',`${fmt(t.area_m2)} m²`));
+  if(measure)facts.push(fact('Mål',measure));
+  if(hasValue(t.ridge_height_m))facts.push(fact('Højde ved mast',`${fmt(t.ridge_height_m)} m`));
+  if(hasValue(t.side_height_m))facts.push(fact('Sidehøjde',`${fmt(t.side_height_m)} m`));
+  if(ploekker)facts.push(fact('Pløkker',ploekker));
+  if(sides)facts.push(fact('Sidestænger',sides));
+  if(!facts.length)return null;
   const section=document.createElement('section');section.className='card tent-keyfacts-card-v186';
-  section.innerHTML=`<div class="small muted">VIGTIGSTE OPLYSNINGER</div><h3>Nøgletal og standardhardware</h3><div class="tent-keyfacts-grid-v186">
-    ${fact('Lagerantal',t.stock_count===null||t.stock_count===undefined||t.stock_count===''?'Ikke angivet':`${fmt(t.stock_count)} stk.`)}
-    ${fact('Areal',t.area_m2?`${fmt(t.area_m2)} m²`:'Ikke angivet')}
-    ${fact('Mål',tentMeasure(t))}
-    ${fact('Højde ved mast',t.ridge_height_m?`${fmt(t.ridge_height_m)} m`:'Ikke angivet')}
-    ${t.side_height_m?fact('Sidehøjde',`${fmt(t.side_height_m)} m`):''}
-    ${fact('Pløkker',ploekker,ploekker.includes('mangler'))}
-    ${fact('Sidestænger',sides,sides.includes('mangler'))}
-  </div><p class="small muted tent-keyfacts-note-v186">Pløkker og sidestænger er faste standarddele. Hvis pakkemængden mangler, skal den udfyldes på teltets pakkebehov – PALA gætter ikke antallet.</p>`;
+  section.innerHTML=`<div class="small muted">VIGTIGSTE OPLYSNINGER</div><h3>${ploekker||sides?'Nøgletal og standardhardware':'Nøgletal'}</h3><div class="tent-keyfacts-grid-v186">${facts.join('')}</div>${ploekker||sides?'<p class="small muted tent-keyfacts-note-v186">Pløkker og sidestænger er faste standarddele til teltet.</p>':''}`;
   return section;
 }
 function findCard(rx){return directCards().find(card=>rx.test(heading(card)))}
+function removeBlankParagraphs(root){
+  root?.querySelectorAll?.('p.muted,p.small.muted').forEach(node=>{if(!String(node.textContent||'').trim())node.remove()});
+}
+function cleanupMeasureCard(){
+  const card=findCard(/^Mål$/i);if(!card)return;
+  card.querySelectorAll('.measure').forEach(row=>{
+    const value=String(row.querySelector('strong')?.textContent||'').trim();
+    if(!value||value==='—'||/^ikke angivet$/i.test(value))row.remove();
+  });
+  if(!card.querySelector('.measure'))card.remove();
+}
+function cleanupTentMissingInfo(t){
+  const root=document.getElementById('app'),first=root?.firstElementChild;if(!root||!first)return;
+  removeBlankParagraphs(first);
+  if(!hasValue(t?.stock_count)){
+    const stock=[...first.querySelectorAll('b')].find(node=>/tilgængelig/i.test(node.textContent||''));
+    stock?.remove();
+  }
+  cleanupMeasureCard();
+  const note=root.querySelector('.tent-note-card');
+  if(note&&!hasValue(typeof tentNoteFor==='function'?tentNoteFor(t.id)?.note:null)){
+    [...note.querySelectorAll('.small.muted')].filter(node=>/ingen bemærkning/i.test(node.textContent||'')).forEach(node=>node.remove());
+  }
+  const docs=findCard(/^Dokumenter$/i);
+  let docCount=0;try{docCount=typeof tentDocs==='function'?tentDocs(t.id).length:0}catch(_e){}
+  if(docs&&!docCount)docs.remove();
+  const hardware=findCard(/^(Hardware|Pakkebehov(?: pr\. telt)?)$/i);
+  const activeHardware=(t?.hardware||[]).filter(row=>(Number(row?.qty)||0)>0);
+  if(hardware&&!activeHardware.length){
+    hardware.querySelectorAll('p.muted,p.small.muted').forEach(node=>node.remove());
+    if(!hardware.querySelector('button'))hardware.remove();
+  }
+}
+function cleanupInventoryMissingInfo(item){
+  const first=document.getElementById('app')?.firstElementChild;if(!first)return;
+  removeBlankParagraphs(first);
+  if(!hasValue(item?.quantity_total)){
+    const stock=[...first.querySelectorAll('b')].find(node=>/lager|tilgængelig|kontrol/i.test(node.textContent||''));
+    stock?.remove();
+  }
+}
+function cleanupCatalogHardwareMissingInfo(id){
+  let item=null;try{item=typeof catalogItem==='function'?catalogItem(id):null}catch(_e){}
+  const root=document.getElementById('app'),first=root?.firstElementChild;if(!root||!first||!item)return;
+  removeBlankParagraphs(first);
+  if(!hasValue(item.quantity_total)){
+    [...first.querySelectorAll(':scope > p')].filter(node=>/lager|antal|optalt|beholdning/i.test(node.textContent||'')).forEach(node=>node.remove());
+  }
+  const requirements=typeof catalogRequirements==='function'?catalogRequirements(id):[];
+  const links=[...new Set((requirements||[]).map(row=>+row.tent_id).concat((item.compatible_tent_ids||[]).map(Number)).filter(Boolean))];
+  const usedBy=findCard(/^Bruges til$/i);if(usedBy&&!links.length)usedBy.remove();
+}
+function cleanupLegacyHardwareMissingInfo(id){
+  let item=null;try{item=typeof findHardware==='function'?findHardware(id):null}catch(_e){}
+  const first=document.getElementById('app')?.firstElementChild;if(!first||!item)return;
+  removeBlankParagraphs(first);
+  if(!item?.tent?.name)[...first.querySelectorAll('.small')].filter(node=>/tilhører telt/i.test(node.textContent||'')).forEach(node=>node.remove());
+  if(!hasValue(item.qty))[...first.querySelectorAll('.small')].filter(node=>/skal med pr\. telt/i.test(node.textContent||'')).forEach(node=>node.remove());
+}
+function cleanupSpecialHardwareMissingInfo(id){
+  let item=null;try{item=(specialHardware||[]).find(row=>+row.id===+id)}catch(_e){}
+  const root=document.getElementById('app'),first=root?.firstElementChild;if(!root||!first||!item)return;
+  removeBlankParagraphs(first);
+  if(!hasValue(item.quantity_total))first.querySelector('.pill')?.remove();
+  const linked=(item.tent_ids||[]).map(tentId=>tents?.[+tentId]).filter(Boolean);
+  const fits=findCard(/^Passer til$/i);if(fits&&!linked.length)fits.remove();
+}
 function drawingCard(t){
   if(!t?.drawing_image)return null;
   let existing=directCards().find(card=>[...card.querySelectorAll('img')].some(img=>img.src===t.drawing_image||img.getAttribute('src')===t.drawing_image));
@@ -83,11 +151,12 @@ function prioritizeTent(id){
   root.querySelector('.tent-keyfacts-card-v186')?.remove();
   root.querySelector('.tent-source-card-v186')?.remove();
   const first=root.firstElementChild;if(!first)return;
-  const facts=keyFactsCard(t);first.insertAdjacentElement('afterend',facts);
+  const facts=keyFactsCard(t);
+  let anchor=first;
+  if(facts){first.insertAdjacentElement('afterend',facts);anchor=facts}
 
   const hardware=findCard(/^(Hardware|Pakkebehov(?: pr\. telt)?)$/i);
   const measures=findCard(/^Mål$/i);
-  let anchor=facts;
   if(hardware){
     const h=hardware.querySelector('h3');if(h)h.textContent='Pakkebehov pr. telt';
     anchor.insertAdjacentElement('afterend',hardware);anchor=hardware;
@@ -103,6 +172,7 @@ function prioritizeTent(id){
 
   // Low-priority media/docs are always appended after all operational information.
   [drawing,images,files,source,nfc].filter(Boolean).forEach(card=>root.appendChild(card));
+  cleanupTentMissingInfo(t);
 }
 
 const inventorySources=new Map([
@@ -125,12 +195,19 @@ function prioritizeInventory(id){
   if(source){
     const card=document.createElement('section');card.className='card inventory-source-v186';card.innerHTML=`<div class="small muted">KILDE</div><h3>Cirkus Panik Teltmageri</h3><a class="btn" href="${source}" target="_blank" rel="noopener noreferrer">${typeof uiIcon==='function'?uiIcon('link'):''} Se offentlig information</a>`;root.appendChild(card);
   }
+  cleanupInventoryMissingInfo(item);
 }
 
 const baseOpenTent=window.openTent;
 if(typeof baseOpenTent==='function')window.openTent=async function(id){const result=await baseOpenTent.apply(this,arguments);prioritizeTent(+id);return result};
 const baseOpenInventory=window.openInventoryNfc;
 if(typeof baseOpenInventory==='function')window.openInventoryNfc=function(id){const result=baseOpenInventory.apply(this,arguments);queueMicrotask(()=>prioritizeInventory(+id));return result};
+const baseOpenCatalogHardware=window.openCatalogHardware;
+if(typeof baseOpenCatalogHardware==='function')window.openCatalogHardware=function(id){const result=baseOpenCatalogHardware.apply(this,arguments);cleanupCatalogHardwareMissingInfo(+id);return result};
+const baseOpenHardware=window.openHardwareNfc;
+if(typeof baseOpenHardware==='function')window.openHardwareNfc=function(id){const result=baseOpenHardware.apply(this,arguments);queueMicrotask(()=>cleanupLegacyHardwareMissingInfo(+id));return result};
+const baseOpenSpecialHardware=window.openSpecialHardware;
+if(typeof baseOpenSpecialHardware==='function')window.openSpecialHardware=function(id){const result=baseOpenSpecialHardware.apply(this,arguments);queueMicrotask(()=>cleanupSpecialHardwareMissingInfo(+id));return result};
 
 const style=document.createElement('style');style.id='pala-warehouse-detail-priority-v186-style';style.textContent=`
   .tent-keyfacts-card-v186{border-top:4px solid var(--b,#3158e8)!important}
