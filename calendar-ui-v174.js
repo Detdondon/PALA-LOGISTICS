@@ -1,11 +1,11 @@
-/* PALA calendar UI v177
+/* PALA calendar UI v304
    Safe DOM-only enhancer: icon filters with labels, contextual counts and compact action row.
    Completed status uses completed-only counts for the selected month.
    Does not override showCalendar or any startup/data function. */
 (()=>{
 'use strict';
-if(window.__palaCalendarUiV174)return;
-window.__palaCalendarUiV174=true;
+if(window.__palaCalendarUiV304)return;
+window.__palaCalendarUiV304=true;
 
 const textOf=el=>String(el?.textContent||'').replace(/\s+/g,' ').trim();
 function labelByName(root,name){return [...(root?.querySelectorAll('label')||[])].find(label=>textOf(label.querySelector('span'))===name)||null}
@@ -68,12 +68,13 @@ function enhanceCalendar(){
     const statusLabel=labelByName(filterGrid,'Status');
     const type=visLabel?.querySelector('select')?.value||'all';
     const status=statusLabel?.querySelector('select')?.value||'active';
-    const original=[...summary.querySelectorAll('button')].slice(0,3);
-    if(original.length<3)return;
+    const original=[...summary.querySelectorAll('button')].slice(0,4);
+    if(original.length<4)return;
     const counts={
       orders:textOf(original[0])||'0 ordrer',
       staffing:(textOf(original[1])||'0 vagter').replace(/mangler folk/gi,'mangler bemanding'),
       workshop:(textOf(original[2]).match(/\b\d+\s+systue\b/i)||['0 systue'])[0],
+      calendarItems:textOf(original[3])||'0 møder/opgaver',
       staffingMissing:original[1].classList.contains('red')||/mangler/i.test(textOf(original[1]))
     };
     if(status==='completed'){
@@ -81,6 +82,7 @@ function enhanceCalendar(){
       counts.orders=`${completed.orders} ordrer`;
       counts.staffing=`${completed.staffing} vagter`;
       counts.workshop=`${completed.workshop} systue`;
+      counts.calendarItems='0 møder/opgaver';
       counts.staffingMissing=false;
     }
 
@@ -96,7 +98,8 @@ function enhanceCalendar(){
       iconButton('all','list','Alt','Vis alt',type==='all'),
       iconButton('orders','calendar','Ordre','Ordrer',type==='orders'),
       iconButton('staffing','people','Vagter','Vagter',type==='staffing'),
-      iconButton('workshop','scissors','Systue','Systue',type==='workshop')
+      iconButton('workshop','scissors','Systue','Systue',type==='workshop'),
+      iconButton('calendarItems','check','Møder / opgaver','Møder og andre opgaver',type==='calendarItems')
     );
 
     actions.classList.add('calendar-action-row-v174');
@@ -111,6 +114,7 @@ function enhanceCalendar(){
       if(counts.staffingMissing&&staffingParts.length>1)parts.push(countNode(staffingParts.slice(1).join(' · '),true));
     }
     if(type==='all'||type==='workshop')parts.push(countNode(counts.workshop));
+    if(type==='all'||type==='calendarItems')parts.push(countNode(counts.calendarItems));
     parts.forEach((node,index)=>{if(index)countBar.appendChild(separator());countBar.appendChild(node)});
     tools.appendChild(countBar);
   }catch(error){console.warn('PALA calendar UI enhancement skipped',error)}
@@ -120,7 +124,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
   const style=document.createElement('style');
   style.id='pala-calendar-ui-v174-style';
   style.textContent=`
-    .calendar-type-buttons-v174{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:7px!important;align-items:stretch!important}
+    .calendar-type-buttons-v174{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:7px!important;align-items:stretch!important}
     .calendar-type-icon-v174{min-width:0!important;min-height:54px!important;border:1px solid #d7dde8!important;border-radius:15px!important;background:#fff!important;color:#42526b!important;display:flex!important;flex-direction:column!important;gap:3px!important;align-items:center!important;justify-content:center!important;cursor:pointer!important;padding:7px 8px 6px!important}
     .calendar-type-icon-v174 .ui-icon{width:21px!important;height:21px!important;flex:0 0 auto!important}
     .calendar-type-label-v174{display:block!important;font-size:10px!important;font-weight:750!important;line-height:1!important;white-space:nowrap!important}
@@ -135,7 +139,7 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
     .calendar-count-summary-v174{display:inline-flex!important;align-items:center!important;align-self:flex-start!important;justify-self:start!important;justify-content:flex-start!important;gap:4px!important;min-height:30px!important;min-width:0!important;width:max-content!important;max-width:100%!important;padding:8px 0 0!important;border-top:0!important;color:#667085!important;font-size:12px!important;font-weight:750!important;line-height:1!important;flex-wrap:wrap!important;white-space:normal!important;overflow:visible!important;row-gap:6px!important}.calendar-count-summary-v174>*{flex:0 0 auto!important;min-width:0!important;white-space:nowrap!important}
     .calendar-count-item-v174.warning{color:#a12a2a!important}
     .calendar-count-separator-v174{color:#b0b7c3!important}
-    @media(max-width:620px){.calendar-type-buttons-v174{gap:5px!important}.calendar-type-icon-v174{min-height:52px!important;border-radius:13px!important;padding:6px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-type-label-v174{font-size:9.5px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:11px!important;column-gap:4px!important;row-gap:6px!important}.calendar-count-separator-v174,.calendar-count-item-v174{flex:0 0 auto!important}}
+    @media(max-width:620px){.calendar-type-buttons-v174{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}.calendar-type-icon-v174{min-height:52px!important;border-radius:13px!important;padding:6px!important}.calendar-type-icon-v174 .ui-icon{width:19px!important;height:19px!important}.calendar-type-label-v174{font-size:9.5px!important}.calendar-action-row-v174{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))!important;gap:5px!important}.calendar-action-row-v174>.btn{font-size:10.5px!important;padding:7px 6px!important}.calendar-action-row-v174 .calendar-status-control-v174 select{font-size:12px!important}.calendar-count-summary-v174{font-size:11px!important;column-gap:4px!important;row-gap:6px!important}.calendar-count-separator-v174,.calendar-count-item-v174{flex:0 0 auto!important}}
   `;
   document.head.appendChild(style);
 }
