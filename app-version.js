@@ -1,7 +1,7 @@
-/* PALA visible app version v307 · isolated from core rendering */
+/* PALA visible app version v308 · isolated from core rendering */
 (()=>{
 'use strict';
-const VERSION='v307';
+const VERSION='v308';
 window.PALA_APP_VERSION=VERSION;
 let tries=0;
 function apply(){
