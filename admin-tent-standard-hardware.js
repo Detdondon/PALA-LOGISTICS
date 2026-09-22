@@ -50,7 +50,7 @@ window.editTentBasics=function(id){
     `${sheetField('stock_count','Samlet lagerantal',t.stock_count,'number','min="0" step="1" placeholder="Ikke angivet"')}`+
     `${sheetText('description','Beskrivelse',t.description)}`+
     `<details class="sheet-group" open><summary>Mål</summary><div class="two">${fields.map(([k,l])=>sheetField(k,l,t[k],'number','min="0" step="0.01"')).join('')}</div></details>`+
-    `<details class="sheet-group" open><summary>Standardhardware</summary><p class="small muted">Antal der altid skal med til ét telt. Ændringerne gemmes i teltets pakkebehov.</p><div class="two">${sheetField('ploekker_qty','Pløkker pr. telt',ploekker,'number','min="0" step="1"')}${sheetField('sidestaenger_qty','Sidestænger pr. telt',sidestaenger,'number','min="0" step="1"')}</div></details>`+
+    `<details class="sheet-group" open><summary>Standardhardware</summary><p class="small muted">Antal hardware der altid skal med til ét telt. Ændringerne gemmes som teltets hardwarebehov.</p><div class="two">${sheetField('ploekker_qty','Pløkker pr. telt',ploekker,'number','min="0" step="1"')}${sheetField('sidestaenger_qty','Sidestænger pr. telt',sidestaenger,'number','min="0" step="1"')}</div></details>`+
     `<details class="sheet-group"><summary>Version af et andet telt</summary><label for="s_parent_tent_id">Hovedtelt</label><select id="s_parent_tent_id"><option value="">Selvstændigt telt / frakobl</option>${tentParentOptions(t).map(r=>`<option value="${r.id}" ${+r.id===+t.parent_tent_id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></details>`,
     async()=>{
       let data={name:sheetValue('name'),description:sheetValue('description'),stock_count:sheetNumber('stock_count'),parent_tent_id:sheetValue('parent_tent_id')};
