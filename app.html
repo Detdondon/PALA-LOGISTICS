@@ -5531,10 +5531,10 @@ showWorkshop=function(){let result=showWorkshopV119.apply(this,arguments);applyW
 /* PALA v120 · unified calendar filters */
 let mainCalendarTypeFilterV120=localStorage.getItem('pala_calendar_type_filter')||'all';
 let staffingCalendarStatusFilterV120=localStorage.getItem('pala_staffing_status_filter')||'all';
-if(!['all','orders','staffing','workshop'].includes(mainCalendarTypeFilterV120))mainCalendarTypeFilterV120='all';
+if(!['all','orders','staffing','workshop','calendarItems'].includes(mainCalendarTypeFilterV120))mainCalendarTypeFilterV120='all';
 if(!['all','open','completed'].includes(staffingCalendarStatusFilterV120))staffingCalendarStatusFilterV120='all';
 
-function setMainCalendarTypeFilterV120(value){mainCalendarTypeFilterV120=['orders','staffing','workshop'].includes(value)?value:'all';localStorage.setItem('pala_calendar_type_filter',mainCalendarTypeFilterV120);showCalendar()}
+function setMainCalendarTypeFilterV120(value){mainCalendarTypeFilterV120=['orders','staffing','workshop','calendarItems'].includes(value)?value:'all';localStorage.setItem('pala_calendar_type_filter',mainCalendarTypeFilterV120);showCalendar()}
 function setStaffingCalendarStatusFilterV120(value){staffingCalendarStatusFilterV120=['open','completed'].includes(value)?value:'all';localStorage.setItem('pala_staffing_status_filter',staffingCalendarStatusFilterV120);showStaffing()}
 function setWorkshopCalendarStatusFilterV120(value){workshopFilter=['open','completed'].includes(value)?value:'all';localStorage.setItem('pala_workshop_filter',workshopFilter);showWorkshop(workshopFilter)}
 
@@ -6734,4 +6734,4 @@ syncLoginUi();
 
 calendarViewMode='calendar';
 localStorage.setItem('pala_calendar_view','calendar');
-</script><script src="calendar-controller.js?v=302"></script><!-- PALA_RUNTIME_SCRIPTS --></body></html>
+</script><script src="calendar-controller.js?v=304"></script><!-- PALA_RUNTIME_SCRIPTS --></body></html>
