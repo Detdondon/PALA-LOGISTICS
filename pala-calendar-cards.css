@@ -304,7 +304,8 @@
 /* PALA v306 · selected categories define the number of list columns. */
 .calendar-detail-list>.calendar-all-columns-v304{
   display:grid!important;
-  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(0,1fr))!important;
+  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(220px,1fr))!important;
+  overflow-x:auto!important;
   gap:10px!important;
   width:100%!important;
   min-width:0!important;
@@ -406,8 +407,5 @@
   overflow:hidden!important;
 }
 @media(max-width:620px){
-  .calendar-detail-list>.calendar-all-columns-v304{
-    grid-template-columns:1fr!important;
-    gap:7px!important;
-  }
+  .calendar-detail-list>.calendar-all-columns-v304{gap:7px!important}
 }
