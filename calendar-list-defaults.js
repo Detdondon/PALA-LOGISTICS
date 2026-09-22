@@ -1,8 +1,8 @@
-/* PALA v299 · selected-date calendar lists with stable interactive cards. */
+/* PALA v300 · selected-date calendar lists with guaranteed interactions. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV299)return;
-window.__palaCalendarListDefaultsV299=true;
+if(window.__palaCalendarListDefaultsV300)return;
+window.__palaCalendarListDefaultsV300=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -164,4 +164,26 @@ if(typeof baseShowCalendarV298==='function'){
    Continuous innerHTML replacement destroys the element between pointer-down
    and click, which makes cards and buttons such as Pak / Retur feel dead. */
 queueMicrotask(renderSelectedForwardV298);
+
+/* Reliable click path for the calendar list.
+   Keep native form controls native. For buttons/cards/links that already carry
+   PALA's original inline onclick handler, execute that original handler exactly once. */
+const appRootV300=document.getElementById('app');
+if(appRootV300&&!window.__palaCalendarListClickFallbackV300){
+  window.__palaCalendarListClickFallbackV300=true;
+  appRootV300.addEventListener('click',event=>{
+    const host=event.target?.closest?.('.calendar-detail-list,.view-list');
+    if(!host)return;
+    if(event.target?.closest?.('select,input,textarea,option,label'))return;
+
+    const action=event.target?.closest?.('[onclick]');
+    if(!action||!host.contains(action))return;
+    const handler=action.onclick;
+    if(typeof handler!=='function')return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    handler.call(action,event);
+  },true);
+}
 })();
