@@ -1,7 +1,7 @@
-/* PALA v306 · multi-select calendar categories. */
+/* PALA v307 · multi-select calendar categories. */
 (()=>{
 'use strict';
-if(window.__palaCalendarMultiSelectV306)return;
+if(window.__palaCalendarMultiSelectV307)return;
 window.__palaCalendarMultiSelectV306=true;
 
 const ORDER=['orders','staffing','workshop','calendarItems'];
