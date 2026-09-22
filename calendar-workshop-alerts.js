@@ -1,8 +1,8 @@
-/* PALA v297 · workshop alerts respect selected-date calendar detail filtering */
+/* PALA v306 · workshop alerts respect multi-column calendar detail filtering */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV297)return;
-window.__palaCalendarWorkshopAlertsV297=true;
+if(window.__palaCalendarWorkshopAlertsV306)return;
+window.__palaCalendarWorkshopAlertsV306=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -85,12 +85,10 @@ function ensureOpenDamageSection(){
   const listMode=typeof calendarViewMode!=='undefined'&&calendarViewMode==='list';
   const host=listMode?document.querySelector('.view-list'):document.querySelector('.calendar-detail-list');
   if(!host)return;
-  /* In calendar list mode, open damages are rendered by their actual date/range.
-     Never prepend an undated section that can contain items before the selected date. */
-  if(listMode){
-    host.querySelector('.workshop-open-pinned-v201')?.remove();
-    return;
-  }
+  /* The selected-date renderer owns both the permanent calendar list and any
+     legacy list host. Never inject a separate undated damage section beside it. */
+  host.querySelector('.workshop-open-pinned-v201')?.remove();
+  return;
 
   let section=host.querySelector('.workshop-open-pinned-v201');
   if(!isWorkshop||completed){section?.remove();return}
