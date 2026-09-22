@@ -1,4 +1,4 @@
-/* PALA v304 · compact calendar cards + four-column All list. */
+/* PALA v306 · compact calendar cards + dynamic multi-select columns. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -301,10 +301,10 @@
   }
 }
 
-/* PALA v304 · Alt = Ordre | Vagter | Systue | Møder / opgaver */
+/* PALA v306 · selected categories define the number of list columns. */
 .calendar-detail-list>.calendar-all-columns-v304{
   display:grid!important;
-  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(0,1fr))!important;
   gap:10px!important;
   width:100%!important;
   min-width:0!important;
@@ -404,12 +404,6 @@
   -webkit-box-orient:vertical!important;
   -webkit-line-clamp:2!important;
   overflow:hidden!important;
-}
-@media(max-width:1000px){
-  .calendar-detail-list>.calendar-all-columns-v304{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:8px!important;
-  }
 }
 @media(max-width:620px){
   .calendar-detail-list>.calendar-all-columns-v304{
