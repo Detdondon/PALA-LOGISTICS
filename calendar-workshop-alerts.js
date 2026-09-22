@@ -1,8 +1,8 @@
-/* PALA v277 · open workshop damages stay in the list, never the info line */
+/* PALA v296 · workshop alerts respect selected-date calendar list filtering */
 (()=>{
 'use strict';
-if(window.__palaCalendarWorkshopAlertsV277)return;
-window.__palaCalendarWorkshopAlertsV277=true;
+if(window.__palaCalendarWorkshopAlertsV296)return;
+window.__palaCalendarWorkshopAlertsV296=true;
 
 function allOpenWorkshopDamages(){
   const tasks=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
@@ -82,10 +82,15 @@ function clearEmptyMessage(host){
 function ensureOpenDamageSection(){
   const isWorkshop=typeof mainCalendarTypeFilterV120!=='undefined'&&mainCalendarTypeFilterV120==='workshop';
   const completed=typeof mainCalendarStatusFilterV123!=='undefined'&&mainCalendarStatusFilterV123==='completed';
-  const host=(typeof calendarViewMode!=='undefined'&&calendarViewMode==='list')
-    ?document.querySelector('.view-list')
-    :document.querySelector('.calendar-detail-list');
+  const listMode=typeof calendarViewMode!=='undefined'&&calendarViewMode==='list';
+  const host=listMode?document.querySelector('.view-list'):document.querySelector('.calendar-detail-list');
   if(!host)return;
+  /* In calendar list mode, open damages are rendered by their actual date/range.
+     Never prepend an undated section that can contain items before the selected date. */
+  if(listMode){
+    host.querySelector('.workshop-open-pinned-v201')?.remove();
+    return;
+  }
 
   let section=host.querySelector('.workshop-open-pinned-v201');
   if(!isWorkshop||completed){section?.remove();return}
