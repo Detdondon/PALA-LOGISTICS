@@ -1,112 +1,174 @@
-/* PALA v296 · calendar list starts at the selected date and shows everything forward. */
+/* PALA v298 · calendar lists always start at the selected calendar date. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV296)return;
-window.__palaCalendarListDefaultsV296=true;
+if(window.__palaCalendarListDefaultsV298)return;
+window.__palaCalendarListDefaultsV298=true;
 
-function selectedCalendarListStartV296(){
-  const start=new Date(calDate.getFullYear(),calDate.getMonth(),calDate.getDate());
-  return {start,first:staffDateString(start)};
+const dateOnly=value=>String(value??'').slice(0,10);
+const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
+const typeFilter=()=>typeof mainCalendarTypeFilterV120!=='undefined'?mainCalendarTypeFilterV120:'all';
+const statusFilter=()=>typeof mainCalendarStatusFilterV123!=='undefined'?mainCalendarStatusFilterV123:'all';
+const maxDate=(a,b)=>a>b?a:b;
+const timeOnly=value=>/^\d\d:\d\d/.test(String(value||''))?String(value).slice(0,5):'';
+
+function bookingMatches(row){
+  if(!row||row.status==='Annulleret')return false;
+  return typeof bookingStatusMatchV123==='function'?bookingStatusMatchV123(row):true;
+}
+function shiftMatches(row){
+  if(!row)return false;
+  return typeof shiftStatusMatchV123==='function'?shiftStatusMatchV123(row):true;
+}
+function workshopJobMatches(row){
+  if(!row||row.status==='Annulleret')return false;
+  return typeof workshopJobStatusMatchV123==='function'?workshopJobStatusMatchV123(row):true;
+}
+function workshopTaskMatches(row){
+  if(!row)return false;
+  return typeof workshopTaskStatusMatchV123==='function'?workshopTaskStatusMatchV123(row):true;
+}
+function meetingMatches(){
+  const status=statusFilter();
+  return status==='all'||status==='active'||status==='open';
+}
+function labelFor(kind,row){
+  if(kind==='order')return row?.customer_name||row?.title||row?.order_no||'Ordre';
+  if(kind==='staffing')return row?.title||'Vagt';
+  if(kind==='workshop')return row?.title||'Systuejob';
+  if(kind==='workshopTask')return row?.tent_name||row?.description||'Skade';
+  return row?.title||'Møde';
+}
+function htmlFor(kind,row){
+  if(kind==='order')return orderCard(row);
+  if(kind==='staffing')return staffShiftCard(row);
+  if(kind==='workshop')return workshopJobCard(row);
+  if(kind==='workshopTask')return workshopTaskCard(row);
+  return meetingCard(row);
 }
 
-function updateSelectedListLabelV296(){
-  if(calendarViewMode!=='list')return;
+function selectedForwardEntriesV298(){
+  const first=selectedFirst();
+  if(!first)return [];
+  const type=typeFilter(),entries=[];
+  const add=(kind,row,start,end,time,order)=>{
+    start=dateOnly(start);end=dateOnly(end||start);
+    if(!start||!end||end<first)return;
+    entries.push({
+      date:maxDate(start,first),
+      time:timeOnly(time),
+      order,
+      sortText:labelFor(kind,row),
+      key:`${kind}-${row?.id||''}`,
+      html:htmlFor(kind,row)
+    });
+  };
+
+  if(type==='all'||type==='orders'){
+    (bookings||[]).filter(bookingMatches).forEach(row=>{
+      add('order',row,row.start_date,row.end_date,row.start_time,1);
+    });
+  }
+
+  if(type==='all'||type==='staffing'){
+    (staffingShifts||[]).filter(shiftMatches).forEach(row=>{
+      const leave=typeof staffLeaveInfo==='function'?staffLeaveInfo(row):null;
+      if(leave)add('staffing',row,leave.start,leave.end,'',2);
+      else add('staffing',row,row.shift_date,row.shift_date,row.start_time,2);
+    });
+  }
+
+  if(type==='all'||type==='workshop'){
+    (workshopJobs||[]).filter(workshopJobMatches).forEach(row=>{
+      add('workshop',row,row.start_date,row.end_date,row.start_time,3);
+    });
+    if(type==='workshop'&&typeof workshopTaskRangeV120==='function'){
+      (workshopTasks||[]).filter(workshopTaskMatches).forEach(row=>{
+        const range=workshopTaskRangeV120(row);
+        if(range)add('workshopTask',row,range.start,range.end,'',4);
+      });
+    }
+  }
+
+  if(type==='all'&&meetingMatches()){
+    (palaMeetings||[]).filter(row=>row&&!row.cancelled).forEach(row=>{
+      add('meeting',row,row.start_date,row.end_date,row.start_time,5);
+    });
+  }
+
+  return entries.sort((a,b)=>
+    a.date.localeCompare(b.date)||
+    a.time.localeCompare(b.time)||
+    (a.order||0)-(b.order||0)||
+    String(a.sortText||'').localeCompare(String(b.sortText||''),'da-DK',{numeric:true,sensitivity:'base'})||
+    String(a.key||'').localeCompare(String(b.key||''))
+  );
+}
+
+function groupedHtmlV298(entries){
+  if(!entries.length)return '<p class="muted">Ingen aktiviteter matcher filtrene fra den valgte dato og frem.</p>';
+  if(typeof groupedCalendarListV121==='function')return groupedCalendarListV121([...entries],'');
+  const dates=[...new Set(entries.map(row=>row.date))];
+  return dates.map(ds=>`<section class="view-list-group" data-date="${ds}"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${entries.filter(row=>row.date===ds).map(row=>row.html).join('')}</section>`).join('');
+}
+
+function updateDetailHeadingV298(){
+  const first=selectedFirst();if(!first)return;
+  const card=document.querySelector('.calendar-day-detail-card');
+  if(!card)return;
+  const eyebrow=card.querySelector(':scope > div > .small.muted');
+  const title=card.querySelector(':scope > div > .calendar-day-title');
+  if(eyebrow)eyebrow.textContent='LISTEVISNING · FRA VALGT DATO';
+  if(title){
+    const label=typeof weekdayDateDa==='function'?weekdayDateDa(first):first;
+    title.textContent=`${label} og frem`;
+  }
+}
+
+function renderCalendarDetailV298(){
+  if(typeof calendarViewMode==='undefined'||calendarViewMode!=='calendar')return;
+  const host=document.querySelector('.calendar-detail-list');
+  if(!host)return;
+  host.innerHTML=groupedHtmlV298(selectedForwardEntriesV298());
+  updateDetailHeadingV298();
+}
+
+function renderStandaloneListV298(){
+  if(typeof calendarViewMode==='undefined'||calendarViewMode!=='list')return;
+  const host=document.querySelector('.view-list');
+  if(!host)return;
+  host.innerHTML=groupedHtmlV298(selectedForwardEntriesV298());
   const title=document.querySelector('.calendar-toolbar-title .small.muted');
-  if(!title)return;
-  const start=selectedCalendarListStartV296().start;
-  const label=new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'short',year:'numeric'}).format(start);
-  title.textContent=`Kalender · Fra ${label} og frem`;
+  const first=selectedFirst();
+  if(title&&first){
+    const label=typeof fmtDateDa==='function'?fmtDateDa(first):first;
+    title.textContent=`Fra ${label} og frem`;
+  }
 }
 
-function activeFutureCountsV296(){
-  const first=selectedCalendarListStartV296().first;
-  const orders=bookings.filter(b=>b.status!=='Annulleret'&&b.start_date&&b.end_date&&String(b.end_date).slice(0,10)>=first).length;
-  const shifts=staffingShifts.filter(sh=>{
-    const leave=staffLeaveInfo(sh);
-    return leave?leave.end>=first:String(sh.shift_date||'')>=first;
-  }).length;
-  const workshop=workshopJobs.filter(j=>j.status!=='Annulleret'&&j.end_date&&String(j.end_date).slice(0,10)>=first).length
-    +workshopTasks.filter(t=>{const r=workshopTaskRangeV120(t);return r&&r.end>=first}).length;
-  const openDamage=workshopTasks.filter(t=>t.status==='open'&&(()=>{const r=workshopTaskRangeV120(t);return r&&r.end>=first})()).length;
-  const under=staffingShifts.filter(sh=>!isStaffLeave(sh)&&String(sh.shift_date||'')>=first&&staffAssignmentsFor(sh.id).length<(+sh.workers_needed||1)).length;
-  return {orders,shifts,workshop,openDamage,under};
+function renderSelectedForwardV298(){
+  renderCalendarDetailV298();
+  renderStandaloneListV298();
 }
 
-/* Summary counters follow the exact same selected-date-forward rule in list view. */
-if(typeof unifiedPeriodCountsV123==='function'){
-  const baseUnifiedPeriodCountsV296=unifiedPeriodCountsV123;
-  unifiedPeriodCountsV123=function(){
-    return calendarViewMode==='list'?activeFutureCountsV296():baseUnifiedPeriodCountsV296.apply(this,arguments);
-  };
-}
-
-/* Final main-calendar list renderer. No dates before calDate and no artificial 14-day end date. */
-if(typeof renderMainCalendarListV121==='function'){
-  renderMainCalendarListV121=function(){
-    if(calendarViewMode!=='list')return;
-    const host=app.querySelector('.view-list');if(!host)return;
-    const first=selectedCalendarListStartV296().first;
-    const entries=[];
-    const understaffedOnly=mainCalendarTypeFilterV120==='staffing'&&mainCalendarStatusFilterV123==='understaffed';
-    const listDate=start=>String(start||'').slice(0,10)<first?first:String(start||'').slice(0,10);
-
-    if(mainCalendarTypeFilterV120==='all'||mainCalendarTypeFilterV120==='orders'){
-      bookings
-        .filter(b=>bookingActiveInListV139(b)&&b.start_date&&b.end_date&&String(b.end_date).slice(0,10)>=first)
-        .forEach(b=>entries.push({date:listDate(b.start_date),order:1,html:orderCard(b)}));
-    }
-
-    if(mainCalendarTypeFilterV120==='all'||mainCalendarTypeFilterV120==='staffing'){
-      staffingShifts
-        .filter(sh=>shiftActiveInListV139(sh)&&(!understaffedOnly||shiftUnderstaffedV139(sh)))
-        .forEach(sh=>{
-          const leave=staffLeaveInfo(sh);
-          if(leave){
-            if(!understaffedOnly&&leave.end>=first)entries.push({date:listDate(leave.start),order:2,html:staffShiftCard(sh)});
-          }else if(String(sh.shift_date||'')>=first){
-            entries.push({date:String(sh.shift_date).slice(0,10),order:2,html:staffShiftCard(sh)});
-          }
-        });
-    }
-
-    if(mainCalendarTypeFilterV120==='all'||mainCalendarTypeFilterV120==='workshop'){
-      workshopJobs
-        .filter(j=>workshopActiveInListV139(j)&&j.start_date&&j.end_date&&String(j.end_date).slice(0,10)>=first)
-        .forEach(j=>entries.push({date:listDate(j.start_date),order:3,html:workshopJobCard(j)}));
-
-      /* Open workshop tasks are dated by their booking range or creation date, so they obey the same rule. */
-      workshopTasks
-        .filter(t=>t.status==='open')
-        .forEach(t=>{
-          const r=workshopTaskRangeV120(t);
-          if(r&&r.end>=first)entries.push({date:listDate(r.start),order:4,html:workshopTaskCard(t)});
-        });
-    }
-
-    if(mainCalendarTypeFilterV120==='all'){
-      (palaMeetings||[])
-        .filter(m=>!m.cancelled&&m.start_date&&m.end_date&&String(m.end_date).slice(0,10)>=first)
-        .forEach(m=>entries.push({date:listDate(m.start_date),order:5,html:meetingCard(m)}));
-    }
-
-    host.innerHTML=entries.length
-      ?groupedCalendarListV121(entries,'')
-      :'<p class="muted">Ingen aktive eller åbne aktiviteter fra den valgte dato og frem.</p>';
-    updateSelectedListLabelV296();
-  };
-}
-
-/* Re-render after the normal calendar pipeline has finished. */
-const baseShowCalendarV296=window.showCalendar;
-if(typeof baseShowCalendarV296==='function'){
+const baseShowCalendarV298=window.showCalendar;
+if(typeof baseShowCalendarV298==='function'){
   window.showCalendar=async function(){
-    const result=await baseShowCalendarV296.apply(this,arguments);
-    if(calendarViewMode==='list'&&typeof renderMainCalendarListV121==='function')renderMainCalendarListV121();
+    const result=await baseShowCalendarV298.apply(this,arguments);
+    renderSelectedForwardV298();
+    requestAnimationFrame(renderSelectedForwardV298);
     return result;
   };
 }
 
-queueMicrotask(()=>{
-  if(typeof calendarViewMode!=='undefined'&&calendarViewMode==='list'&&typeof renderMainCalendarListV121==='function')renderMainCalendarListV121();
-});
+const root=document.getElementById('app');
+if(root){
+  let queued=false;
+  new MutationObserver(()=>{
+    if(queued)return;
+    queued=true;
+    requestAnimationFrame(()=>{queued=false;renderSelectedForwardV298()});
+  }).observe(root,{childList:true,subtree:true});
+}
+
+queueMicrotask(renderSelectedForwardV298);
 })();
