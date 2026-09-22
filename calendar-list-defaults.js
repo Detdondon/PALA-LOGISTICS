@@ -1,12 +1,13 @@
-/* PALA v304 · selected-date lists with four-column All view. */
+/* PALA v306 · selected-date lists follow multi-selected categories. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV304)return;
-window.__palaCalendarListDefaultsV304=true;
+if(window.__palaCalendarListDefaultsV306)return;
+window.__palaCalendarListDefaultsV306=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
-const typeFilter=()=>typeof mainCalendarTypeFilterV120!=='undefined'?mainCalendarTypeFilterV120:'all';
+const selectedTypes=()=>typeof getCalendarSelectedTypesV306==='function'?getCalendarSelectedTypesV306():['orders','staffing','workshop','calendarItems'];
+const selected=type=>selectedTypes().includes(type);
 const statusFilter=()=>typeof mainCalendarStatusFilterV123!=='undefined'?mainCalendarStatusFilterV123:'all';
 const maxDate=(a,b)=>a>b?a:b;
 const timeOnly=value=>/^\d\d:\d\d/.test(String(value||''))?String(value).slice(0,5):'';
@@ -47,10 +48,10 @@ function htmlFor(kind,row){
   return meetingCard(row);
 }
 
-function selectedForwardEntriesV298(){
+function selectedForwardEntriesV306(){
   const first=selectedFirst();
   if(!first)return [];
-  const type=typeFilter(),entries=[];
+  const entries=[];
   const add=(kind,row,start,end,time,order)=>{
     start=dateOnly(start);end=dateOnly(end||start);
     if(!start||!end||end<first)return;
@@ -65,13 +66,13 @@ function selectedForwardEntriesV298(){
     });
   };
 
-  if(type==='all'||type==='orders'){
+  if(selected('orders')){
     (bookings||[]).filter(bookingMatches).forEach(row=>{
       add('order',row,row.start_date,row.end_date,row.start_time,1);
     });
   }
 
-  if(type==='all'||type==='staffing'){
+  if(selected('staffing')){
     (staffingShifts||[]).filter(shiftMatches).forEach(row=>{
       const leave=typeof staffLeaveInfo==='function'?staffLeaveInfo(row):null;
       if(leave)add('staffing',row,leave.start,leave.end,'',2);
@@ -79,11 +80,11 @@ function selectedForwardEntriesV298(){
     });
   }
 
-  if(type==='all'||type==='workshop'){
+  if(selected('workshop')){
     (workshopJobs||[]).filter(workshopJobMatches).forEach(row=>{
       add('workshop',row,row.start_date,row.end_date,row.start_time,3);
     });
-    if(type==='workshop'&&typeof workshopTaskRangeV120==='function'){
+    if(typeof workshopTaskRangeV120==='function'){
       (workshopTasks||[]).filter(workshopTaskMatches).forEach(row=>{
         const range=workshopTaskRangeV120(row);
         if(range)add('workshopTask',row,range.start,range.end,'',4);
@@ -91,7 +92,7 @@ function selectedForwardEntriesV298(){
     }
   }
 
-  if((type==='all'||type==='calendarItems')&&meetingMatches()){
+  if(selected('calendarItems')&&meetingMatches()){
     (palaMeetings||[]).filter(row=>row&&!row.cancelled).forEach(row=>{
       add(row.kind==='task'?'task':'meeting',row,row.start_date,row.end_date,row.start_time,5);
     });
@@ -105,7 +106,6 @@ function selectedForwardEntriesV298(){
     String(a.key||'').localeCompare(String(b.key||''))
   );
 }
-
 function groupedSingleColumnV304(entries,emptyText='Ingen aktiviteter fra den valgte dato og frem.'){
   if(!entries.length)return `<p class="muted calendar-column-empty-v304">${emptyText}</p>`;
   if(typeof groupedCalendarListV121==='function')return groupedCalendarListV121([...entries],'');
@@ -113,39 +113,42 @@ function groupedSingleColumnV304(entries,emptyText='Ingen aktiviteter fra den va
   return dates.map(ds=>`<section class="view-list-group" data-date="${ds}"><h3 class="view-list-date">${listDateHeading(ds)}</h3>${entries.filter(row=>row.date===ds).map(row=>row.html).join('')}</section>`).join('');
 }
 
-function groupedHtmlV298(entries){
-  if(typeFilter()!=='all'){
-    return groupedSingleColumnV304(entries,'Ingen aktiviteter matcher filtrene fra den valgte dato og frem.');
-  }
-
-  const columns=[
+function groupedHtmlV306(entries){
+  const active=selectedTypes();
+  const definitions=[
     {
       key:'orders',
+      type:'orders',
       title:'Ordre',
       entries:entries.filter(row=>row.kind==='order'),
       empty:'Ingen ordrer fra den valgte dato og frem.'
     },
     {
       key:'staffing',
+      type:'staffing',
       title:'Vagter',
       entries:entries.filter(row=>row.kind==='staffing'),
       empty:'Ingen vagter fra den valgte dato og frem.'
     },
     {
       key:'workshop',
+      type:'workshop',
       title:'Systue',
       entries:entries.filter(row=>row.kind==='workshop'||row.kind==='workshopTask'),
       empty:'Ingen systuejobs fra den valgte dato og frem.'
     },
     {
       key:'calendar-items',
+      type:'calendarItems',
       title:'Møder / opgaver',
       entries:entries.filter(row=>row.kind==='meeting'||row.kind==='task'),
       empty:'Ingen møder eller andre opgaver fra den valgte dato og frem.'
     }
   ];
+  const columns=definitions.filter(column=>active.includes(column.type));
+  if(!columns.length)return '<p class="muted">Vælg mindst én kategori.</p>';
 
-  return `<div class="calendar-all-columns-v304">${columns.map(column=>`
+  return `<div class="calendar-all-columns-v304" style="--calendar-column-count:${columns.length}">${columns.map(column=>`
     <section class="calendar-all-column-v304 calendar-all-column-${column.key}-v304">
       <div class="calendar-all-column-head-v304">
         <h3>${column.title}</h3>
@@ -157,7 +160,6 @@ function groupedHtmlV298(entries){
     </section>
   `).join('')}</div>`;
 }
-
 function updateDetailHeadingV298(){
   const first=selectedFirst();if(!first)return;
   const card=document.querySelector('.calendar-day-detail-card');
@@ -175,7 +177,7 @@ function renderCalendarDetailV298(){
   if(typeof calendarViewMode==='undefined'||calendarViewMode!=='calendar')return;
   const host=document.querySelector('.calendar-detail-list');
   if(!host)return;
-  host.innerHTML=groupedHtmlV298(selectedForwardEntriesV298());
+  host.innerHTML=groupedHtmlV306(selectedForwardEntriesV306());
   updateDetailHeadingV298();
 }
 
@@ -183,7 +185,7 @@ function renderStandaloneListV298(){
   if(typeof calendarViewMode==='undefined'||calendarViewMode!=='list')return;
   const host=document.querySelector('.view-list');
   if(!host)return;
-  host.innerHTML=groupedHtmlV298(selectedForwardEntriesV298());
+  host.innerHTML=groupedHtmlV306(selectedForwardEntriesV306());
   const title=document.querySelector('.calendar-toolbar-title .small.muted');
   const first=selectedFirst();
   if(title&&first){
