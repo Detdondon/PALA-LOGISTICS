@@ -1,8 +1,8 @@
-/* PALA v307 · selected-date lists follow multi-selected categories. */
+/* PALA v310 · selected-date lists use dedicated damage overview cards. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV307)return;
-window.__palaCalendarListDefaultsV306=true;
+if(window.__palaCalendarListDefaultsV310)return;
+window.__palaCalendarListDefaultsV310=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -44,7 +44,7 @@ function htmlFor(kind,row){
   if(kind==='order')return orderCard(row);
   if(kind==='staffing')return staffShiftCard(row);
   if(kind==='workshop')return workshopJobCard(row);
-  if(kind==='workshopTask')return workshopTaskCard(row);
+  if(kind==='workshopTask')return typeof calendarWorkshopTaskCardV310==='function'?calendarWorkshopTaskCardV310(row):workshopTaskCard(row);
   return meetingCard(row);
 }
 
