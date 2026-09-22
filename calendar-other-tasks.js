@@ -109,7 +109,7 @@ window.createMenuHtmlV123=function(){
   let html=baseCreateMenuHtmlV304();
   if(!isAdminLoggedIn())return html;
   const button=`<button onclick="runCreateActionV123('task')">${uiIcon('check')}<span><b>Anden opgave</b><small>Tildel medarbejdere i kalenderen</small></span></button>`;
-  const marker='<div class="create-menu-section-v123"><small>LAGER</small>';
+  const marker='</div><div class="create-menu-section-v123"><small>LAGER</small>';
   return html.includes(marker)?html.replace(marker,button+marker):html;
 };
 
