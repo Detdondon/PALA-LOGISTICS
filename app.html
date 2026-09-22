@@ -3120,8 +3120,8 @@ async function showCalendar(){
   act('nc');
   history.replaceState(null,'',location.pathname);
 
-  let calendarDays=calendarViewMode==='calendar'?28:14,
-      navigationWeeks=calendarViewMode==='calendar'?4:2,
+  let calendarDays=28,
+      navigationWeeks=4,
       anchor=new Date(calDate.getFullYear(),calDate.getMonth(),calDate.getDate()),
       startDate=new Date(anchor);
   startDate.setDate(anchor.getDate()-((anchor.getDay()+6)%7));
@@ -3161,10 +3161,6 @@ async function showCalendar(){
   app.innerHTML=`<div class="card calendar-control-card">
     <div class="calendar-toolbar-top">
       <div class="calendar-toolbar-title"><h2>${esc(monthHeading)}</h2><div class="small muted">Kalender · ${esc(periodName)} · ${navigationWeeks} uger</div></div>
-      <div class="view-switch" role="group" aria-label="Vælg kalendervisning">
-        <button class="btn ${calendarViewMode==='calendar'?'active':''}" onclick="setCalendarView('calendar')">${uiIcon('calendar')} Kalender</button>
-        <button class="btn ${calendarViewMode==='list'?'active':''}" onclick="setCalendarView('list')">${uiIcon('list')} Liste</button>
-      </div>
     </div>
     <div class="calendar-nav-controls">
       <button class="btn calendar-nav-step" onclick="mv(-1)" aria-label="Vis de forrige ${navigationWeeks} uger">${uiIcon('chevronLeft')} <span class="calendar-nav-label">${navigationWeeks} uger</span></button>
@@ -3175,13 +3171,13 @@ async function showCalendar(){
       <button class="btn calendar-nav-step" onclick="mv(1)" aria-label="Vis de næste ${navigationWeeks} uger"><span class="calendar-nav-label">${navigationWeeks} uger</span> ${uiIcon('chevronRight')}</button>
     </div>
     <div class="calendar-meta">
-      <button type="button" class="pill reference-button" onclick="setCalendarView('list')" aria-label="Vis alle jobs i perioden">${uiIcon('calendar')}${visibleBookings.length} ${visibleBookings.length===1?'job':'jobs'} i perioden</button>
-      <button type="button" class="pill reference-button" onclick="setCalendarView('list')" aria-label="Vis alle systuejobs i perioden">${uiIcon('scissors')}${visibleWorkshopJobs.length} ${visibleWorkshopJobs.length===1?'systuejob':'systuejobs'}</button>
+      <span class="pill">${uiIcon('calendar')}${visibleBookings.length} ${visibleBookings.length===1?'job':'jobs'} i perioden</span>
+      <span class="pill">${uiIcon('scissors')}${visibleWorkshopJobs.length} ${visibleWorkshopJobs.length===1?'systuejob':'systuejobs'}</span>
       ${isAdminLoggedIn()?`<button class="btn primary calendar-create" onclick="newOrder()">${uiIcon('plus')} Ny booking</button>`:''}
     </div>
   </div>
 
-  ${calendarViewMode==='calendar'?`<div class="card calendar-grid-card">
+  <div class="card calendar-grid-card">
     <div class="calendar-large-wrap">
       <div class="staff-calendar calendar-large calendar-four-weeks">
         ${sharedCalendarWeekdays()}
@@ -3189,20 +3185,20 @@ async function showCalendar(){
       </div>
     </div>
     <div class="small muted calendar-grid-caption">Tryk på et job eller systuejob for at åbne oversigten. Stryg til siden for at skifte periode.</div>
-  </div>`:`<div class="card view-list">${bookingListHtml||'<p class="muted">Ingen jobs i perioden.</p>'}</div>`}
+  </div>
 
-  ${calendarViewMode==='calendar'?`<div class="card">
-    <div><div class="small muted">UGE ${isoWeekNumber(selectedDs)}</div><h2 class="calendar-day-title">${esc(weekdayDateDa(selectedDs))}</h2></div>
+  <div class="card calendar-day-detail-card">
+    <div><div class="small muted">LISTEVISNING · FRA VALGT DATO</div><h2 class="calendar-day-title">${esc(weekdayDateDa(selectedDs))} og frem</h2></div>
     <div class="calendar-detail-list">
       ${selectedBookings.map(orderCard).join('')}${selectedWorkshopJobs.map(workshopJobCard).join('')}${!selectedBookings.length&&!selectedWorkshopJobs.length?`<p class="calendar-empty">Ingen jobs denne dag.</p>`:''}
     </div>
-  </div>`:''}`;
-  if(calendarViewMode==='calendar')setTimeout(()=>installCalendarSwipe('calendar'),0);
+  </div>`;
+  setTimeout(()=>installCalendarSwipe('calendar'),0);
 }
 
-function setCalendarView(mode){
-  calendarViewMode=mode==='list'?'list':'calendar';
-  localStorage.setItem('pala_calendar_view',calendarViewMode);
+function setCalendarView(){
+  calendarViewMode='calendar';
+  localStorage.setItem('pala_calendar_view','calendar');
   showCalendar();
 }
 
@@ -3211,7 +3207,7 @@ function setCalendarDay(ds){
 }
 
 function mv(n){
-  let days=calendarViewMode==='calendar'?28:14;
+  let days=28;
   calDate=new Date(calDate.getFullYear(),calDate.getMonth(),calDate.getDate()+(n*days));
   showCalendar();
 }
@@ -5834,10 +5830,10 @@ calendarEvents=function(start,days,mode){
 function openUnifiedSummaryListV125(type){
   mainCalendarTypeFilterV120=['orders','staffing','workshop'].includes(type)?type:'all';
   mainCalendarStatusFilterV123='all';
-  calendarViewMode='list';
+  calendarViewMode='calendar';
   localStorage.setItem('pala_calendar_type_filter',mainCalendarTypeFilterV120);
   localStorage.setItem('pala_calendar_status_filter','all');
-  localStorage.setItem('pala_calendar_view','list');
+  localStorage.setItem('pala_calendar_view','calendar');
   showCalendar();
 }
 const applyUnifiedCalendarTopV125Base=applyUnifiedCalendarTopV123;
@@ -5971,13 +5967,12 @@ showOpenWorkshopDamageListV122=async function(){
   workshopSelectedDate='';
   mainCalendarTypeFilterV120='workshop';
   mainCalendarStatusFilterV123='open';
-  calendarViewMode='list';
+  calendarViewMode='calendar';
   localStorage.setItem('pala_workshop_filter','open');
   localStorage.setItem('pala_calendar_type_filter','workshop');
   localStorage.setItem('pala_calendar_status_filter','open');
-  localStorage.setItem('pala_calendar_view','list');
+  localStorage.setItem('pala_calendar_view','calendar');
   await showCalendar();
-  renderOpenWorkshopDamageOnlyV127();
 };
 
 
@@ -6091,12 +6086,11 @@ openUnifiedSummaryListV125=async function(type){
   if(type!=='workshop')return openUnifiedSummaryListV131Base(type);
   mainCalendarTypeFilterV120='workshop';
   mainCalendarStatusFilterV123='all';
-  calendarViewMode='list';
+  calendarViewMode='calendar';
   localStorage.setItem('pala_calendar_type_filter','workshop');
   localStorage.setItem('pala_calendar_status_filter','all');
-  localStorage.setItem('pala_calendar_view','list');
+  localStorage.setItem('pala_calendar_view','calendar');
   await showCalendar();
-  renderWorkshopSummaryAllDamagesV131();
 };
 
 
@@ -6481,21 +6475,11 @@ unifiedStatusMatchV123=function(event){
 const shiftStatusMatchV139Base=shiftStatusMatchV123;
 shiftStatusMatchV123=function(sh){return mainCalendarStatusFilterV123==='understaffed'?shiftUnderstaffedV139(sh):shiftStatusMatchV139Base(sh)};
 
-let calendarStatusBeforeListV139='all';
 const setCalendarViewV139Base=setCalendarView;
-setCalendarView=function(mode){
-  let next=mode==='list'?'list':'calendar';
-  if(next==='list'){
-    if(calendarViewMode!=='list'&&mainCalendarStatusFilterV123!=='understaffed')calendarStatusBeforeListV139=mainCalendarStatusFilterV123||'all';
-    if(mainCalendarStatusFilterV123!=='understaffed'){
-      mainCalendarStatusFilterV123='open';
-      localStorage.setItem('pala_calendar_status_filter','open');
-    }
-  }else if(calendarViewMode==='list'&&mainCalendarStatusFilterV123==='open'){
-    mainCalendarStatusFilterV123=calendarStatusBeforeListV139||'all';
-    localStorage.setItem('pala_calendar_status_filter',mainCalendarStatusFilterV123);
-  }
-  return setCalendarViewV139Base(next);
+setCalendarView=function(){
+  calendarViewMode='calendar';
+  localStorage.setItem('pala_calendar_view','calendar');
+  return setCalendarViewV139Base('calendar');
 };
 
 // Listevisningen er en arbejdsliste: kun aktive/åbne poster.
@@ -6748,4 +6732,6 @@ syncVersionBadgeV134=function(){
 
 syncLoginUi();
 
-</script><script src="calendar-controller.js?v=301"></script><!-- PALA_RUNTIME_SCRIPTS --></body></html>
+calendarViewMode='calendar';
+localStorage.setItem('pala_calendar_view','calendar');
+</script><script src="calendar-controller.js?v=302"></script><!-- PALA_RUNTIME_SCRIPTS --></body></html>
