@@ -1,8 +1,8 @@
-/* PALA v290 · edit standard hardware and masts directly with tent basics */
+/* PALA v292 · keep tent masts inside the shared Hardware editor section */
 (()=>{
 'use strict';
-if(window.__palaAdminTentStandardHardwareV290)return;
-window.__palaAdminTentStandardHardwareV290=true;
+if(window.__palaAdminTentStandardHardwareV292)return;
+window.__palaAdminTentStandardHardwareV292=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK').replace(/\s+/g,' ');
 function catalogName(row){
@@ -100,7 +100,7 @@ window.editTentBasics=function(id){
     `${sheetText('description','Beskrivelse',t.description)}`+
     `<details class="sheet-group" open><summary>Mål</summary><div class="two">${fields.map(([k,l])=>sheetField(k,l,t[k],'number','min="0" step="0.01"')).join('')}</div></details>`+
     `<details class="sheet-group" open><summary>Standardhardware</summary><p class="small muted">Antal hardware der altid skal med til ét telt. Ændringerne gemmes som teltets hardwarebehov.</p><div class="two">${sheetField('ploekker_qty','Pløkker pr. telt',ploekker,'number','min="0" step="1"')}${sheetField('sidestaenger_qty','Sidestænger pr. telt',sidestaenger,'number','min="0" step="1"')}</div></details>`+
-    `<details class="sheet-group" open><summary>Master</summary><p class="small muted">Vælg den eller de master, der hører til teltet, og antal pr. telt.</p><div id="tentMastRows">${mastRows.map(mastEditorRow).join('')}</div>${mastOptions.length?'<button type="button" class="btn" onclick="addTentMastEditorRow()">+ Tilføj mast</button>':'<p class="small muted">Der findes endnu ingen master i hardwarekataloget.</p>'}</details>`+
+    `<details class="sheet-group tent-hardware-requirement" open><summary>Master</summary><p class="small muted">Vælg den eller de master, der hører til teltet, og antal pr. telt.</p><div id="tentMastRows">${mastRows.map(mastEditorRow).join('')}</div>${mastOptions.length?'<button type="button" class="btn" onclick="addTentMastEditorRow()">+ Tilføj mast</button>':'<p class="small muted">Der findes endnu ingen master i hardwarekataloget.</p>'}</details>`+
     `<details class="sheet-group"><summary>Version af et andet telt</summary><label for="s_parent_tent_id">Hovedtelt</label><select id="s_parent_tent_id"><option value="">Selvstændigt telt / frakobl</option>${tentParentOptions(t).map(r=>`<option value="${r.id}" ${+r.id===+t.parent_tent_id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></details>`,
     async()=>{
       let data={name:sheetValue('name'),description:sheetValue('description'),stock_count:sheetNumber('stock_count'),parent_tent_id:sheetValue('parent_tent_id')};
