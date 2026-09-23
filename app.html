@@ -1556,7 +1556,7 @@ function textOnColor(hex){
   let h=String(hex||'#3158E8').replace('#','');
   if(h.length===3)h=h.split('').map(x=>x+x).join('');
   let r=parseInt(h.slice(0,2),16),g=parseInt(h.slice(2,4),16),b=parseInt(h.slice(4,6),16);
-  return ((r*299+g*587+b*114)/1000)>155?'#17353b':'#ffffff';
+  return ((r*299+g*587+b*114)/1000)>155?'#000000':'#ffffff';
 }
 function updateOrderColorPreview(){
   let c=document.getElementById('ocolor')?.value||'#3158E8',
