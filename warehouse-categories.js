@@ -367,6 +367,8 @@ window.showTents=async function(filter='all',keepFocus=false){
   app.querySelectorAll('.warehouse-section,#warehouseCategoryAdminV180,.warehouse-structure-v183').forEach(el=>el.remove());
   const section=document.createElement('section');section.className='card warehouse-structure-v183';section.innerHTML=`<div class="warehouse-structure-head-v183"><div><span class="warehouse-kicker">LAGERSTRUKTUR</span><h3>${requested==='all'?'Alle kategorier':escText(groupForFilter(requested)?.label||'Lager')}</h3></div><span class="pill">${warehouseItems().length} poster</span></div><div class="warehouse-root-list-v183">${renderStructure(requested)}</div>`;
   hero.insertAdjacentElement('afterend',section);
+  const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  if(searching)section.querySelectorAll('details.warehouse-category-v183').forEach(details=>{details.open=true});
   addWarehouseAdminActions();
   if(keepFocus)setTimeout(()=>{const input=document.getElementById('warehouseSearchInput');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}},0);
   return result;
