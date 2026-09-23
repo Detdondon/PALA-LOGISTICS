@@ -249,9 +249,8 @@ window.openWarehouseBulkMove=function(){
   const entries=warehouseItems().sort((a,b)=>String(a.item.name||'').localeCompare(String(b.item.name||''),'da'));
   openEditSheet('Flyt lagerposter',
     `<p class="muted">Vælg en eller flere poster. De beholder deres type, pakkeregler, antal og teltkoblinger — kun placeringen i Lager ændres.</p>
-     <div class="sheet-field"><label for="warehouseMoveSearch">Søg</label><input id="warehouseMoveSearch" type="search" placeholder="Søg lagerpost" oninput="filterWarehouseMoveRows(this.value)"></div>
-     <div class="sheet-field"><label for="warehouseMoveTarget">Flyt til</label><select id="warehouseMoveTarget" required><option value="">Vælg placering…</option>${categoryOptions()}</select></div>
-     <div class="warehouse-move-list-v183 pala-editor-wide" aria-label="Vælg lagerposter">${entries.map(entry=>`<label class="warehouse-move-row-v183" data-search="${escText(String(entry.item.name||'')+' '+categoryPathById(entry.item.category_id))}"><input type="checkbox" class="warehouse-move-choice-v183" value="${entry.kind}:${entry.item.id}"><span><strong>${escText(entry.item.name)}</strong><small>${escText(categoryPathById(entry.item.category_id))}</small></span></label>`).join('')}</div>`,
+     <div class="sheet-field warehouse-move-picker-v328"><label for="warehouseMoveSearch">Søg og vælg lagerposter</label><div class="warehouse-move-search-v328"><input id="warehouseMoveSearch" type="search" placeholder="Søg lagerpost" autocomplete="off" aria-haspopup="listbox" aria-expanded="false" onfocus="openWarehouseMoveRows()" oninput="filterWarehouseMoveRows(this.value)" onkeydown="if(event.key==='Escape'){closeWarehouseMoveRows();this.blur()}"><div class="warehouse-move-list-v183" role="listbox" aria-label="Vælg lagerposter">${entries.map(entry=>`<label class="warehouse-move-row-v183" data-search="${escText(String(entry.item.name||'')+' '+categoryPathById(entry.item.category_id))}"><input type="checkbox" class="warehouse-move-choice-v183" value="${entry.kind}:${entry.item.id}" onchange="updateWarehouseMoveSelection()"><span><strong>${escText(entry.item.name)}</strong><small>${escText(categoryPathById(entry.item.category_id))}</small></span></label>`).join('')}</div></div><div id="warehouseMoveCount" class="small muted warehouse-move-count-v328">Ingen poster valgt</div></div>
+     <div class="sheet-field"><label for="warehouseMoveTarget">Flyt til</label><select id="warehouseMoveTarget" required><option value="">Vælg placering…</option>${categoryOptions()}</select></div>`,
     async()=>{
       const target=+document.getElementById('warehouseMoveTarget')?.value||0;if(!target)throw new Error('Vælg hvor posterne skal flyttes hen');
       const choices=[...document.querySelectorAll('.warehouse-move-choice-v183:checked')].map(x=>x.value);if(!choices.length)throw new Error('Vælg mindst én lagerpost');
@@ -262,13 +261,32 @@ window.openWarehouseBulkMove=function(){
       await refreshCategoryViews();
     },'Flyt valgte');
 };
+window.openWarehouseMoveRows=function(){
+  const picker=document.querySelector('.warehouse-move-picker-v328'),input=document.getElementById('warehouseMoveSearch');
+  if(!picker)return;picker.classList.add('is-open');if(input)input.setAttribute('aria-expanded','true');
+};
+window.closeWarehouseMoveRows=function(){
+  const picker=document.querySelector('.warehouse-move-picker-v328'),input=document.getElementById('warehouseMoveSearch');
+  if(!picker)return;picker.classList.remove('is-open');if(input)input.setAttribute('aria-expanded','false');
+};
+window.updateWarehouseMoveSelection=function(){
+  const choices=[...document.querySelectorAll('.warehouse-move-choice-v183')],selected=choices.filter(choice=>choice.checked),count=document.getElementById('warehouseMoveCount'),input=document.getElementById('warehouseMoveSearch');
+  choices.forEach(choice=>choice.closest('.warehouse-move-row-v183')?.classList.toggle('is-selected',choice.checked));
+  if(count)count.textContent=selected.length?selected.length+' '+(selected.length===1?'post valgt':'poster valgt'):'Ingen poster valgt';
+  if(input)input.placeholder=selected.length?selected.length+' valgt · søg efter flere…':'Søg lagerpost';
+};
 window.filterWarehouseMoveRows=function(value){
+  openWarehouseMoveRows();
   const q=typeof normalizedSearchText==='function'?normalizedSearchText(value):String(value||'').toLowerCase();
   document.querySelectorAll('.warehouse-move-row-v183').forEach(row=>{
     const hay=typeof normalizedSearchText==='function'?normalizedSearchText(row.dataset.search||''):String(row.dataset.search||'').toLowerCase();
     row.hidden=!!q&&!hay.includes(q);
   });
 };
+document.addEventListener('pointerdown',event=>{
+  const picker=document.querySelector('.warehouse-move-picker-v328');
+  if(picker&&!picker.contains(event.target))closeWarehouseMoveRows();
+});
 
 function installTentLinkField(id){
   const body=document.querySelector('#palaEditSheet .sheet-body');if(!body||body.querySelector('.warehouse-tent-links-v183'))return;
@@ -367,9 +385,9 @@ if(!document.getElementById('pala-warehouse-categories-v183-style')){
     .warehouse-manager-head-v183{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.warehouse-manager-tree-v183{display:grid;gap:4px}.warehouse-manager-tree-v183.nested{margin:4px 0 0 13px;padding-left:8px;border-left:1px solid #dfe6ef}
     .warehouse-manager-row-v183{display:grid;grid-template-columns:minmax(0,1fr) auto 30px 30px;gap:5px;align-items:center;padding:5px;border-radius:9px}.warehouse-manager-row-v183:hover{background:#f6f8fb}
     .warehouse-mini-v183{width:30px;height:30px;border:1px solid #d9e1ec;border-radius:9px;background:#fff;color:#42688f;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;cursor:pointer}.warehouse-mini-v183 .ui-icon{width:14px;height:14px}
-    .warehouse-move-list-v183{grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:start;gap:4px 8px;max-height:min(300px,35vh);overflow:auto;border:1px solid #dfe5ed;border-radius:11px;padding:6px;margin:0!important;background:#fff}.warehouse-move-row-v183{display:flex;gap:9px;align-items:flex-start;min-width:0;padding:7px 8px;border-radius:8px;cursor:pointer}.warehouse-move-row-v183:hover{background:#f6f8fb}.warehouse-move-row-v183 input{margin:1px 0 0}.warehouse-move-row-v183 span{display:grid;min-width:0}.warehouse-move-row-v183 strong,.warehouse-move-row-v183 small{overflow-wrap:anywhere}.warehouse-move-row-v183 small{color:#748094}
+    .warehouse-move-picker-v328{position:relative!important}.warehouse-move-search-v328{position:relative}.warehouse-move-count-v328{margin-top:5px}.warehouse-move-list-v183{position:absolute;z-index:60;left:0;right:0;top:calc(100% + 6px);display:none!important;grid-template-columns:minmax(0,1fr);align-content:start;gap:3px;max-height:min(330px,42vh);overflow:auto;border:1px solid #cfd9e6;border-radius:11px;padding:6px;margin:0!important;background:#fff;box-shadow:0 14px 34px rgba(31,48,73,.16)}.warehouse-move-picker-v328.is-open .warehouse-move-list-v183{display:grid!important}.warehouse-move-picker-v328.is-open #warehouseMoveSearch{border-color:#7da8d5!important;box-shadow:0 0 0 3px rgba(125,168,213,.16)!important}.warehouse-move-row-v183{display:flex;gap:9px;align-items:flex-start;min-width:0;padding:7px 8px;border-radius:8px;cursor:pointer}.warehouse-move-row-v183:hover{background:#f6f8fb}.warehouse-move-row-v183.is-selected{background:#edf4fc}.warehouse-move-row-v183 input{margin:1px 0 0}.warehouse-move-row-v183 span{display:grid;min-width:0}.warehouse-move-row-v183 strong,.warehouse-move-row-v183 small{overflow-wrap:anywhere}.warehouse-move-row-v183 small{color:#748094}
     .warehouse-standard-note-v183{padding:10px 12px;border-radius:10px;background:#f3f7fb;border:1px solid #dce7f1;margin:8px 0}.warehouse-linked-tent-list-v183{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
-    @media(max-width:760px){.warehouse-manager-grid-v183{grid-template-columns:1fr}.warehouse-structure-actions-v183{width:100%}.warehouse-structure-actions-v183 .btn{flex:1}.warehouse-category-v183>summary{padding:12px 11px}.warehouse-category-children-v183{margin-left:8px;padding-left:6px}.warehouse-move-list-v183{grid-template-columns:minmax(0,1fr);max-height:34vh}}
+    @media(max-width:760px){.warehouse-manager-grid-v183{grid-template-columns:1fr}.warehouse-structure-actions-v183{width:100%}.warehouse-structure-actions-v183 .btn{flex:1}.warehouse-category-v183>summary{padding:12px 11px}.warehouse-category-children-v183{margin-left:8px;padding-left:6px}.warehouse-move-list-v183{max-height:38vh}}
   `;document.head.appendChild(style);
 }
 
