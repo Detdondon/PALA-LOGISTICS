@@ -1,8 +1,8 @@
-/* PALA v320 · tent key facts exclude stock count and packing hardware; NFC/QR stays admin-only.
+/* PALA v321 · tent measurements are consolidated in the Mål section; NFC/QR stays admin-only.
    Operational facts first; drawings, photos and documents last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV320)return;
+if(window.__palaWarehouseDetailPriorityV321)return;
 window.__palaWarehouseDetailPriorityV316=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
@@ -48,17 +48,6 @@ function tentMeasure(t){
 }
 function fact(label,value){
   return `<div class="tent-keyfact-v186"><span>${escText(label)}</span><strong>${escText(value)}</strong></div>`;
-}
-function keyFactsCard(t){
-  const measure=tentMeasure(t),facts=[];
-  if(hasValue(t.area_m2))facts.push(fact('Areal',`${fmt(t.area_m2)} m²`));
-  if(measure)facts.push(fact('Mål',measure));
-  if(hasValue(t.ridge_height_m))facts.push(fact('Højde ved mast',`${fmt(t.ridge_height_m)} m`));
-  if(hasValue(t.side_height_m))facts.push(fact('Sidehøjde',`${fmt(t.side_height_m)} m`));
-  if(!facts.length)return null;
-  const section=document.createElement('section');section.className='card tent-keyfacts-card-v186';
-  section.innerHTML=`<div class="small muted">VIGTIGSTE OPLYSNINGER</div><h3>Nøgletal</h3><div class="tent-keyfacts-grid-v186">${facts.join('')}</div>`;
-  return section;
 }
 function findCard(rx){return directCards().find(card=>rx.test(heading(card)))}
 function removeBlankParagraphs(root){
@@ -142,9 +131,7 @@ function prioritizeTent(id){
   root.querySelector('.tent-keyfacts-card-v186')?.remove();
   root.querySelector('.tent-source-card-v186')?.remove();
   const first=root.firstElementChild;if(!first)return;
-  const facts=keyFactsCard(t);
   let anchor=first;
-  if(facts){first.insertAdjacentElement('afterend',facts);anchor=facts}
 
   const hardware=findCard(/^(Hardware|Pakkebehov(?: pr\. telt)?)$/i);
   const measures=findCard(/^Mål$/i);
@@ -202,19 +189,9 @@ const baseOpenSpecialHardware=window.openSpecialHardware;
 if(typeof baseOpenSpecialHardware==='function')window.openSpecialHardware=function(id){const result=baseOpenSpecialHardware.apply(this,arguments);queueMicrotask(()=>cleanupSpecialHardwareMissingInfo(+id));return result};
 
 const style=document.createElement('style');style.id='pala-warehouse-detail-priority-v186-style';style.textContent=`
-  .tent-keyfacts-card-v186{border-top:4px solid var(--b,#3158e8)!important}
-  .tent-keyfacts-card-v186 h3{margin:4px 0 12px}
-  .tent-keyfacts-grid-v186{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .tent-keyfact-v186{display:flex;flex-direction:column;gap:4px;padding:11px 12px;border:1px solid var(--line,#e1e5ec);border-radius:12px;background:#f8fafc;min-width:0}
-  .tent-keyfact-v186 span{font-size:11px;font-weight:700;color:var(--muted-2,#687487);text-transform:uppercase;letter-spacing:.04em}
-  .tent-keyfact-v186 strong{font-size:16px;line-height:1.25;overflow-wrap:anywhere}
-  .tent-keyfact-v186.warning{background:#fff7e7;border-color:#efd697}.tent-keyfact-v186.warning strong{color:#805c11}
-  .tent-keyfacts-note-v186{margin:10px 2px 0;line-height:1.45}
   .tent-drawing-link-v186{display:block;margin:10px 0}.tent-drawing-link-v186 img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;border:1px solid var(--line,#e1e5ec);border-radius:12px;background:#fff}
   .tent-source-button-v186{display:inline-flex!important;text-decoration:none;margin-top:4px}.inventory-source-v186 .btn{text-decoration:none}
   .inventory-media-v186 .detail-photo,.inventory-media-v186 .hero{display:block;width:100%;height:auto;max-height:640px;object-fit:contain;margin-top:8px}
-  @media(min-width:700px){.tent-keyfacts-grid-v186{grid-template-columns:repeat(4,minmax(0,1fr))}}
-  @media(max-width:520px){.tent-keyfacts-grid-v186{grid-template-columns:1fr 1fr}.tent-keyfact-v186{padding:10px}.tent-keyfact-v186 strong{font-size:14px}}
 `;
 document.head.appendChild(style);
 })();
