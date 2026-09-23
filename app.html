@@ -2510,7 +2510,7 @@ async function openTent(id,selectedBookingId){
     </div>`).join('')}
   </div>
 
-  <div class="card"><h3>Permanent NFC-link</h3>${nfcLinkTools(link(id))}</div>`;
+  ${isAdminLoggedIn()?`<div class="card"><h3>Permanent NFC-link</h3>${nfcLinkTools(link(id))}</div>`:''}`;
 }
 
 
