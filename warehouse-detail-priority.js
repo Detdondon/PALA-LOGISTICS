@@ -1,9 +1,9 @@
-/* PALA v290 · warehouse detail priority + hide unfilled information
-   Operational facts first; drawings, photos, documents and sources last. */
+/* PALA v316 · warehouse detail priority + admin-only tent NFC/QR.
+   Operational facts first; drawings, photos and documents last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV290)return;
-window.__palaWarehouseDetailPriorityV290=true;
+if(window.__palaWarehouseDetailPriorityV316)return;
+window.__palaWarehouseDetailPriorityV316=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
 const hasValue=value=>value!==null&&value!==undefined&&(typeof value!=='string'||value.trim()!=='')&&(!Array.isArray(value)||value.length>0)&&(typeof value!=='object'||Array.isArray(value)||Object.keys(value).length>0);
@@ -168,10 +168,11 @@ function prioritizeTent(id){
   const images=findCard(/^Billeder$/i);
   const files=findCard(/^(Filer og tegninger|Dokumenter(?: til teltet)?)$/i);
   const nfc=findCard(/Permanent NFC-link/i);
-  const source=sourceCard(t);
+  if(nfc&&!isAdminLoggedIn())nfc.remove();
 
   // Low-priority media/docs are always appended after all operational information.
-  [drawing,images,files,source,nfc].filter(Boolean).forEach(card=>root.appendChild(card));
+  // The former public "Kilder" section is intentionally not rendered.
+  [drawing,images,files,isAdminLoggedIn()?nfc:null].filter(Boolean).forEach(card=>root.appendChild(card));
   cleanupTentMissingInfo(t);
 }
 
