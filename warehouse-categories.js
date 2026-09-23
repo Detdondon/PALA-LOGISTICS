@@ -148,8 +148,8 @@ function categoryHtml(c,entries,children,depth=0){
   const own=entries.filter(entry=>+entry.item?.category_id===+c.id);
   const kids=children.get(+c.id)||[];
   const total=hierarchyCount(c,entries,children);
-  if(!total&&!(typeof isAdminLoggedIn==='function'&&isAdminLoggedIn()))return '';
   const searchOpen=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  if(!total&&(searchOpen||!(typeof isAdminLoggedIn==='function'&&isAdminLoggedIn())))return '';
   return `<details class="warehouse-category-v183 depth-${depth}" ${depth===0||searchOpen?'open':''}>
     <summary>
       <span class="warehouse-category-title-v183">${escText(c.name)}</span>
@@ -159,7 +159,7 @@ function categoryHtml(c,entries,children,depth=0){
     <div class="warehouse-category-body-v183">
       ${renderOwnItems(own)}
       ${kids.length?`<div class="warehouse-category-children-v183">${kids.map(k=>categoryHtml(k,entries,children,depth+1)).join('')}</div>`:''}
-      ${!total&&typeof isAdminLoggedIn==='function'&&isAdminLoggedIn()?'<p class="small muted warehouse-empty-v183">Tom kategori</p>':''}
+      ${!total&&!searchOpen&&typeof isAdminLoggedIn==='function'&&isAdminLoggedIn()?'<p class="small muted warehouse-empty-v183">Tom kategori</p>':''}
     </div>
   </details>`;
 }
@@ -177,7 +177,8 @@ function renderStructure(filter){
   });
   const uncategorized=entries.filter(entry=>!itemCurrentCategory(entry));
   if(uncategorized.length&&(filter==='all'||filter==='other'))html+=`<details class="warehouse-category-v183" open><summary><span class="warehouse-category-title-v183">Øvrigt / ikke placeret</span><span class="warehouse-category-count-v183">${uncategorized.length}</span><span class="warehouse-category-chevron-v183">${typeof uiIcon==='function'?uiIcon('chevronRight'):''}</span></summary><div class="warehouse-category-body-v183">${renderOwnItems(uncategorized)}</div></details>`;
-  return html||'<p class="muted">Ingen lagerposter matcher denne visning.</p>';
+  const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  return html||`<p class="muted">${searching?'Ingen lagerposter matcher søgningen.':'Ingen lagerposter matcher denne visning.'}</p>`;
 }
 function tabsHtml(active){
   return `<div class="warehouse-tabs" role="tablist" aria-label="Filtrér lager">
