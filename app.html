@@ -2496,7 +2496,7 @@ async function openTent(id,selectedBookingId){
 
   <div class="card">
     <h3>Mål</h3>
-    <div class="measure-grid">${[['Diameter',t.diameter_m],['Længde',t.length_m],['Bredde',t.width_m],['Sidehøjde',t.side_height_m],['Kiphøjde',t.ridge_height_m]].map(([n,v])=>`<div class="measure">${n}<strong>${v?esc(v)+' m':'—'}</strong></div>`).join('')}</div>
+    <div class="measure-grid">${[['Areal',t.area_m2,'m²'],['Diameter',t.diameter_m,'m'],['Længde',t.length_m,'m'],['Bredde',t.width_m,'m'],['Sidehøjde',t.side_height_m,'m'],['Kiphøjde',t.ridge_height_m,'m']].map(([n,v,u])=>`<div class="measure">${n}<strong>${v?esc(v)+' '+u:'—'}</strong></div>`).join('')}</div>
   </div>
 
   <div class="card">
