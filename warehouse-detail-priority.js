@@ -1,8 +1,8 @@
-/* PALA v317 · warehouse detail priority + admin-only tent NFC/QR.
+/* PALA v319 · tent key facts exclude packing hardware; NFC/QR stays admin-only.
    Operational facts first; drawings, photos and documents last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV317)return;
+if(window.__palaWarehouseDetailPriorityV319)return;
 window.__palaWarehouseDetailPriorityV316=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
@@ -50,17 +50,15 @@ function fact(label,value){
   return `<div class="tent-keyfact-v186"><span>${escText(label)}</span><strong>${escText(value)}</strong></div>`;
 }
 function keyFactsCard(t){
-  const ploekker=standardQty(t,'Pløkker'),sides=standardQty(t,'Sidestænger'),measure=tentMeasure(t),facts=[];
+  const measure=tentMeasure(t),facts=[];
   if(hasValue(t.stock_count))facts.push(fact('Lagerantal',`${fmt(t.stock_count)} stk.`));
   if(hasValue(t.area_m2))facts.push(fact('Areal',`${fmt(t.area_m2)} m²`));
   if(measure)facts.push(fact('Mål',measure));
   if(hasValue(t.ridge_height_m))facts.push(fact('Højde ved mast',`${fmt(t.ridge_height_m)} m`));
   if(hasValue(t.side_height_m))facts.push(fact('Sidehøjde',`${fmt(t.side_height_m)} m`));
-  if(ploekker)facts.push(fact('Pløkker',ploekker));
-  if(sides)facts.push(fact('Sidestænger',sides));
   if(!facts.length)return null;
   const section=document.createElement('section');section.className='card tent-keyfacts-card-v186';
-  section.innerHTML=`<div class="small muted">VIGTIGSTE OPLYSNINGER</div><h3>${ploekker||sides?'Nøgletal og standardhardware':'Nøgletal'}</h3><div class="tent-keyfacts-grid-v186">${facts.join('')}</div>${ploekker||sides?'<p class="small muted tent-keyfacts-note-v186">Pløkker og sidestænger er faste standarddele til teltet.</p>':''}`;
+  section.innerHTML=`<div class="small muted">VIGTIGSTE OPLYSNINGER</div><h3>Nøgletal</h3><div class="tent-keyfacts-grid-v186">${facts.join('')}</div>`;
   return section;
 }
 function findCard(rx){return directCards().find(card=>rx.test(heading(card)))}
