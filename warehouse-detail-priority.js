@@ -1,8 +1,8 @@
-/* PALA v319 · tent key facts exclude packing hardware; NFC/QR stays admin-only.
+/* PALA v320 · tent key facts exclude stock count and packing hardware; NFC/QR stays admin-only.
    Operational facts first; drawings, photos and documents last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV319)return;
+if(window.__palaWarehouseDetailPriorityV320)return;
 window.__palaWarehouseDetailPriorityV316=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
@@ -51,7 +51,6 @@ function fact(label,value){
 }
 function keyFactsCard(t){
   const measure=tentMeasure(t),facts=[];
-  if(hasValue(t.stock_count))facts.push(fact('Lagerantal',`${fmt(t.stock_count)} stk.`));
   if(hasValue(t.area_m2))facts.push(fact('Areal',`${fmt(t.area_m2)} m²`));
   if(measure)facts.push(fact('Mål',measure));
   if(hasValue(t.ridge_height_m))facts.push(fact('Højde ved mast',`${fmt(t.ridge_height_m)} m`));
