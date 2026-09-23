@@ -1,4 +1,4 @@
-/* PALA v312 · readable calendar columns without card overlap. */
+/* PALA v313 · readable dense calendar columns on desktop and mobile. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -409,7 +409,7 @@
 
 /* PALA v312 · keep list information readable inside narrow category columns. */
 .calendar-detail-list>.calendar-all-columns-v304{
-  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(280px,1fr))!important;
+  grid-template-columns:repeat(var(--calendar-column-count,1),minmax(210px,1fr))!important;
   padding-bottom:4px!important;
 }
 .calendar-all-column-v304,
@@ -507,7 +507,219 @@
 
 @media(max-width:620px){
   .calendar-detail-list>.calendar-all-columns-v304{
-    grid-template-columns:repeat(var(--calendar-column-count,1),minmax(260px,1fr))!important;
-    gap:7px!important;
+    gap:5px!important;
+    padding-bottom:2px!important;
+    scroll-snap-type:x proximity;
+  }
+  .calendar-detail-list>.calendar-all-columns-v304[data-column-count="1"]{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .calendar-detail-list>.calendar-all-columns-v304[data-column-count="2"]{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    overflow-x:hidden!important;
+  }
+  .calendar-detail-list>.calendar-all-columns-v304[data-column-count="3"]{
+    grid-template-columns:repeat(3,minmax(165px,1fr))!important;
+  }
+  .calendar-detail-list>.calendar-all-columns-v304[data-column-count="4"]{
+    grid-template-columns:repeat(4,minmax(165px,1fr))!important;
+  }
+  .calendar-all-column-v304{
+    scroll-snap-align:start;
+    border-radius:9px!important;
+  }
+  .calendar-all-column-head-v304{
+    min-height:31px!important;
+    padding:5px 6px!important;
+    gap:4px!important;
+  }
+  .calendar-all-column-head-v304 h3{
+    font-size:10.5px!important;
+    line-height:1.05!important;
+    overflow-wrap:anywhere!important;
+  }
+  .calendar-all-column-head-v304 span{
+    min-width:19px!important;
+    min-height:19px!important;
+    padding:1px 4px!important;
+    font-size:8.5px!important;
+  }
+  .calendar-all-column-body-v304{
+    padding:3px!important;
+  }
+  .calendar-all-column-body-v304 .view-list-group{
+    padding-top:3px!important;
+  }
+  .calendar-all-column-body-v304 .list-date-heading{
+    grid-template-columns:24px minmax(0,1fr)!important;
+    min-height:29px!important;
+    padding:2px 3px!important;
+    column-gap:4px!important;
+    border-radius:6px!important;
+  }
+  .calendar-all-column-body-v304 .list-date-number{
+    width:22px!important;
+    height:22px!important;
+    border-radius:6px!important;
+    font-size:12px!important;
+  }
+  .calendar-all-column-body-v304 .list-date-weekday{
+    font-size:9px!important;
+    line-height:1.05!important;
+  }
+  .calendar-all-column-body-v304 .list-date-month{
+    font-size:7.5px!important;
+    line-height:1.05!important;
+  }
+
+  /* Compact every list card enough for two readable columns on a phone. */
+  .calendar-all-column-body-v304 :is(.job-card,.staff-card,.workshop-job-card,.workshop-task,.meeting-card){
+    margin:2px 0!important;
+    padding:5px!important;
+    border-radius:8px!important;
+  }
+  .calendar-all-column-body-v304 :is(.job-title,.staff-card h3,.workshop-job-card h3,.workshop-task h3,.meeting-open h3){
+    font-size:11.5px!important;
+    line-height:1.08!important;
+    margin:0 0 2px!important;
+  }
+  .calendar-all-column-body-v304 :is(.job-date,.job-subline,.staff-card .small,.workshop-job-meta,.workshop-task-meta,.workshop-task p,.meeting-open p,.meeting-open>span.small){
+    font-size:8.5px!important;
+    line-height:1.16!important;
+  }
+  .calendar-all-column-body-v304 .job-head{
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .job-status-col{
+    gap:2px!important;
+  }
+  .calendar-all-column-body-v304 :is(.status-pill,.workshop-status){
+    width:auto!important;
+    max-width:100%!important;
+    min-height:0!important;
+    padding:3px 5px!important;
+    font-size:8.5px!important;
+    line-height:1.05!important;
+  }
+  .calendar-all-column-body-v304 .job-metrics{
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:3px!important;
+    margin-top:4px!important;
+    padding-top:4px!important;
+  }
+  .calendar-all-column-body-v304 :is(.metric-chip,.staff-person,.leader-badge,.leader-missing,.staff-job-link){
+    min-height:0!important;
+    padding:2px 4px!important;
+    font-size:8px!important;
+    line-height:1.05!important;
+    gap:2px!important;
+  }
+  .calendar-all-column-body-v304 :is(.metric-chip,.staff-person,.staff-job-link){
+    flex:0 1 auto!important;
+  }
+  .calendar-all-column-body-v304 .job-quick-status{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:2px!important;
+    width:100%!important;
+    margin:4px 0 0!important;
+  }
+  .calendar-all-column-body-v304 .job-quick-status label{
+    margin:0!important;
+    font-size:7.5px!important;
+    line-height:1!important;
+  }
+  .calendar-all-column-body-v304 .job-quick-status select{
+    width:100%!important;
+    min-width:0!important;
+    min-height:25px!important;
+    height:25px!important;
+    padding:2px 20px 2px 5px!important;
+    font-size:9px!important;
+    line-height:1!important;
+    border-radius:6px!important;
+  }
+  .calendar-all-column-body-v304 .job-actions{
+    display:flex!important;
+    width:100%!important;
+    margin-top:4px!important;
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .job-actions .btn{
+    width:auto!important;
+    max-width:100%!important;
+    min-height:26px!important;
+    padding:3px 6px!important;
+    font-size:9px!important;
+    line-height:1.05!important;
+    border-radius:6px!important;
+    margin:0!important;
+  }
+  .calendar-all-column-body-v304 .job-actions .btn .ui-icon{
+    width:11px!important;
+    height:11px!important;
+  }
+
+  .calendar-all-column-body-v304 .staff-card>.row{
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .staff-card>.row>div:last-child{
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .staff-card>.row>div:last-child :is(.btn,.pill){
+    width:auto!important;
+    min-height:24px!important;
+    padding:3px 5px!important;
+    font-size:8.5px!important;
+    line-height:1.05!important;
+    border-radius:6px!important;
+  }
+  .calendar-all-column-body-v304 .staff-people,
+  .calendar-all-column-body-v304 .staff-job-links{
+    gap:2px!important;
+    margin:3px 0!important;
+  }
+  .calendar-all-column-body-v304 .staff-card>p{
+    margin:3px 0!important;
+  }
+  .calendar-all-column-body-v304 .staff-card>.row[style*="margin-top"]{
+    margin-top:4px!important;
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .staff-card>.row[style*="margin-top"] :is(.btn,.pill){
+    min-height:24px!important;
+    padding:3px 5px!important;
+    font-size:8.5px!important;
+  }
+
+  .calendar-all-column-body-v304 .workshop-job-card>.row,
+  .calendar-all-column-body-v304 .workshop-task-head{
+    gap:3px!important;
+  }
+  .calendar-all-column-body-v304 .workshop-job-card>.row>.btn,
+  .calendar-all-column-body-v304 .workshop-task-actions .btn{
+    width:auto!important;
+    min-height:24px!important;
+    padding:3px 5px!important;
+    font-size:8.5px!important;
+    border-radius:6px!important;
+  }
+  .calendar-all-column-body-v304 .workshop-task-actions{
+    gap:3px!important;
+    margin-top:4px!important;
+  }
+
+  .calendar-all-column-body-v304 .meeting-open{
+    padding:5px!important;
+    gap:2px!important;
+  }
+  .calendar-all-column-body-v304 .meeting-card{
+    padding:0!important;
+  }
+  .calendar-all-column-body-v304 .ui-icon{
+    width:11px!important;
+    height:11px!important;
+    flex:0 0 11px!important;
   }
 }
