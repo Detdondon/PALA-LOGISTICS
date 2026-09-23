@@ -1065,3 +1065,97 @@
     font-size:9px!important;
   }
 }
+
+
+/* PALA v325 · final calendar list readability override.
+   Make the text visibly clearer without changing card/column spacing or geometry. */
+.calendar-all-column-head-v304 h3{
+  color:#17243a!important;
+  font-weight:800!important;
+}
+.calendar-all-column-head-v304 span{
+  color:#334155!important;
+  font-weight:800!important;
+}
+
+.calendar-all-column-body-v304 .list-date-number{
+  color:#214f85!important;
+  font-weight:800!important;
+}
+.calendar-all-column-body-v304 .list-date-weekday{
+  color:#17243a!important;
+  font-weight:800!important;
+}
+.calendar-all-column-body-v304 .list-date-month{
+  color:#334155!important;
+  font-weight:700!important;
+}
+
+.calendar-all-column-body-v304 .job-card .job-title,
+.calendar-all-column-body-v304 .staff-card h3,
+.calendar-all-column-body-v304 .calendar-leave-card-v315 h3{
+  color:#111827!important;
+  font-weight:800!important;
+}
+.calendar-all-column-body-v304 .job-card :is(.job-date,.job-subline,.order-note),
+.calendar-all-column-body-v304 .staff-card .small,
+.calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-date-v315{
+  color:#334155!important;
+  font-weight:600!important;
+  font-size:11px!important;
+  line-height:1.18!important;
+}
+.calendar-all-column-body-v304 .job-card :is(.status-pill,.metric-chip),
+.calendar-all-column-body-v304 .staff-card :is(.leader-badge,.reference-button,.staff-person,.staff-job-link,.pill,.btn){
+  color:#26364d!important;
+  font-weight:700!important;
+}
+.calendar-all-column-body-v304 .job-card .job-quick-status label{
+  color:#26364d!important;
+  font-weight:700!important;
+}
+.calendar-all-column-body-v304 .job-card .job-quick-status select{
+  color:#1f2937!important;
+  font-weight:600!important;
+}
+.calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-type-v315{
+  color:#334155!important;
+  font-weight:800!important;
+}
+
+@media(max-width:620px){
+  .calendar-all-column-body-v304 :is(.job-title,.staff-card h3,.calendar-leave-card-v315 h3){
+    font-size:12px!important;
+  }
+  .calendar-all-column-body-v304 .list-date-weekday{
+    font-size:10px!important;
+  }
+  .calendar-all-column-body-v304 .list-date-month{
+    font-size:9px!important;
+  }
+  .calendar-all-column-body-v304 .job-card :is(.job-date,.job-subline,.order-note),
+  .calendar-all-column-body-v304 .staff-card .small{
+    font-size:10px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .status-pill{
+    font-size:9.3px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .metric-chip{
+    font-size:9.1px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .job-quick-status label{
+    font-size:9px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .job-quick-status select{
+    font-size:9.5px!important;
+  }
+  .calendar-all-column-body-v304 .staff-card :is(.leader-badge,.reference-button,.staff-person,.staff-job-link){
+    font-size:9.5px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-type-v315{
+    font-size:9px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-date-v315{
+    font-size:9.5px!important;
+  }
+}
