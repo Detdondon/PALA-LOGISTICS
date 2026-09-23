@@ -1,4 +1,4 @@
-/* PALA v314 · readable dense calendar columns with collision-free order controls. */
+/* PALA v315 · readable dense calendar columns with simplified leave cards. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -818,5 +818,54 @@
     width:11px!important;
     height:11px!important;
     flex:0 0 11px!important;
+  }
+}
+
+
+/* PALA v315 · Ude/Ferie i kalenderens listevisning viser kun type, navn og dato. */
+.calendar-all-column-body-v304 .calendar-leave-card-v315{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:2px!important;
+  padding:7px 8px!important;
+  margin:2px 0!important;
+  min-width:0!important;
+  border-left-color:#858993!important;
+  background:#f7f8fa!important;
+}
+.calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-type-v315{
+  font-size:9px!important;
+  line-height:1!important;
+  font-weight:750!important;
+  text-transform:uppercase!important;
+  color:#6b7280!important;
+}
+.calendar-all-column-body-v304 .calendar-leave-card-v315 h3{
+  margin:0!important;
+  font-size:13px!important;
+  line-height:1.1!important;
+  font-weight:700!important;
+  color:#243044!important;
+  overflow-wrap:anywhere!important;
+}
+.calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-date-v315{
+  font-size:9.5px!important;
+  line-height:1.1!important;
+  color:#667085!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:620px){
+  .calendar-all-column-body-v304 .calendar-leave-card-v315{
+    gap:1px!important;
+    padding:5px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-type-v315{
+    font-size:7.5px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 h3{
+    font-size:10.5px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-date-v315{
+    font-size:8px!important;
   }
 }
