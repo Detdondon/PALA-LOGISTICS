@@ -1,4 +1,4 @@
-/* PALA v315 · readable dense calendar columns with simplified leave cards. */
+/* PALA v318 · readable dense calendar columns with collision-free desktop order controls. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -821,6 +821,83 @@
   }
 }
 
+
+
+/* PALA v318 · desktop ordre-kort: Jobstatus + Pak / Retur må aldrig overlappe. */
+@media(min-width:621px){
+  .calendar-all-column-body-v304 .job-status-action-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:end!important;
+    gap:6px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin-top:5px!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:3px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    justify-content:stretch!important;
+    align-items:end!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status label{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    font-size:9px!important;
+    line-height:1!important;
+    white-space:normal!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status select{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:29px!important;
+    min-height:29px!important;
+    padding:3px 22px 3px 6px!important;
+    font-size:10px!important;
+    line-height:1!important;
+    border-radius:7px!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions{
+    display:flex!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    align-items:end!important;
+    align-self:end!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions .btn{
+    display:inline-flex!important;
+    width:auto!important;
+    min-width:92px!important;
+    max-width:110px!important;
+    min-height:29px!important;
+    height:29px!important;
+    padding:4px 8px!important;
+    margin:0!important;
+    font-size:9.5px!important;
+    line-height:1!important;
+    gap:4px!important;
+    border-radius:7px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions .btn .ui-icon{
+    width:11px!important;
+    height:11px!important;
+    flex:0 0 11px!important;
+  }
+}
 
 /* PALA v315 · Ude/Ferie i kalenderens listevisning viser kun type, navn og dato. */
 .calendar-all-column-body-v304 .calendar-leave-card-v315{
