@@ -1,7 +1,7 @@
-/* PALA v292 · keep tent masts inside the shared Hardware editor section */
+/* PALA v319 · all tent standard hardware, including masts, lives in one editor section. */
 (()=>{
 'use strict';
-if(window.__palaAdminTentStandardHardwareV292)return;
+if(window.__palaAdminTentStandardHardwareV319)return;
 window.__palaAdminTentStandardHardwareV292=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK').replace(/\s+/g,' ');
@@ -99,8 +99,7 @@ window.editTentBasics=function(id){
     `${sheetField('stock_count','Samlet lagerantal',t.stock_count,'number','min="0" step="1" placeholder="Ikke angivet"')}`+
     `${sheetText('description','Beskrivelse',t.description)}`+
     `<details class="sheet-group" open><summary>Mål</summary><div class="two">${fields.map(([k,l])=>sheetField(k,l,t[k],'number','min="0" step="0.01"')).join('')}</div></details>`+
-    `<details class="sheet-group" open><summary>Standardhardware</summary><p class="small muted">Antal hardware der altid skal med til ét telt. Ændringerne gemmes som teltets hardwarebehov.</p><div class="two">${sheetField('ploekker_qty','Pløkker pr. telt',ploekker,'number','min="0" step="1"')}${sheetField('sidestaenger_qty','Sidestænger pr. telt',sidestaenger,'number','min="0" step="1"')}</div></details>`+
-    `<details class="sheet-group tent-hardware-requirement" open><summary>Master</summary><p class="small muted">Vælg den eller de master, der hører til teltet, og antal pr. telt.</p><div id="tentMastRows">${mastRows.map(mastEditorRow).join('')}</div>${mastOptions.length?'<button type="button" class="btn" onclick="addTentMastEditorRow()">+ Tilføj mast</button>':'<p class="small muted">Der findes endnu ingen master i hardwarekataloget.</p>'}</details>`+
+    `<details class="sheet-group tent-hardware-requirement" open><summary>Standardhardware</summary><p class="small muted">Hardware der altid skal med til ét telt. Ændringerne gemmes som teltets pakkebehov.</p><div class="two">${sheetField('ploekker_qty','Pløkker pr. telt',ploekker,'number','min="0" step="1"')}${sheetField('sidestaenger_qty','Sidestænger pr. telt',sidestaenger,'number','min="0" step="1"')}</div><div class="tent-standard-masts-v319"><div class="small muted">MASTER</div><p class="small muted">Vælg den eller de master, der hører til teltet, og antal pr. telt.</p><div id="tentMastRows">${mastRows.map(mastEditorRow).join('')}</div>${mastOptions.length?'<button type="button" class="btn" onclick="addTentMastEditorRow()">+ Tilføj mast</button>':'<p class="small muted">Der findes endnu ingen master i hardwarekataloget.</p>'}</div></details>`+
     `<details class="sheet-group"><summary>Version af et andet telt</summary><label for="s_parent_tent_id">Hovedtelt</label><select id="s_parent_tent_id"><option value="">Selvstændigt telt / frakobl</option>${tentParentOptions(t).map(r=>`<option value="${r.id}" ${+r.id===+t.parent_tent_id?'selected':''}>${esc(r.name)}</option>`).join('')}</select></details>`,
     async()=>{
       let data={name:sheetValue('name'),description:sheetValue('description'),stock_count:sheetNumber('stock_count'),parent_tent_id:sheetValue('parent_tent_id')};
@@ -125,4 +124,10 @@ window.editTentBasics=function(id){
   );
   installSheetCategory('tent',t);
 };
+if(!document.getElementById('pala-tent-standard-hardware-v319-style')){
+  const style=document.createElement('style');
+  style.id='pala-tent-standard-hardware-v319-style';
+  style.textContent='.tent-standard-masts-v319{margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#e4eaf2)}.tent-standard-masts-v319>.small:first-child{font-size:10px;font-weight:750;letter-spacing:.04em}.tent-standard-masts-v319>p{margin:4px 0 8px}';
+  document.head.appendChild(style);
+}
 })();
