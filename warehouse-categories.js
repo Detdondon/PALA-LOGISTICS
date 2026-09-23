@@ -165,19 +165,20 @@ function categoryHtml(c,entries,children,depth=0){
 }
 function groupForFilter(filter){return GROUPS.find(g=>g.filter===filter)}
 function renderStructure(filter){
+  const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
   let entries=warehouseItems().filter(entry=>{
     const c=itemCurrentCategory(entry),path=c?categoryPathById(c.id):'Øvrigt';
     return typeof warehouseMatches!=='function'||warehouseMatches(entry.item.name,entry.item.description,path,entry.kind==='tent'?entry.item.source_notes:'');
   });
-  const selected=groupForFilter(filter),groups=selected?[selected]:GROUPS;
+  // A warehouse search is global: ignore the active category tab and search every stock kind.
+  const selected=searching?null:groupForFilter(filter),groups=selected?[selected]:GROUPS;
   let html='';
   groups.forEach(group=>{
     const children=childMap(group.kind),roots=rootsFor(group.kind),groupHtml=roots.map(root=>categoryHtml(root,entries,children,0)).join('');
     if(groupHtml)html+=groupHtml;
   });
   const uncategorized=entries.filter(entry=>!itemCurrentCategory(entry));
-  if(uncategorized.length&&(filter==='all'||filter==='other'))html+=`<details class="warehouse-category-v183" open><summary><span class="warehouse-category-title-v183">Øvrigt / ikke placeret</span><span class="warehouse-category-count-v183">${uncategorized.length}</span><span class="warehouse-category-chevron-v183">${typeof uiIcon==='function'?uiIcon('chevronRight'):''}</span></summary><div class="warehouse-category-body-v183">${renderOwnItems(uncategorized)}</div></details>`;
-  const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  if(uncategorized.length&&(searching||filter==='all'||filter==='other'))html+=`<details class="warehouse-category-v183" open><summary><span class="warehouse-category-title-v183">Øvrigt / ikke placeret</span><span class="warehouse-category-count-v183">${uncategorized.length}</span><span class="warehouse-category-chevron-v183">${typeof uiIcon==='function'?uiIcon('chevronRight'):''}</span></summary><div class="warehouse-category-body-v183">${renderOwnItems(uncategorized)}</div></details>`;
   return html||`<p class="muted">${searching?'Ingen lagerposter matcher søgningen.':'Ingen lagerposter matcher denne visning.'}</p>`;
 }
 function tabsHtml(active){
@@ -365,9 +366,10 @@ window.showTents=async function(filter='all',keepFocus=false){
   const hero=app?.querySelector?.('.warehouse-hero');if(!hero)return result;
   hero.querySelector('.warehouse-tabs')?.replaceWith((()=>{const holder=document.createElement('div');holder.innerHTML=tabsHtml(requested);return holder.firstElementChild})());
   app.querySelectorAll('.warehouse-section,#warehouseCategoryAdminV180,.warehouse-structure-v183').forEach(el=>el.remove());
-  const section=document.createElement('section');section.className='card warehouse-structure-v183';section.innerHTML=`<div class="warehouse-structure-head-v183"><div><span class="warehouse-kicker">LAGERSTRUKTUR</span><h3>${requested==='all'?'Alle kategorier':escText(groupForFilter(requested)?.label||'Lager')}</h3></div><span class="pill">${warehouseItems().length} poster</span></div><div class="warehouse-root-list-v183">${renderStructure(requested)}</div>`;
-  hero.insertAdjacentElement('afterend',section);
   const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  const matchedItems=searching?warehouseItems().filter(entry=>{const category=itemCurrentCategory(entry),path=category?categoryPathById(category.id):'Øvrigt';return typeof warehouseMatches!=='function'||warehouseMatches(entry.item.name,entry.item.description,path,entry.kind==='tent'?entry.item.source_notes:'')}):warehouseItems();
+  const section=document.createElement('section');section.className='card warehouse-structure-v183';section.innerHTML=`<div class="warehouse-structure-head-v183"><div><span class="warehouse-kicker">LAGERSTRUKTUR</span><h3>${searching?'Søger i alle kategorier':requested==='all'?'Alle kategorier':escText(groupForFilter(requested)?.label||'Lager')}</h3></div><span class="pill">${matchedItems.length} ${matchedItems.length===1?'match':'matches'}</span></div><div class="warehouse-root-list-v183">${renderStructure(requested)}</div>`;
+  hero.insertAdjacentElement('afterend',section);
   if(searching)section.querySelectorAll('details.warehouse-category-v183').forEach(details=>{details.open=true});
   addWarehouseAdminActions();
   if(keepFocus)setTimeout(()=>{const input=document.getElementById('warehouseSearchInput');if(input){input.focus();input.setSelectionRange(input.value.length,input.value.length)}},0);
