@@ -1159,3 +1159,10 @@
     font-size:9.5px!important;
   }
 }
+
+
+/* PALA v326 · dynamic contrast for colored calendar list chips.
+   Keep the order/job chip foreground tied to its actual background color. */
+.calendar-all-column-body-v304 .staff-card .staff-job-link{
+  color:var(--job-text,#000000)!important;
+}
