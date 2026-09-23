@@ -249,7 +249,7 @@ window.openWarehouseBulkMove=function(){
   const entries=warehouseItems().sort((a,b)=>String(a.item.name||'').localeCompare(String(b.item.name||''),'da'));
   openEditSheet('Flyt lagerposter',
     `<p class="muted">Vælg en eller flere poster. De beholder deres type, pakkeregler, antal og teltkoblinger — kun placeringen i Lager ændres.</p>
-     <div class="sheet-field warehouse-move-picker-v328"><label for="warehouseMoveSearch">Søg og vælg lagerposter</label><div class="warehouse-move-search-v328"><input id="warehouseMoveSearch" type="search" placeholder="Søg lagerpost" autocomplete="off" aria-haspopup="listbox" aria-expanded="false" onfocus="openWarehouseMoveRows()" oninput="filterWarehouseMoveRows(this.value)" onkeydown="if(event.key==='Escape'){closeWarehouseMoveRows();this.blur()}"><div class="warehouse-move-list-v183" role="listbox" aria-label="Vælg lagerposter">${entries.map(entry=>`<label class="warehouse-move-row-v183" data-search="${escText(String(entry.item.name||'')+' '+categoryPathById(entry.item.category_id))}"><input type="checkbox" class="warehouse-move-choice-v183" value="${entry.kind}:${entry.item.id}" onchange="updateWarehouseMoveSelection()"><span><strong>${escText(entry.item.name)}</strong><small>${escText(categoryPathById(entry.item.category_id))}</small></span></label>`).join('')}</div></div><div id="warehouseMoveCount" class="small muted warehouse-move-count-v328">Ingen poster valgt</div></div>
+     <div class="sheet-field warehouse-move-picker-v328"><label for="warehouseMoveSearch">Søg og vælg lagerposter</label><div class="warehouse-move-search-v328"><input id="warehouseMoveSearch" type="search" placeholder="Søg lagerpost" autocomplete="off" aria-haspopup="listbox" aria-expanded="false" onclick="openWarehouseMoveRows()" oninput="filterWarehouseMoveRows(this.value)" onkeydown="if(event.key==='Escape'){closeWarehouseMoveRows();this.blur()}"><div class="warehouse-move-list-v183" role="listbox" aria-label="Vælg lagerposter">${entries.map(entry=>`<label class="warehouse-move-row-v183" data-search="${escText(String(entry.item.name||'')+' '+categoryPathById(entry.item.category_id))}"><input type="checkbox" class="warehouse-move-choice-v183" value="${entry.kind}:${entry.item.id}" onchange="updateWarehouseMoveSelection()"><span><strong>${escText(entry.item.name)}</strong><small>${escText(categoryPathById(entry.item.category_id))}</small></span></label>`).join('')}</div></div><div id="warehouseMoveCount" class="small muted warehouse-move-count-v328">Ingen poster valgt</div></div>
      <div class="sheet-field"><label for="warehouseMoveTarget">Flyt til</label><select id="warehouseMoveTarget" required><option value="">Vælg placering…</option>${categoryOptions()}</select></div>`,
     async()=>{
       const target=+document.getElementById('warehouseMoveTarget')?.value||0;if(!target)throw new Error('Vælg hvor posterne skal flyttes hen');
@@ -260,6 +260,7 @@ window.openWarehouseBulkMove=function(){
       }
       await refreshCategoryViews();
     },'Flyt valgte');
+  requestAnimationFrame(()=>closeWarehouseMoveRows());
 };
 window.openWarehouseMoveRows=function(){
   const picker=document.querySelector('.warehouse-move-picker-v328'),input=document.getElementById('warehouseMoveSearch');
