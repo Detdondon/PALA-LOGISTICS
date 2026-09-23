@@ -1,4 +1,4 @@
-/* PALA v313 · readable dense calendar columns on desktop and mobile. */
+/* PALA v314 · readable dense calendar columns with collision-free order controls. */
 :is(.view-list,.calendar-detail-list){
   display:flex!important;
   flex-direction:column!important;
@@ -716,6 +716,103 @@
   }
   .calendar-all-column-body-v304 .meeting-card{
     padding:0!important;
+  }
+  /* Ordre: statusvælger og Pak / Retur deler en kontrolleret kompakt række.
+     Dette tilsidesætter de gamle v155 flex-regler, som kunne få dem til at ligge oven i hinanden. */
+  .calendar-all-column-body-v304 .job-status-action-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    align-items:end!important;
+    gap:4px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin-top:4px!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    gap:2px!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    align-items:end!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status label{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    font-size:7.5px!important;
+    line-height:1!important;
+    white-space:normal!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-quick-status select{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    height:24px!important;
+    min-height:24px!important;
+    padding:2px 17px 2px 4px!important;
+    font-size:8.5px!important;
+    line-height:1!important;
+    border-radius:6px!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions{
+    display:flex!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    align-self:end!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions .btn{
+    width:auto!important;
+    min-width:72px!important;
+    max-width:80px!important;
+    min-height:24px!important;
+    height:24px!important;
+    padding:2px 5px!important;
+    margin:0!important;
+    font-size:8.5px!important;
+    line-height:1!important;
+    gap:3px!important;
+    border-radius:6px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+  .calendar-all-column-body-v304 .job-status-action-row .job-actions .btn .ui-icon{
+    width:10px!important;
+    height:10px!important;
+    flex:0 0 10px!important;
+  }
+
+  /* Order rows use the available width more efficiently when two columns share a phone screen. */
+  .calendar-all-column-body-v304 .job-card{
+    padding:5px 5px 4px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .job-metrics{
+    margin-top:3px!important;
+    padding-top:3px!important;
+    gap:2px!important;
+  }
+  .calendar-all-column-body-v304 .job-card .metric-chip{
+    padding:2px 4px!important;
+    font-size:7.8px!important;
+    line-height:1!important;
+  }
+  .calendar-all-column-body-v304 .job-card .status-pill{
+    padding:3px 5px!important;
+    font-size:8.2px!important;
+    line-height:1!important;
+  }
+  .calendar-all-column-body-v304 .job-card .job-subline,
+  .calendar-all-column-body-v304 .job-card .order-note{
+    margin-top:3px!important;
+    font-size:8.2px!important;
+    line-height:1.12!important;
   }
   .calendar-all-column-body-v304 .ui-icon{
     width:11px!important;
