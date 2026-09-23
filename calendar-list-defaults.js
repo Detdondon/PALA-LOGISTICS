@@ -1,8 +1,8 @@
-/* PALA v313 · selected-date lists expose dynamic column count for responsive layout. */
+/* PALA v315 · compact leave cards in selected-date calendar lists. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV313)return;
-window.__palaCalendarListDefaultsV313=true;
+if(window.__palaCalendarListDefaultsV315)return;
+window.__palaCalendarListDefaultsV315=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -40,9 +40,24 @@ function labelFor(kind,row){
   if(kind==='task')return row?.title||'Anden opgave';
   return row?.title||'Møde';
 }
+function calendarLeaveCardV315(row){
+  const leave=typeof staffLeaveInfo==='function'?staffLeaveInfo(row):null;
+  if(!leave)return staffShiftCard(row);
+  const person=leave.employee?.name||'Medarbejder';
+  const type=String(leave.type||'Ude').trim();
+  const sameDay=leave.start===leave.end;
+  const dateText=sameDay?fmtDateDa(leave.start):`${fmtDateDa(leave.start)} – ${fmtDateDa(leave.end)}`;
+  return `<article class="staff-card staff-leave-card calendar-leave-card-v315">
+    <div class="calendar-leave-type-v315">${esc(type)}</div>
+    <h3>${esc(person)}</h3>
+    <div class="calendar-leave-date-v315">${esc(dateText)}</div>
+  </article>`;
+}
+window.calendarLeaveCardV315=calendarLeaveCardV315;
+
 function htmlFor(kind,row){
   if(kind==='order')return orderCard(row);
-  if(kind==='staffing')return staffShiftCard(row);
+  if(kind==='staffing')return calendarLeaveCardV315(row);
   if(kind==='workshop')return workshopJobCard(row);
   if(kind==='workshopTask')return typeof calendarWorkshopTaskCardV310==='function'?calendarWorkshopTaskCardV310(row):workshopTaskCard(row);
   return meetingCard(row);
