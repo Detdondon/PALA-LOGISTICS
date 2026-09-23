@@ -1023,3 +1023,99 @@
 ){
   font-weight:600!important;
 }
+
+
+/* PALA v323 · visibly clearer list text.
+   Keep cards, columns and spacing unchanged; only strengthen typography and selectively lift the tiniest secondary text. */
+.calendar-all-column-body-v304 .list-date-weekday{
+  color:#1f2d43!important;
+  font-weight:800!important;
+}
+.calendar-all-column-body-v304 .list-date-month{
+  color:#46566d!important;
+  font-weight:700!important;
+}
+.calendar-all-column-body-v304 :is(
+  .job-title,
+  .staff-card h3,
+  .workshop-job-card h3,
+  .workshop-task h3,
+  .meeting-open h3,
+  .calendar-leave-card-v315 h3
+){
+  color:#18263d!important;
+  font-weight:800!important;
+}
+.calendar-all-column-body-v304 :is(
+  .job-date,
+  .job-subline,
+  .staff-card .small,
+  .workshop-job-meta,
+  .workshop-task-meta,
+  .workshop-task p,
+  .meeting-open p,
+  .meeting-open>span.small,
+  .calendar-leave-date-v315
+){
+  color:#3f5068!important;
+  font-weight:600!important;
+}
+.calendar-all-column-body-v304 :is(
+  .metric-chip,
+  .staff-person,
+  .leader-badge,
+  .leader-missing,
+  .staff-job-link,
+  .status-pill,
+  .workshop-status
+){
+  font-weight:700!important;
+}
+.calendar-all-column-body-v304 .job-quick-status label{
+  color:#35465f!important;
+  font-weight:700!important;
+}
+.calendar-all-column-body-v304 .calendar-leave-type-v315{
+  color:#45546a!important;
+  font-weight:850!important;
+}
+:is(.view-list,.calendar-detail-list) .pala-activity-type{
+  color:#45556c!important;
+  font-weight:800!important;
+}
+:is(.view-list,.calendar-detail-list) .pala-activity-meta,
+:is(.view-list,.calendar-detail-list) .pala-activity-body :is(p,.small.muted){
+  color:#3f5068!important;
+  font-weight:600!important;
+}
+
+/* Phone/two-column view: only the smallest supporting text gets a slight lift. */
+@media(max-width:620px){
+  .calendar-all-column-body-v304 .list-date-month{
+    font-size:8.25px!important;
+  }
+  .calendar-all-column-body-v304 :is(
+    .job-date,
+    .job-subline,
+    .staff-card .small,
+    .workshop-job-meta,
+    .workshop-task-meta,
+    .workshop-task p,
+    .meeting-open p,
+    .meeting-open>span.small
+  ){
+    font-size:9.25px!important;
+  }
+  .calendar-all-column-body-v304 .job-quick-status label{
+    font-size:8.25px!important;
+  }
+  .calendar-all-column-body-v304 :is(.metric-chip,.staff-person,.leader-badge,.leader-missing,.staff-job-link){
+    font-size:8.5px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-type-v315{
+    font-size:8px!important;
+  }
+  .calendar-all-column-body-v304 .calendar-leave-card-v315 .calendar-leave-date-v315{
+    font-size:8.75px!important;
+  }
+}
