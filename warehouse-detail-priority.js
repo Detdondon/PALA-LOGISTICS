@@ -1,8 +1,8 @@
-/* PALA v316 · warehouse detail priority + admin-only tent NFC/QR.
+/* PALA v317 · warehouse detail priority + admin-only tent NFC/QR.
    Operational facts first; drawings, photos and documents last. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseDetailPriorityV316)return;
+if(window.__palaWarehouseDetailPriorityV317)return;
 window.__palaWarehouseDetailPriorityV316=true;
 
 const norm=value=>String(value??'').trim().toLocaleLowerCase('da-DK');
@@ -139,12 +139,6 @@ function drawingCard(t){
   card.innerHTML=`<div class="small muted">TEGNING</div><h3>Plantegning</h3><a class="tent-drawing-link-v186" href="${escText(t.drawing_image)}" target="_blank" rel="noopener noreferrer"><img src="${escText(t.drawing_image)}" alt="Plantegning · ${escText(t.name)}"></a><a class="btn tent-source-button-v186" href="${escText(t.drawing_image)}" target="_blank" rel="noopener noreferrer">${typeof uiIcon==='function'?uiIcon('document'):''} Åbn tegning</a>`;
   return card;
 }
-function sourceCard(t){
-  if(!t?.source_page)return null;
-  const card=document.createElement('section');card.className='card tent-source-card-v186';
-  card.innerHTML=`<div class="small muted">KILDER</div><h3>Cirkus Panik Teltmageri</h3><p class="small muted">Produktmål og offentlige oplysninger er hentet fra teltmageriets hjemmeside. PALA's interne lagerantal og pakkemængder er fortsat de driftsmæssige værdier.</p><div class="tent-source-links-v186"><a class="btn" href="${escText(t.source_page)}" target="_blank" rel="noopener noreferrer">${typeof uiIcon==='function'?uiIcon('link'):''} Produktside</a><a class="btn" href="https://www.cirkuspanikteltmageri.dk/teltosninger/vores-telte" target="_blank" rel="noopener noreferrer">${typeof uiIcon==='function'?uiIcon('list'):''} Teltoversigt</a><a class="btn" href="https://www.cirkuspanikteltmageri.dk/teltosninger/sporgsmal-og-svar" target="_blank" rel="noopener noreferrer">${typeof uiIcon==='function'?uiIcon('document'):''} Praktisk info</a></div></section>`;
-  return card;
-}
 function prioritizeTent(id){
   const root=document.getElementById('app'),t=window.tents?.[+id]||((typeof tents!=='undefined'&&tents)?tents[+id]:null);
   if(!root||!t)return;
@@ -220,7 +214,7 @@ const style=document.createElement('style');style.id='pala-warehouse-detail-prio
   .tent-keyfact-v186.warning{background:#fff7e7;border-color:#efd697}.tent-keyfact-v186.warning strong{color:#805c11}
   .tent-keyfacts-note-v186{margin:10px 2px 0;line-height:1.45}
   .tent-drawing-link-v186{display:block;margin:10px 0}.tent-drawing-link-v186 img{display:block;width:100%;height:auto;max-height:680px;object-fit:contain;border:1px solid var(--line,#e1e5ec);border-radius:12px;background:#fff}
-  .tent-source-links-v186{display:flex;gap:7px;flex-wrap:wrap}.tent-source-button-v186{display:inline-flex!important;text-decoration:none;margin-top:4px}.tent-source-card-v186 .btn,.inventory-source-v186 .btn{text-decoration:none}
+  .tent-source-button-v186{display:inline-flex!important;text-decoration:none;margin-top:4px}.inventory-source-v186 .btn{text-decoration:none}
   .inventory-media-v186 .detail-photo,.inventory-media-v186 .hero{display:block;width:100%;height:auto;max-height:640px;object-fit:contain;margin-top:8px}
   @media(min-width:700px){.tent-keyfacts-grid-v186{grid-template-columns:repeat(4,minmax(0,1fr))}}
   @media(max-width:520px){.tent-keyfacts-grid-v186{grid-template-columns:1fr 1fr}.tent-keyfact-v186{padding:10px}.tent-keyfact-v186 strong{font-size:14px}}
