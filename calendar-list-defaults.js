@@ -1,8 +1,8 @@
-/* PALA v310 · selected-date lists use dedicated damage overview cards. */
+/* PALA v313 · selected-date lists expose dynamic column count for responsive layout. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListDefaultsV310)return;
-window.__palaCalendarListDefaultsV310=true;
+if(window.__palaCalendarListDefaultsV313)return;
+window.__palaCalendarListDefaultsV313=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const selectedFirst=()=>typeof calDate!=='undefined'&&typeof staffDateString==='function'?staffDateString(calDate):'';
@@ -148,7 +148,7 @@ function groupedHtmlV306(entries){
   const columns=definitions.filter(column=>active.includes(column.type));
   if(!columns.length)return '<p class="muted">Vælg mindst én kategori.</p>';
 
-  return `<div class="calendar-all-columns-v304" style="--calendar-column-count:${columns.length}">${columns.map(column=>`
+  return `<div class="calendar-all-columns-v304" data-column-count="${columns.length}" style="--calendar-column-count:${columns.length}">${columns.map(column=>`
     <section class="calendar-all-column-v304 calendar-all-column-${column.key}-v304">
       <div class="calendar-all-column-head-v304">
         <h3>${column.title}</h3>
