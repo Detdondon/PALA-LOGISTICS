@@ -15,6 +15,8 @@
 .pala-editor-wide,.pala-editor .order-field-wide{grid-column:1/-1!important}
 .pala-editor label{display:block;font-size:13px!important;font-weight:600!important;color:var(--pe-text);line-height:1.4!important;margin:0 0 7px!important}
 .pala-editor :is(input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=color]),select,textarea,.pala-select-button){width:100%;min-width:0;min-height:44px!important;border:1px solid var(--pe-border)!important;border-radius:var(--pe-radius)!important;padding:10px 12px!important;background:#fff!important;color:var(--pe-text)!important;font:inherit!important;font-size:16px!important;line-height:22px!important;box-shadow:none!important;margin:0!important}
+.pala-editor .relation-search input{padding-left:42px!important}
+.pala-editor .relation-search .ui-icon{left:13px!important;z-index:1}
 .pala-editor textarea{min-height:112px!important;resize:vertical}
 .pala-editor input[type=checkbox],.pala-editor input[type=radio]{width:20px;height:20px;flex:none;accent-color:var(--pe-blue)}
 .pala-editor input[type=file]{height:auto!important;white-space:normal}
