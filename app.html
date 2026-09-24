@@ -4811,7 +4811,7 @@ async function saveShiftEditor(prefix,id,bookingId,workshopId){
 saveExistingStaffShift=function(id){let [type,related]=String(document.getElementById('esrelation')?.value||'').split(':');return saveShiftEditor('es',id,type==='booking'?+related:null,type==='workshop'?+related:null)};
 saveOrderShift=function(bookingId,id){return saveShiftEditor('os',id,bookingId,null)};
 const shiftOverviewV104=openStaffShift;
-openStaffShift=function(id){shiftOverviewV104(id);let sh=staffingShifts.find(s=>+s.id===+id),address=shiftAddress(sh);if(sh&&address){let host=document.querySelector('.workshop-detail-grid');host?.insertAdjacentHTML('beforeend',`<div class="workshop-detail-box"><small>Adresse</small><strong>${esc(address)}</strong><a class="btn" href="${esc(googleMapsLink(address))}" target="_blank" rel="noopener noreferrer">${uiIcon('map')} Åbn i Google Maps</a></div>`)}};
+openStaffShift=function(id){shiftOverviewV104(id);let sh=staffingShifts.find(s=>+s.id===+id),address=shiftAddress(sh);if(sh&&address){let host=document.querySelector('.workshop-detail-grid');host?.insertAdjacentHTML('beforeend',`<div class="workshop-detail-box"><small>Adresse</small><a class="job-map-link" href="${esc(googleMapsLink(address))}" target="_blank" rel="noopener noreferrer">${esc(address)}</a></div>`)}};
 
 const hwrowV104=hwrow;
 hwrow=function(h){
