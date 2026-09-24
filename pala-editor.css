@@ -31,7 +31,7 @@
 .pala-editor .staff-choice-row{display:grid!important;grid-template-columns:minmax(100px,1fr) minmax(170px,1fr);gap:12px;align-items:center;padding:12px 0!important;border-bottom:1px solid #edf0f5}
 .pala-editor .staff-choice-row strong{font-size:14px;font-weight:600}
 .pala-editor-actions{position:sticky!important;bottom:0!important;z-index:20;display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;flex-wrap:wrap;padding:16px 24px!important;margin:0!important;background:rgba(255,255,255,.98)!important;border-top:1px solid var(--pe-border)!important;border-radius:0 0 18px 18px!important;box-shadow:0 -5px 14px rgba(25,45,70,.035)}
-.pala-editor .btn{min-height:44px!important;padding:10px 16px!important;border-radius:var(--pe-radius)!important;font:inherit!important;font-size:14px!important;font-weight:600!important;line-height:22px!important;display:inline-flex;align-items:center;justify-content:center;gap:7px;white-space:normal;width:auto}
+.pala-editor .btn{min-height:34px!important;padding:7px 11px!important;border-radius:12px!important;font:inherit!important;font-size:12px!important;font-weight:600!important;line-height:18px!important;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:normal;width:auto}
 .pala-editor .btn.primary{background:var(--pe-blue)!important;color:#fff!important;border:1px solid var(--pe-blue)!important}
 .pala-editor-actions .pala-editor-delete{margin-right:auto!important;background:#fff!important;color:#ae2934!important;border:1px solid #e7b9bf!important;order:0}
 .pala-editor-cancel{order:1}.pala-editor-save{order:2}
@@ -62,7 +62,7 @@
  .pala-editor-header{padding:16px!important}.pala-editor-header h2,.pala-editor-header h3{font-size:19px!important}
  .pala-editor-body,.pala-editor .sheet-body{padding:0 16px 16px!important}
  .pala-editor-fields,.pala-editor .two,.pala-editor .three,.pala-editor .order-field-grid,.pala-editor .order-date-grid,.pala-editor .staff-choice-row,.pala-editor .order-inventory-add{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
- .pala-editor-actions{padding:12px!important;gap:8px!important}.pala-editor-actions .btn{padding:10px 12px!important;flex:0 1 auto}
+ .pala-editor-actions{padding:12px!important;gap:8px!important}.pala-editor-actions .btn{min-height:34px!important;padding:7px 11px!important;border-radius:12px!important;font-size:12px!important;line-height:18px!important;flex:0 1 auto}
  .pala-editor-actions .pala-editor-save{flex:1}.pala-editor-actions .pala-editor-delete{flex-basis:auto}
  .pala-select-options{max-height:220px}
  .pala-editor .order-selection-row{grid-template-columns:minmax(0,1fr) 64px 44px!important}
