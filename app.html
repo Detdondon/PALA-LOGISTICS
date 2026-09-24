@@ -1379,6 +1379,15 @@ body :is(.warehouse-item,.meeting-open,.calendar-job-chip,.strip-day,.staff-day)
   border-radius:inherit;
 }
 </style>
+
+<style id="pala-v342-pack-cycle-style">
+.check-cycle-status,.quick-cycle-state{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;font-weight:700;color:#526b9b}
+.check-cycle-status .ui-icon,.quick-cycle-state .ui-icon{width:15px;height:15px}
+.check-cycle-status.is-returned,.quick-cycle-state.returned{color:#3f7350}
+.quick-cycle-state.packed{color:#526b9b}
+.quick-cycle-state.ready{color:#667085}
+.simple-check-line.scan-done{background:#f7faf8}
+</style>
 </head><body><header><div class="shell"><div class="brand"><span class="brand-name">PALA <span class="app-version" hidden>v142</span></span><div class="header-actions"><button class="header-icon" onclick="showSearch()" aria-label="Søg i PALA" title="Søg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button></div></div></div></header><main><div class="nav"><button id="nc" class="btn active" onclick="showCalendar()"><svg class="nav-icon icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg><span>Kalender</span></button><button id="ns" class="btn" onclick="showStaffing()"><svg class="nav-icon icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16.5 3.13a4 4 0 0 1 0 7.75"/></svg><span>Bemanding</span></button><button id="np" class="btn" onclick="showTents()"><svg class="nav-icon icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9 5-9-5 9-5 9 5z"/><path d="M3 8v8l9 5 9-5V8M12 13v8"/></svg><span>Lager</span></button><button id="na" class="btn" onclick="showAdmin()"><svg class="nav-icon icon-nav" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6 1.7 1.7 0 0 0-.4 1.1V21h-4v-.1a1.7 1.7 0 0 0-1.4-1.67 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 3.6 15a1.7 1.7 0 0 0-.6-1 1.7 1.7 0 0 0-1.1-.4H2v-4h.1A1.7 1.7 0 0 0 3.77 8.2a1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 8.2 3.77 1.7 1.7 0 0 0 9.2 3a1.7 1.7 0 0 0 .4-1.1V2h4v.1A1.7 1.7 0 0 0 15 3.77a1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06-.06A1.7 1.7 0 0 0 20.23 8.2 1.7 1.7 0 0 0 21 9.2a1.7 1.7 0 0 0 1.1.4H22v4h-.1A1.7 1.7 0 0 0 20.23 15z"/></svg><span>Admin</span></button></div><div id="app"><div class="card"><h2>Indlæser…</h2></div></div></main><script>
 const palaAuthorizedFetch=(input,init={})=>{const headers=new Headers(init.headers||{}),token=localStorage.getItem('pala_employee_token')||localStorage.getItem('pala_admin_token')||sessionStorage.getItem('pala_employee_token')||sessionStorage.getItem('pala_admin_token')||'';if(token)headers.set('x-pala-token',token);else headers.delete('x-pala-token');return fetch(input,{...init,headers})};
 const sb=supabase.createClient('https://zlnzmdxffjxjdijzyuwx.supabase.co','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpsbnptZHhmZmp4amRpanp5dXd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyNzQ5NzgsImV4cCI6MjEwMzg1MDk3OH0.2v9xuhO3BlccvHvL-pXRaKYibmUpL3Ywkrmmc_oxzZA',{global:{fetch:palaAuthorizedFetch}});
@@ -1934,19 +1943,22 @@ async function openOrderChecklist(token,phase){
       inventoryLines=lines.filter(l=>l.line_type==='inventory');
 
   let renderLine=line=>{
-    let qty=+line.qty_required||0,packed=(+line.packed_qty||0)>=qty,returned=(+line.returned_qty||0)>=qty,
-        phase=packed?'returned':'packed',
-        label=packed?'Returneret':'Pakket',
-        title=returned?'Fortryd returneret':packed?'Markér returneret':'Markér pakket',
-        icon=returned?'check':packed?'refresh':'box';
+    let qty=+line.qty_required||0,
+        packed=(+line.packed_qty||0)>=qty,
+        returned=(+line.returned_qty||0)>=qty,
+        actionLabel=packed&&!returned?'Returner':'Pak',
+        actionTitle=returned?'Pak igen':packed?'Markér returneret':'Markér pakket',
+        actionIcon=packed&&!returned?'refresh':'box',
+        stateLabel=returned?'Returneret':packed?'Pakket':'';
     return `<div class="simple-check-line ${returned?'scan-done':''}">
       <div>
         <div class="simple-check-name">${esc(line.item_name)}</div>
         ${line.description?`<div class="small muted">${esc(line.description)}</div>`:''}
         <div class="simple-check-qty">${qty} stk.</div>
+        ${stateLabel?`<div class="check-cycle-status ${returned?'is-returned':'is-packed'}">${uiIcon(returned?'check':'box')} ${stateLabel}</div>`:''}
       </div>
       <div class="check-dual-actions">
-        <button class="check-phase-button ${packed?'returned':''} ${returned?'done':''}" onclick="toggleOrderChecklistLinePhase(${line.id},'${phase}',${returned},${packed})" title="${title}">${uiIcon(icon)}<span>${label}</span></button>
+        <button class="check-phase-button ${packed&&!returned?'returned':''} ${returned?'done':''}" onclick="cycleOrderChecklistLine(${line.id},${packed},${returned})" title="${actionTitle}">${uiIcon(actionIcon)}<span>${actionLabel}</span></button>
       </div>
     </div>`;
   };
@@ -1978,7 +1990,7 @@ async function openOrderChecklist(token,phase){
       <div class="check-progress-card"><div class="row"><b>${uiIcon('box')} Pakket</b><b>${packedDone}/${actionable.length}</b></div><div class="scan-progress"><div style="width:${packedPct}%"></div></div></div>
       <div class="check-progress-card returned"><div class="row"><b>${uiIcon('refresh')} Returneret</b><b>${returnedDone}/${actionable.length}</b></div><div class="scan-progress"><div style="width:${returnedPct}%"></div></div></div>
     </div>
-    <div class="small muted">Hver del har én statusknap. Først vises “Pakket”; når delen er pakket, skifter knappen automatisk til “Returneret”.</div>
+    <div class="small muted">Én knap følger hele cyklussen: Pak → Returner → Pak igen. Status under hver linje viser Pakket eller Returneret.</div>
     ${returnedDone===actionable.length&&actionable.length?`<div class="return-complete-banner">${uiIcon('check')} Alt er returneret · jobbet markeres automatisk som afsluttet</div>`:''}
   </div>
 
@@ -1989,21 +2001,38 @@ async function openOrderChecklist(token,phase){
   ${inventoryLines.length?`<div class="card"><h3>Inventar</h3><div class="simple-check-section">${inventoryLines.map(renderLine).join('')}</div></div>`:''}
 
   <div class="card">
-    <p class="small muted" style="margin:0">Statusknappen følger arbejdsgangen fra Pakket til Returneret. En færdig retur kan trykkes igen, hvis returregistreringen skal fortrydes.</p>
+    <p class="small muted" style="margin:0">Når en del er returneret, står den på lager igen, og knappen går tilbage til Pak, så en ny cyklus kan startes.</p>
   </div>`;
   if(returnedDone===actionable.length&&actionable.length)await autoFinishReturnedOrder(order);
 }
 
-async function toggleOrderChecklistLinePhase(lineId,phase,isDone,otherDone){
-  if(phase==='returned'&&!isDone&&!otherDone){
-    let packed=await sb.rpc('order_checklist_change',{p_access_token:currentCheckToken,p_line_id:lineId,p_phase:'packed',p_delta:0,p_set_all:true});
-    if(packed.error)return alert(packed.error.message);
+async function setChecklistLinePhase(token,lineId,phase,done){
+  let r=await sb.rpc('order_checklist_change',{
+    p_access_token:token,
+    p_line_id:lineId,
+    p_phase:phase,
+    p_delta:done?0:-999999,
+    p_set_all:!!done
+  });
+  if(r.error)throw new Error(r.error.message);
+}
+async function cycleOrderChecklistLine(lineId,packed,returned){
+  try{
+    if(returned){
+      // A new Pak click starts a fresh cycle: clear the old return, clear old packing, then pack again.
+      await setChecklistLinePhase(currentCheckToken,lineId,'returned',false);
+      await setChecklistLinePhase(currentCheckToken,lineId,'packed',false);
+      await setChecklistLinePhase(currentCheckToken,lineId,'packed',true);
+    }else if(packed){
+      await setChecklistLinePhase(currentCheckToken,lineId,'returned',true);
+    }else{
+      await setChecklistLinePhase(currentCheckToken,lineId,'packed',true);
+    }
+    await refreshWarehouseStatus();
+    openOrderChecklist(currentCheckToken);
+  }catch(error){
+    alert(error.message||String(error));
   }
-  if(phase==='packed'&&isDone&&otherDone)return alert('Fortryd returneringen først, hvis delen ikke længere skal stå som pakket.');
-  let r=await sb.rpc('order_checklist_change',{p_access_token:currentCheckToken,p_line_id:lineId,p_phase:phase,p_delta:isDone?-999999:0,p_set_all:!isDone});
-  if(r.error)return alert(r.error.message);
-  await refreshWarehouseStatus();
-  openOrderChecklist(currentCheckToken);
 }
 async function autoFinishReturnedOrder(order){
   if(!order?.id||jobLocationStatus(order)==='Afsluttet')return;
@@ -2191,111 +2220,63 @@ async function getTentChecklistContext(tentId,bookingId){
   return {token,tentLine,hardware,order:list.data?.order||{},bookingId:+bookingId};
 }
 
-async function quickTentWarehouseAction(tentId,action){
-  let bookingId=selectedTentWarehouseBooking(tentId);
-  if(action!=='returned'&&!bookingId)return alert('Vælg først hvilken ordre pakningen gælder for.');
-
-  let btns=[...document.querySelectorAll(`[data-quick-tent="${tentId}"]`)];
-  btns.forEach(b=>b.disabled=true);
-
-  try{
-    if(action==='packed'){
-      let ctx=await getTentChecklistContext(tentId,bookingId),allLines=[ctx.tentLine,...ctx.hardware];
-      let results=await Promise.all(allLines.map(line=>
-        sb.rpc('order_checklist_change',{
-          p_access_token:ctx.token,
-          p_line_id:line.id,
-          p_phase:'packed',
-          p_delta:0,
-          p_set_all:true
-        })
-      ));
-      let failed=results.find(x=>x.error);
-      if(failed?.error)throw new Error(failed.error.message);
-      await refreshWarehouseStatus();
-      alert('Teltet og alt hardware er markeret som pakket.');
-      return openTent(tentId,bookingId);
-    }
-
-    if(action==='returned'){
-      let returnBookings=tentOrderBookings(tentId).filter(b=>jobLocationStatus(b)==='Ude');
-      if(!returnBookings.length)throw new Error('Der er ingen aktive jobs med dette telt, som står som Ude.');
-
-      let contextResults=await Promise.all(returnBookings.map(async b=>{
-        try{return {context:await getTentChecklistContext(tentId,b.id),error:null}}
-        catch(error){return {context:null,error}}
-      }));
-      let unavailable=contextResults.find(result=>result.error);
-      if(unavailable)throw new Error(`Mindst én returliste kunne ikke åbnes: ${unavailable.error.message||'ukendt fejl'}`);
-      let contexts=contextResults.map(result=>result.context).filter(Boolean);
-      if(!contexts.length)throw new Error('Returlisterne kunne ikke findes for teltets aktive jobs.');
-
-      let returnLines=contexts.flatMap(ctx=>[ctx.tentLine,...ctx.hardware].map(line=>({ctx,line})));
-      let packedResults=await Promise.all(returnLines.map(({ctx,line})=>
-        sb.rpc('order_checklist_change',{
-          p_access_token:ctx.token,
-          p_line_id:line.id,
-          p_phase:'packed',
-          p_delta:0,
-          p_set_all:true
-        })
-      ));
-      let packedFailed=packedResults.find(x=>x.error);
-      if(packedFailed?.error)throw new Error(packedFailed.error.message);
-
-      let returnedResults=await Promise.all(returnLines.map(({ctx,line})=>
-        sb.rpc('order_checklist_change',{
-          p_access_token:ctx.token,
-          p_line_id:line.id,
-          p_phase:'returned',
-          p_delta:0,
-          p_set_all:true
-        })
-      ));
-      let returnedFailed=returnedResults.find(x=>x.error);
-      if(returnedFailed?.error)throw new Error(returnedFailed.error.message);
-
-      await refreshWarehouseStatus();
-      for(let ctx of contexts){
-        let fresh=await sb.rpc('order_checklist_get',{p_access_token:ctx.token}),freshLines=Array.isArray(fresh.data?.lines)?fresh.data.lines:[];
-        if(!fresh.error&&freshLines.filter(line=>(+line.qty_required||0)>0).every(line=>(+line.returned_qty||0)>=(+line.qty_required||0)))await autoFinishReturnedOrder(fresh.data?.order||ctx.order);
-      }
-      let count=contexts.length,damageBookingId=count===1?contexts[0].bookingId:null;
-      if(confirm(`Teltet og alt hardware er markeret som returneret på ${count} ${count===1?'job':'jobs'}. Skal der registreres en skade til systuen?`))return showDamageForm(tentId,damageBookingId,'tent');
-      return openTent(tentId);
-    }
-
-    if(action==='wet'){
-      let ctx=await getTentChecklistContext(tentId,bookingId);
-      // Et vådt telt skal være registreret som pakket, før tørrestatus kan sættes.
-      let packed=await sb.rpc('order_checklist_change',{
-        p_access_token:ctx.token,
-        p_line_id:ctx.tentLine.id,
-        p_phase:'packed',
-        p_delta:0,
-        p_set_all:true
-      });
-      if(packed.error)throw new Error(packed.error.message);
-
-      let wet=await sb.rpc('order_checklist_set_drying',{
-        p_access_token:ctx.token,
-        p_line_id:ctx.tentLine.id,
-        p_delta:0,
-        p_set_all:true
-      });
-      if(wet.error)throw new Error(wet.error.message);
-
-      await refreshWarehouseStatus();
-      alert('Teltet er markeret som vådt / pakket hårdt og skal hænges til tørre ved retur.');
-      return openTent(tentId,bookingId);
-    }
-  }catch(e){
-    alert(e.message||String(e));
-  }finally{
-    btns.forEach(b=>b.disabled=false);
-  }
+async function setChecklistLinesPhase(token,lines,phase,done){
+  let results=await Promise.all(lines.map(line=>sb.rpc('order_checklist_change',{
+    p_access_token:token,
+    p_line_id:line.id,
+    p_phase:phase,
+    p_delta:done?0:-999999,
+    p_set_all:!!done
+  })));
+  let failed=results.find(result=>result.error);
+  if(failed?.error)throw new Error(failed.error.message);
 }
 
+async function quickTentWarehouseAction(tentId){
+  let bookingId=selectedTentWarehouseBooking(tentId);
+  if(!bookingId)return alert('Vælg først hvilken ordre registreringen gælder for.');
+
+  let btns=[...document.querySelectorAll(`[data-quick-tent="${tentId}"]`)];
+  btns.forEach(button=>button.disabled=true);
+
+  try{
+    let ctx=await getTentChecklistContext(tentId,bookingId),
+        allLines=[ctx.tentLine,...ctx.hardware],
+        allPacked=allLines.length&&allLines.every(line=>(+line.packed_qty||0)>=(+line.qty_required||0)),
+        allReturned=allLines.length&&allLines.every(line=>(+line.returned_qty||0)>=(+line.qty_required||0)),
+        anyReturned=allLines.some(line=>(+line.returned_qty||0)>0);
+
+    if(allReturned){
+      // Returned -> new cycle. Clear the previous cycle, then pack immediately.
+      await setChecklistLinesPhase(ctx.token,allLines,'returned',false);
+      await setChecklistLinesPhase(ctx.token,allLines,'packed',false);
+      await setChecklistLinesPhase(ctx.token,allLines,'packed',true);
+    }else if(allPacked){
+      await setChecklistLinesPhase(ctx.token,allLines,'returned',true);
+    }else{
+      // Normalise any partial old return before starting a new packed state.
+      if(anyReturned)await setChecklistLinesPhase(ctx.token,allLines,'returned',false);
+      await setChecklistLinesPhase(ctx.token,allLines,'packed',true);
+    }
+
+    await refreshWarehouseStatus();
+
+    let fresh=await sb.rpc('order_checklist_get',{p_access_token:ctx.token}),
+        freshLines=Array.isArray(fresh.data?.lines)?fresh.data.lines:[],
+        orderFullyReturned=!fresh.error&&freshLines.filter(line=>(+line.qty_required||0)>0).length>0&&freshLines.filter(line=>(+line.qty_required||0)>0).every(line=>(+line.returned_qty||0)>=(+line.qty_required||0));
+
+    if(orderFullyReturned){
+      await autoFinishReturnedOrder(fresh.data?.order||ctx.order);
+      if(confirm('Teltet og dets hardware er returneret. Skal der registreres en skade til systuen?'))return showDamageForm(tentId,bookingId,'tent');
+    }
+
+    return openTent(tentId,bookingId);
+  }catch(error){
+    alert(error.message||String(error));
+  }finally{
+    btns.forEach(button=>button.disabled=false);
+  }
+}
 
 
 async function markTentWetGlobal(tentId){
@@ -2551,13 +2532,24 @@ async function openTent(id,selectedBookingId){
       stt=st(t),
       z=warehouseNumbers('tent',t.id,t.stock_count??1),
       orderOptions=tentOrderBookings(id),
-      returnableOrders=orderOptions.filter(b=>jobLocationStatus(b)==='Ude'),
-      quickReturnPending=(+z.out||0)>0||returnableOrders.length>0,
       tentNote=tentNoteFor(id),
       openWorkshopTasks=workshopTasksForTent(id,true),
       parts=tentPartsFor(id),linkedSpecial=specialHardwareForTent(id);
 
   if(!selectedBookingId&&orderOptions.length===1)selectedBookingId=orderOptions[0].id;
+
+  let quickTentState=(+z.out||0)>0?'packed':'ready';
+  if(selectedBookingId&&isEmployeeLoggedIn()){
+    try{
+      let quickCtx=await getTentChecklistContext(id,+selectedBookingId),
+          quickLines=[quickCtx.tentLine,...quickCtx.hardware],
+          allPacked=quickLines.length&&quickLines.every(line=>(+line.packed_qty||0)>=(+line.qty_required||0)),
+          allReturned=quickLines.length&&quickLines.every(line=>(+line.returned_qty||0)>=(+line.qty_required||0));
+      quickTentState=allReturned?'returned':allPacked?'packed':'ready';
+    }catch(error){
+      console.warn('[PALA] kunne ikke læse teltets Pak/Retur-status',error);
+    }
+  }
 
   let pics=tentPics(id);
   app.innerHTML=`<div class="card"><button class="btn submenu-back" onclick="showTents('tents')">${uiIcon('chevronLeft')} Tilbage</button>
@@ -2592,16 +2584,14 @@ async function openTent(id,selectedBookingId){
 
   <div class="card">
     <h3>Hurtigregistrering</h3>
-    <p class="small muted">Samme knap følger teltets status: først Pakket, derefter Returneret.</p>
+    <p class="small muted">Pak → Returner → Pak igen. Lagerstatus følger automatisk teltets registrering.</p>
 
     <div class="quick-registration-grid">
-      <div class="quick-registration-block ${quickReturnPending?'return':''}">
-        <div class="quick-registration-kicker">${quickReturnPending?'RETUR':'PAKNING'}</div>
-        ${quickReturnPending
-          ?`<p class="small muted">Teltet er pakket/ude. Næste registrering er retur af teltet og dets hardware.</p><button class="btn" data-quick-tent="${id}" onclick="quickTentWarehouseAction(${id},'returned')">${uiIcon('refresh')} Alt er returneret</button>`
-          :orderOptions.length
-            ?`<label for="tentWarehouseOrder${id}">Ordre til pakning</label><select id="tentWarehouseOrder${id}"><option value="">Vælg ordre</option>${orderOptions.map(b=>`<option value="${b.id}" ${+b.id===+selectedBookingId?'selected':''}>${esc(b.order_no||'Uden nr.')} · ${esc(b.customer_name||b.title||'Ordre')} · ${esc(fmtDateDa(b.start_date))}${b.status==='Afsluttet'?' · Afsluttet':''}</option>`).join('')}</select><button class="btn primary" data-quick-tent="${id}" onclick="quickTentWarehouseAction(${id},'packed')">${uiIcon('box')} Alt er pakket</button>`
-            :`<p class="small muted">Der er ingen ordrer at pakke til.</p><button class="btn" disabled>${uiIcon('box')} Alt er pakket</button>`}
+      <div class="quick-registration-block ${quickTentState==='packed'?'return':''}">
+        <div class="quick-registration-kicker">${quickTentState==='packed'?'RETUR':'PAKNING'}</div>
+        ${orderOptions.length
+          ?`<label for="tentWarehouseOrder${id}">Ordre</label><select id="tentWarehouseOrder${id}" onchange="openTent(${id},+this.value||null)"><option value="">Vælg ordre</option>${orderOptions.map(b=>`<option value="${b.id}" ${+b.id===+selectedBookingId?'selected':''}>${esc(b.order_no||'Uden nr.')} · ${esc(b.customer_name||b.title||'Ordre')} · ${esc(fmtDateDa(b.start_date))}${b.status==='Afsluttet'?' · Afsluttet':''}</option>`).join('')}</select><div class="quick-cycle-state ${quickTentState}">${uiIcon(quickTentState==='returned'?'check':quickTentState==='packed'?'box':'refresh')} <span>${quickTentState==='returned'?'Returneret':quickTentState==='packed'?'Pakket':'Klar til pakning'}</span></div><button class="btn ${quickTentState==='packed'?'':'primary'}" data-quick-tent="${id}" onclick="quickTentWarehouseAction(${id})">${uiIcon(quickTentState==='packed'?'refresh':'box')} ${quickTentState==='packed'?'Returner':'Pak'}</button>`
+          :`<p class="small muted">Der er ingen ordrer at registrere teltet på.</p><button class="btn" disabled>${uiIcon('box')} Pak</button>`}
       </div>
     </div>
     ${globalWetControls(id)}
