@@ -1,4 +1,4 @@
-/* PALA v293 · compact single-column warehouse lists + row stock status
+/* PALA v333 · compact single-column warehouse lists + row stock status
    Hardware items and category rows share one visual language.
    Every category starts collapsed and opens only when pressed. */
 (()=>{
@@ -28,7 +28,8 @@ function enhanceCategory(details){
 
   details.dataset.palaUnifiedWarehouseRow='1';
   details.classList.add('warehouse-category-unified-v187',hasChildren?'has-subcategories-v187':'leaf-category-v187');
-  details.open=false;
+  const searching=typeof warehouseSearch==='string'&&warehouseSearch.trim();
+  details.open=!!searching;
 
   const icon=typeof uiIcon==='function'?uiIcon(hasChildren?'list':'box'):'';
   const chevron=typeof uiIcon==='function'?uiIcon('chevronRight'):'';
