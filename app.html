@@ -1673,7 +1673,7 @@ function applyWebsiteTentCatalog(){
 }
 function mutedOrderColor(color){let value=String(color||ORDER_COLORS[0]).toUpperCase();return LEGACY_MUTED_COLORS[value]||value}
 function displayOrderColor(b){return jobLocationStatus(b)==='Afsluttet'?COMPLETED_COLOR:mutedOrderColor(b?.color)}
-function jobLocationStatus(b){return b?.status==='Afsluttet'?'Afsluttet':b?.status==='Ude'||b?.status==='Udleveret'?'Ude':'På lager'}
+function jobLocationStatus(b){return b?.status==='Afsluttet'?'Afsluttet':b?.status==='Forespørgsel'?'Forespørgsel':b?.status==='Ude'||b?.status==='Udleveret'?'Ude':'På lager'}
 function statusRank(s){let i=STATUS_ORDER.indexOf(s);return i<0?999:i}
 function sortOrders(a,b){
   if(orderSort==='date_desc')return String(b.start_date||'').localeCompare(String(a.start_date||''));
@@ -2003,7 +2003,6 @@ async function openOrderChecklist(token,phase){
   <div class="card">
     <p class="small muted" style="margin:0">Når en del er returneret, står den på lager igen, og knappen går tilbage til Pak, så en ny cyklus kan startes.</p>
   </div>`;
-  if(returnedDone===actionable.length&&actionable.length)await autoFinishReturnedOrder(order);
 }
 
 async function setChecklistLinePhase(token,lineId,phase,done){
@@ -2018,6 +2017,7 @@ async function setChecklistLinePhase(token,lineId,phase,done){
 }
 async function cycleOrderChecklistLine(lineId,packed,returned){
   try{
+    const completingReturn=packed&&!returned;
     if(returned){
       // A new Pak click starts a fresh cycle: clear the old return, clear old packing, then pack again.
       await setChecklistLinePhase(currentCheckToken,lineId,'returned',false);
@@ -2029,24 +2029,44 @@ async function cycleOrderChecklistLine(lineId,packed,returned){
       await setChecklistLinePhase(currentCheckToken,lineId,'packed',true);
     }
     await refreshWarehouseStatus();
+
+    if(completingReturn){
+      let fresh=await sb.rpc('order_checklist_get',{p_access_token:currentCheckToken}),
+          freshLines=Array.isArray(fresh.data?.lines)?fresh.data.lines:[],
+          actionable=freshLines.filter(line=>(+line.qty_required||0)>0),
+          fullyReturned=!fresh.error&&actionable.length>0&&actionable.every(line=>(+line.returned_qty||0)>=(+line.qty_required||0));
+      if(fullyReturned)await autoFinishReturnedOrder(fresh.data?.order||{});
+    }
+
     openOrderChecklist(currentCheckToken);
   }catch(error){
     alert(error.message||String(error));
   }
 }
+function clearReturnedCompletionCacheForBooking(id){
+  try{
+    let ids=new Set(JSON.parse(localStorage.getItem('pala_returned_completed_v1')||'[]').map(Number));
+    if(ids.delete(+id))localStorage.setItem('pala_returned_completed_v1',JSON.stringify([...ids]));
+  }catch(e){}
+}
 async function autoFinishReturnedOrder(order){
-  if(!order?.id||jobLocationStatus(order)==='Afsluttet')return;
-  let saved=false;
-  if(isAdminLoggedIn()){
-    let result=await sb.rpc('admin_finish_booking',{p_token:adminToken,p_booking_id:+order.id});
-    saved=!result.error;
+  if(!order?.id||jobLocationStatus(order)==='Afsluttet')return true;
+  if(!employeeToken)return false;
+  let result=await sb.rpc('employee_finish_returned_booking',{p_token:employeeToken,p_booking_id:+order.id});
+  if(result.error){
+    console.warn('[PALA] automatisk afslutning kunne ikke gemmes',result.error);
+    return false;
   }
-  let booking=bookings.find(b=>+b.id===+order.id);if(booking)booking.status='Afsluttet';order.status='Afsluttet';
-  try{let ids=new Set(JSON.parse(localStorage.getItem('pala_returned_completed_v1')||'[]').map(Number));ids.add(+order.id);localStorage.setItem('pala_returned_completed_v1',JSON.stringify([...ids]))}catch(e){}
-  if(saved)await reloadData();
+  clearReturnedCompletionCacheForBooking(order.id);
+  let booking=bookings.find(b=>+b.id===+order.id);
+  if(booking)booking.status='Afsluttet';
+  order.status='Afsluttet';
+  await reloadData();
+  return true;
 }
 function applyReturnedCompletionCache(){
-  try{let ids=new Set(JSON.parse(localStorage.getItem('pala_returned_completed_v1')||'[]').map(Number));bookings.forEach(b=>{if(ids.has(+b.id))b.status='Afsluttet'})}catch(e){}
+  // v343: ordrestatus kommer altid fra databasen. Gamle lokale tvangsmarkeringer må ikke overstyre en adminændring.
+  try{localStorage.removeItem('pala_returned_completed_v1')}catch(e){}
 }
 
 async function toggleTentDryingAll(lineId,isMarked){
@@ -4586,6 +4606,7 @@ async function quickSetBookingStatus(id,status){
   document.querySelectorAll(`[data-booking-status="${id}"]`).forEach(select=>select.disabled=true);
   let result=await sb.rpc('admin_set_booking_status',{p_token:adminToken,p_booking_id:+id,p_status:status});
   if(result.error){document.querySelectorAll(`[data-booking-status="${id}"]`).forEach(select=>select.disabled=false);return alert(result.error.message)}
+  clearReturnedCompletionCacheForBooking(id);
   await reloadData();let updated=bookings.find(row=>+row.id===+id),params=new URLSearchParams(location.search);if(params.get('job')&&updated)return viewOrder(updated);showCalendar();
 }
 function bookingStatusOptions(booking){return STATUS_ORDER.map(status=>`<option value="${status}" ${jobLocationStatus(booking)===status?'selected':''}>${status}</option>`).join('')}
@@ -4613,7 +4634,7 @@ showTents=function(...args){let result=showTentsV102(...args);document.querySele
 const viewOrderV102=viewOrder;
 viewOrder=function(booking){
   viewOrderV102(booking);if(!isAdminLoggedIn())return;let host=document.querySelector('.job-detail-status');if(!host)return;let current=jobLocationStatus(booking);
-  host.insertAdjacentHTML('afterend',`<div class="status-quick-switch"><span>Skift jobstatus</span>${STATUS_ORDER.map(status=>`<button type="button" class="btn ${current===status?'active':''}" onclick="quickSetBookingStatus(${booking.id},'${status}')">${status}</button>`).join('')}</div>`);
+  host.insertAdjacentHTML('afterend',`<div class="status-quick-switch"><span>Skift jobstatus</span>${STATUS_ORDER.map(status=>`<button type="button" class="btn ${current===status?'active':''}" onclick="quickSetBookingStatus(${booking.id},'${status}')">${status}</button>`).join('')}<small class="muted">Admin kan altid ændre status manuelt – også efter datoen eller efter retur.</small></div>`);
 };
 
 /* PALA v104 · lagerstatus, QR, rækkefølge og ensartet redigering */
