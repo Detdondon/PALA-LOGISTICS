@@ -129,7 +129,7 @@ window.editTentBasics=function(id){
 };
 if(!document.getElementById('pala-tent-standard-hardware-v347-style')){
   const style=document.createElement('style');
-  style.id='pala-tent-standard-hardware-v319-style';
+  style.id='pala-tent-standard-hardware-v347-style';
   style.textContent='.tent-standard-masts-v319{margin-top:14px;padding-top:12px;border-top:1px solid var(--line,#e4eaf2)}.tent-standard-masts-v319>.small:first-child{font-size:10px;font-weight:750;letter-spacing:.04em}.tent-standard-masts-v319>p{margin:4px 0 8px}';
   document.head.appendChild(style);
 }
