@@ -4405,7 +4405,7 @@ async function exportStaffingPlanPDF(periodStart,periodEnd){
 
   const shortDate=value=>{
     const date=localDateFromISO(value);
-    return date?new Intl.DateTimeFormat('da-DK',{day:'2-digit',month:'2-digit'}).format(date):'';
+    return date?new Intl.DateTimeFormat('da-DK',{day:'numeric',month:'numeric'}).format(date):'';
   };
   const weekday=value=>{
     const date=localDateFromISO(value);
@@ -4418,19 +4418,20 @@ async function exportStaffingPlanPDF(periodStart,periodEnd){
   const leaves=selected.map(sh=>staffLeaveInfo(sh)).filter(Boolean);
 
   const rows=shifts.map(sh=>{
-    const leader=staffLeader(sh),workshop=staffWorkshopJob(sh),jobs=staffCalendarBookings(sh),people=[...new Map(staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).map(p=>[p.id,p])).values()].sort((a,b)=>alpha(a.name,b.name));
-    const notes=staffDisplayNotes(sh.notes),address=shiftAddress(sh),title=sh.title||'Vagt',needed=Math.max(0,+sh.workers_needed||0),details=[title];
-    if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))details.push(notes);
-    if(address&&!details.some(t=>t.includes(address)))details.push(address);
+    const workshop=staffWorkshopJob(sh),jobs=staffCalendarBookings(sh),people=[...new Map(staffAssignmentsFor(sh.id).map(a=>staffEmployee(a.employee_id)).filter(Boolean).map(p=>[p.id,p])).values()].sort((a,b)=>alpha(a.name,b.name));
+    const notes=staffDisplayNotes(sh.notes),address=shiftAddress(sh),title=sh.title||'Vagt',jobDetails=[title];
+    if(notes&&normalizedSearchText(notes)!==normalizedSearchText(title))jobDetails.push(notes);
+    const customers=workshop
+      ?[workshop.customer_name||workshop.title||'Systue']
+      :jobs.map(b=>b.customer_name||b.title||b.order_no).filter(Boolean);
     const time=sh.start_time&&sh.end_time?`${staffTime(sh.start_time)} - ${staffTime(sh.end_time)}`:sh.start_time?`Fra ${staffTime(sh.start_time)}`:sh.end_time?`Til ${staffTime(sh.end_time)}`:'Ikke angivet';
-    return {underfilled:needed>people.length,cells:[
+    return {cells:[
       weekday(sh.shift_date),
       shortDate(sh.shift_date),
       time,
-      workshop?`Systue / ${workshop.title}`:jobs.map(b=>[b.order_no,b.customer_name||b.title].filter(Boolean).join(' / ')).join('\n')||'-',
-      details.join('\n'),
-      leader?.name||'Ikke angivet',
-      needed?`${people.length} / ${needed}${needed>people.length?'\nMangler '+(needed-people.length):''}`:`${people.length} tilmeldt\nBehov ikke angivet`,
+      customers.join('\n')||'-',
+      address||'-',
+      jobDetails.join('\n'),
       people.map(p=>p.name).join('\n')||'Ingen tilmeldte'
     ]};
   });
@@ -4441,26 +4442,16 @@ async function exportStaffingPlanPDF(periodStart,periodEnd){
   if(rows.length){
     palaPdfTable(doc,{
       startY:y,
-      head:[['Dag','Dato','Tid','Job / ordre','Opgave / adresse','Daglig leder','Tilmeldt / behov','Medarbejdere']],
+      head:[['Dag','Dato','Tid','Ordre','Adresse','Job','Medarbejdere']],
       body:rows.map(r=>r.cells),
       columnStyles:{
-        0:{cellWidth:20},
-        1:{cellWidth:18,fontStyle:'bold'},
-        2:{cellWidth:24},
-        3:{cellWidth:41},
-        4:{cellWidth:61},
-        5:{cellWidth:27},
-        6:{cellWidth:26},
-        7:{cellWidth:51}
-      },
-      didParseCell:data=>{
-        if(data.section!=='body')return;
-        const r=rows[data.row.index];
-        if(r.underfilled&&data.column.index===6){
-          data.cell.styles.fillColor=[255,247,230];
-          data.cell.styles.textColor=[115,79,24];
-          data.cell.styles.fontStyle='bold';
-        }
+        0:{cellWidth:22},
+        1:{cellWidth:17,fontStyle:'bold'},
+        2:{cellWidth:27},
+        3:{cellWidth:48},
+        4:{cellWidth:52},
+        5:{cellWidth:58},
+        6:{cellWidth:49}
       }
     });
   }
@@ -4470,15 +4461,13 @@ async function exportStaffingPlanPDF(periodStart,periodEnd){
       const employee=leave.employee?.name||'Ukendt medarbejder';
       return `${employee}: ${leave.type} ${shortDate(leave.start)}–${shortDate(leave.end)}`;
     }).join('   •   ');
-    palaPdfTable(doc,{
-      startY:(doc.lastAutoTable?.finalY||y)+6,
-      body:[['Fravær',leaveText]],
-      columnStyles:{
-        0:{cellWidth:28,fontStyle:'bold',fillColor:[241,243,246],textColor:PALA_PDF.ink},
-        1:{cellWidth:240,fillColor:[241,243,246],textColor:PALA_PDF.muted}
-      },
-      styles:{font:'Inter',fontSize:8.2,cellPadding:2.8,valign:'middle',lineWidth:.12,lineColor:PALA_PDF.line}
-    });
+    const pageWidth=doc.internal.pageSize.getWidth(),pageHeight=doc.internal.pageSize.getHeight(),maxWidth=pageWidth-24;
+    doc.setFont('Inter','normal');doc.setFontSize(8.2);
+    const leaveLines=doc.splitTextToSize(`Fravær: ${leaveText}`,maxWidth);
+    let leaveY=(doc.lastAutoTable?.finalY||y)+8;
+    if(leaveY+leaveLines.length*4>pageHeight-18){doc.addPage('a4','landscape');leaveY=24}
+    doc.setDrawColor(...PALA_PDF.line);doc.setLineWidth(.2);doc.line(12,leaveY-4,pageWidth-12,leaveY-4);
+    doc.setTextColor(...PALA_PDF.muted);doc.text(leaveLines,12,leaveY);
   }
 
   palaPdfFooter(doc,`Bemandingsplan / ${period}`);
