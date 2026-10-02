@@ -1,4 +1,4 @@
-/* PALA Editor v326. Presentation adapters: original controls and callbacks stay authoritative. */
+/* PALA Editor v348. Presentation adapters: original controls and callbacks stay authoritative. */
 (()=>{
 'use strict';
 if(window.PALAEditor)return;
