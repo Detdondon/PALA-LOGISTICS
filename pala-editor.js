@@ -1,4 +1,4 @@
-/* PALA Editor v288. Presentation adapters: original controls and callbacks stay authoritative. */
+/* PALA Editor v326. Presentation adapters: original controls and callbacks stay authoritative. */
 (()=>{
 'use strict';
 if(window.PALAEditor)return;
@@ -46,7 +46,7 @@ function renderOptions(s){
     if(group&&group!==lastGroup){frag.append(make('div','pala-select-group',group));lastGroup=group;}
     const row=make('div','pala-select-option',o.textContent);if(/^#[0-9a-f]{6}$/i.test(o.value)){const dot=make('span','color-square');dot.style.background=o.value;row.prepend(dot);}
     row.id=s.list.id+'-'+index;row.setAttribute('role','option');row.setAttribute('aria-selected',String(o.selected));row.dataset.index=String(index);
-    row.addEventListener('pointerdown',e=>e.preventDefault());row.addEventListener('click',()=>choose(s,index));frag.append(row);s.visible.push(index);
+    row.addEventListener('click',()=>choose(s,index));frag.append(row);s.visible.push(index);
   });
   if(!s.visible.length)frag.append(make('p','pala-select-empty','Ingen muligheder matcher din søgning.'));
   s.list.replaceChildren(frag);s.status.textContent=s.visible.length+' muligheder';
