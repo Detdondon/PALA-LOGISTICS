@@ -1,8 +1,23 @@
-/* PALA v238 · remove redundant auto-search fields from select controls */
+/* PALA v353 · keep warehouse category placement as a reliable native select */
 (()=>{
 'use strict';
-if(window.__palaSelectSearchCleanupV238)return;
-window.__palaSelectSearchCleanupV238=true;
+if(window.__palaSelectSearchCleanupV353)return;
+window.__palaSelectSearchCleanupV353=true;
+
+function restoreNativeCategorySelect(root=document){
+  const selects=[];
+  if(root?.matches?.('select#s_category_id'))selects.push(root);
+  root?.querySelectorAll?.('select#s_category_id')?.forEach(select=>selects.push(select));
+  selects.forEach(select=>{
+    const palaWrap=select.closest('.pala-select');
+    if(!palaWrap)return;
+    try{window.PALAEditor?.closeSelect?.()}catch(_e){}
+    select.classList.remove('pala-select-native');
+    select.removeAttribute('aria-hidden');
+    select.removeAttribute('tabindex');
+    palaWrap.replaceWith(select);
+  });
+}
 
 function cleanup(root=document){
   const wrappers=[];
@@ -17,6 +32,7 @@ function cleanup(root=document){
       wrap.querySelectorAll('input[type="search"]').forEach(input=>input.remove());
     }
   });
+  restoreNativeCategorySelect(root);
 }
 
 // Stop the legacy enhancer from adding new search boxes.
@@ -30,7 +46,13 @@ if(root){
     if(!records.some(record=>record.addedNodes.length))return;
     if(queued)return;
     queued=true;
-    queueMicrotask(()=>{queued=false;cleanup()});
+    queueMicrotask(()=>{
+      queued=false;
+      cleanup();
+      // PALAEditor may enhance a newly inserted select in the same mutation turn.
+      // Re-check on the next frame so s_category_id always ends as the native control.
+      requestAnimationFrame(()=>cleanup());
+    });
   }).observe(root,{childList:true,subtree:true});
 }
 })();
