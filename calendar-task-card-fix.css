@@ -1,10 +1,13 @@
-/* PALA v351 · compact horizontal layout for "anden opgave" cards in calendar lists. */
-.calendar-all-column-body-v304 .calendar-task-card-v304{
+/* PALA v352 · isolated compact horizontal layout for "Anden opgave" cards. */
+.calendar-task-card-v352{
   min-width:0!important;
   max-width:100%!important;
+  margin:2px 0!important;
   overflow:hidden!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open{
+.calendar-task-card-v352 .calendar-task-open-v352{
+  appearance:none!important;
+  -webkit-appearance:none!important;
   display:flex!important;
   flex-direction:column!important;
   align-items:stretch!important;
@@ -12,45 +15,82 @@
   width:100%!important;
   min-width:0!important;
   max-width:100%!important;
-  gap:2px!important;
+  margin:0!important;
+  padding:7px 8px!important;
+  border:0!important;
+  background:transparent!important;
+  color:inherit!important;
+  font:inherit!important;
   text-align:left!important;
+  gap:2px!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open>*{
+.calendar-task-card-v352 .calendar-task-open-v352>*{
+  position:static!important;
+  float:none!important;
   display:block!important;
   width:100%!important;
   min-width:0!important;
-  max-width:none!important;
+  max-width:100%!important;
   margin-left:0!important;
   margin-right:0!important;
   writing-mode:horizontal-tb!important;
   text-orientation:mixed!important;
+  white-space:normal!important;
   word-break:normal!important;
   overflow-wrap:break-word!important;
-  white-space:normal!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open>span.small:first-child{
+.calendar-task-card-v352 .calendar-task-type-v352{
+  font-size:9px!important;
+  line-height:1.1!important;
+  font-weight:600!important;
+  color:#69798d!important;
+  letter-spacing:.02em!important;
   white-space:nowrap!important;
   overflow-wrap:normal!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open h3{
-  font-size:11.5px!important;
-  line-height:1.12!important;
+.calendar-task-card-v352 .calendar-task-title-v352{
+  font-size:13px!important;
+  line-height:1.16!important;
   font-weight:700!important;
+  color:#243550!important;
   margin:0!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open p{
-  font-size:8.5px!important;
-  line-height:1.16!important;
-  margin:1px 0 0!important;
+.calendar-task-card-v352 .calendar-task-range-v352,
+.calendar-task-card-v352 .calendar-task-description-v352,
+.calendar-task-card-v352 .calendar-task-meta-v352{
+  font-size:9.5px!important;
+  line-height:1.2!important;
+  color:#66758b!important;
 }
-.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open>span.small:not(:first-child){
-  font-size:8.5px!important;
-  line-height:1.18!important;
-  margin:1px 0 0!important;
-}
-.calendar-all-column-body-v304 .calendar-task-card-v304 .calendar-task-description-v304{
+.calendar-task-card-v352 .calendar-task-description-v352{
   display:-webkit-box!important;
   -webkit-box-orient:vertical!important;
   -webkit-line-clamp:2!important;
   overflow:hidden!important;
+}
+.calendar-task-card-v352 .calendar-task-meta-v352{
+  display:flex!important;
+  align-items:center!important;
+  gap:4px!important;
+  flex-wrap:wrap!important;
+}
+.calendar-task-card-v352 .calendar-task-meta-v352 .ui-icon{
+  width:13px!important;
+  height:13px!important;
+  flex:0 0 13px!important;
+}
+.calendar-task-card-v352 .calendar-task-meta-v352 span{
+  min-width:0!important;
+  max-width:100%!important;
+}
+@media(max-width:620px){
+  .calendar-task-card-v352 .calendar-task-open-v352{
+    padding:6px 7px!important;
+  }
+  .calendar-task-card-v352 .calendar-task-title-v352{
+    font-size:12px!important;
+  }
+  .calendar-task-card-v352 :is(.calendar-task-range-v352,.calendar-task-description-v352,.calendar-task-meta-v352){
+    font-size:9px!important;
+  }
 }
