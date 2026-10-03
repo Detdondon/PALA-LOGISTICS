@@ -1,9 +1,9 @@
-/* PALA PWA bootstrap v358 */
+/* PALA PWA bootstrap v359 */
 (function(){
   'use strict';
   if(!('serviceWorker'in navigator))return;
   function register(){
-    navigator.serviceWorker.register('./sw.js?v=358',{scope:'./'}).then(reg=>{
+    navigator.serviceWorker.register('./sw.js?v=359',{scope:'./'}).then(reg=>{
       window.__palaServiceWorker=reg;
       reg.update().catch(()=>{});
       if(reg.waiting)reg.waiting.postMessage({type:'SKIP_WAITING'});
