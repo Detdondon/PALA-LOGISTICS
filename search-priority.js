@@ -1,16 +1,25 @@
-/* PALA v358 · global search priority: Lager -> Ordrer -> øvrigt. */
+/* PALA v360 · global search priority: Drift -> Lager -> andet. */
 (()=>{
 'use strict';
-if(window.__palaSearchPriorityV358)return;
-window.__palaSearchPriorityV358=true;
+if(window.__palaSearchPriorityV360)return;
+window.__palaSearchPriorityV360=true;
 
 if(typeof renderSearchResults!=='function')return;
 const baseRenderSearchResults=renderSearchResults;
 
 function groupPriority(group){
+  const heading=String(group.querySelector('h3')?.textContent||'').toLocaleLowerCase('da-DK');
   const actions=[...group.querySelectorAll('.search-result[onclick]')].map(node=>String(node.getAttribute('onclick')||''));
-  if(actions.some(code=>/\b(?:openTent|openInventoryNfc|openHardwareNfc|openSpecialHardware)\s*\(/.test(code)))return 0;
-  if(actions.some(code=>/\b(?:openCalendarBooking|viewOrder)\s*\(/.test(code)))return 1;
+
+  /* 1. Drift: ordrer/jobs, vagter/bemanding, andre opgaver/møder og systue. */
+  if(/ordre|job|vagt|bemand|opgave|møde|systue|workshop|skade/.test(heading))return 0;
+  if(actions.some(code=>/\b(?:openCalendarBooking|viewOrder|openStaffingDate|openStaffShift|openMeeting|editMeeting|openWorkshopJob|openWorkshopTaskFromCalendarV120|showWorkshop|showDamageForm)\s*\(/.test(code)))return 0;
+
+  /* 2. Lager: telte, inventar og hardware. */
+  if(/telt|inventar|hardware|lager/.test(heading))return 1;
+  if(actions.some(code=>/\b(?:openTent|openInventoryNfc|openHardwareNfc|openSpecialHardware)\s*\(/.test(code)))return 1;
+
+  /* 3. Alt andet. */
   return 2;
 }
 
@@ -32,6 +41,5 @@ renderSearchResults=function(query){
   return result;
 };
 
-/* Reorder an already-open search view when v358 loads. */
 prioritizeSearchGroups();
 })();
