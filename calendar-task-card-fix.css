@@ -1,0 +1,21 @@
+/* PALA v349 · keep "ANDEN OPGAVE" horizontal in narrow calendar list cards. */
+.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:2px!important;
+}
+.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open>*{
+  grid-column:1!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+.calendar-all-column-body-v304 .calendar-task-card-v304 .meeting-open>span.small:first-child{
+  display:block!important;
+  width:100%!important;
+  white-space:nowrap!important;
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  writing-mode:horizontal-tb!important;
+  text-orientation:mixed!important;
+}
