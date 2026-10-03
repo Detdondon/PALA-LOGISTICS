@@ -1,4 +1,4 @@
-/* PALA v307 · multi-select calendar categories. */
+/* PALA v350 · multi-select calendar categories + temporary Mine view. */
 (()=>{
 'use strict';
 if(window.__palaCalendarMultiSelectV307)return;
@@ -7,6 +7,8 @@ window.__palaCalendarMultiSelectV306=true;
 const ORDER=['orders','staffing','workshop','calendarItems'];
 const STORAGE='pala_calendar_type_filters_v306';
 const valid=list=>ORDER.filter(type=>Array.isArray(list)&&list.includes(type));
+const mineActive=()=>window.calendarMyAssignmentsActiveV350===true;
+const effective=()=>mineActive()?['staffing','calendarItems']:[...selected];
 
 function readSelection(){
   try{
@@ -25,8 +27,9 @@ function save(){
   localStorage.setItem(STORAGE,JSON.stringify(selected));
   localStorage.setItem('pala_calendar_type_filter',selected.length===1?selected[0]:'all');
 }
-function get(){return [...selected]}
-function has(type){return selected.includes(type)}
+function get(){return effective()}
+function has(type){return effective().includes(type)}
+function selectedHas(type){return selected.includes(type)}
 function setSingle(type){
   if(!ORDER.includes(type))return;
   selected=[type];
@@ -34,7 +37,7 @@ function setSingle(type){
 }
 function toggle(type){
   if(!ORDER.includes(type))return false;
-  if(has(type)){
+  if(selectedHas(type)){
     if(selected.length===1)return false;
     selected=selected.filter(item=>item!==type);
   }else{
@@ -76,6 +79,7 @@ window.calendarEvents=function(start,days,mode){
 };
 
 window.setUnifiedCalendarTypeV123=function(type){
+  if(mineActive())return;
   if(!toggle(type))return;
   mainCalendarTypeFilterV120=selected.length===1?selected[0]:'all';
   if(selected.length>1&&['inquiry','warehouse','out','understaffed'].includes(mainCalendarStatusFilterV123)){
@@ -87,14 +91,15 @@ window.setUnifiedCalendarTypeV123=function(type){
 
 const baseShowCalendarV306=window.showCalendar;
 window.showCalendar=async function(){
-  /* Keep old shortcuts functional: if another part of PALA explicitly switches to
-     one concrete category, treat that as a single-category selection. */
-  if(ORDER.includes(mainCalendarTypeFilterV120)){
+  /* Keep old shortcuts functional outside Mine view. Mine view temporarily exposes
+     staffing + assigned calendar tasks without changing the employee's saved filters. */
+  if(!mineActive()&&ORDER.includes(mainCalendarTypeFilterV120)){
     const represented=selected.length===1?selected[0]:'all';
     if(mainCalendarTypeFilterV120!==represented)setSingle(mainCalendarTypeFilterV120);
   }
 
-  mainCalendarTypeFilterV120=selected.length===1?selected[0]:'all';
+  const visible=effective();
+  mainCalendarTypeFilterV120=visible.length===1?visible[0]:'all';
   const result=await baseShowCalendarV306.apply(this,arguments);
   removeLegacyTypeControl();
   requestAnimationFrame(removeLegacyTypeControl);
