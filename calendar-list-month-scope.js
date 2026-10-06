@@ -1,8 +1,8 @@
-/* PALA v363 · calendar list view is strictly scoped to the selected month. */
+/* PALA v365 · calendar list view is strictly scoped to the selected month with one coalesced render. */
 (()=>{
 'use strict';
-if(window.__palaCalendarListMonthScopeV363)return;
-window.__palaCalendarListMonthScopeV363=true;
+if(window.__palaCalendarListMonthScopeV365)return;
+window.__palaCalendarListMonthScopeV365=true;
 
 const dateOnly=value=>String(value??'').slice(0,10);
 const maxDate=(a,b)=>a>b?a:b;
@@ -75,7 +75,6 @@ function selectedMonthEntriesV363(){
     start=dateOnly(start);
     end=dateOnly(end||start);
     if(!start||!end)return;
-    // Only include activities that overlap the selected calendar month.
     if(start>last||end<first)return;
     entries.push({
       kind,
@@ -88,9 +87,7 @@ function selectedMonthEntriesV363(){
     });
   };
 
-  if(selected('orders')){
-    (bookings||[]).filter(bookingMatches).forEach(row=>add('order',row,row.start_date,row.end_date,row.start_time,1));
-  }
+  if(selected('orders'))(bookings||[]).filter(bookingMatches).forEach(row=>add('order',row,row.start_date,row.end_date,row.start_time,1));
 
   if(selected('staffing')){
     (staffingShifts||[]).filter(shiftMatches).forEach(row=>{
@@ -111,9 +108,7 @@ function selectedMonthEntriesV363(){
   }
 
   if(selected('calendarItems')&&meetingMatches()){
-    (palaMeetings||[]).filter(row=>row&&!row.cancelled).forEach(row=>{
-      add(row.kind==='task'?'task':'meeting',row,row.start_date,row.end_date,row.start_time,5);
-    });
+    (palaMeetings||[]).filter(row=>row&&!row.cancelled).forEach(row=>add(row.kind==='task'?'task':'meeting',row,row.start_date,row.end_date,row.start_time,5));
   }
 
   return entries.sort((a,b)=>
@@ -179,15 +174,21 @@ function renderSelectedMonthV363(){
   }
 }
 
+let renderQueued=false;
+function scheduleSelectedMonthRenderV365(){
+  if(renderQueued)return;
+  renderQueued=true;
+  queueMicrotask(()=>{renderQueued=false;renderSelectedMonthV363();});
+}
+
 const baseShowCalendarV363=window.showCalendar;
 if(typeof baseShowCalendarV363==='function'){
   window.showCalendar=async function(){
     const result=await baseShowCalendarV363.apply(this,arguments);
-    renderSelectedMonthV363();
-    requestAnimationFrame(renderSelectedMonthV363);
+    scheduleSelectedMonthRenderV365();
     return result;
   };
 }
 
-queueMicrotask(renderSelectedMonthV363);
+scheduleSelectedMonthRenderV365();
 })();
