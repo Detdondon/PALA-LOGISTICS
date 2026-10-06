@@ -1,7 +1,8 @@
-/* PALA warehouse realtime bridge v209
+/* PALA warehouse realtime bridge v365
    Direct warehouse record changes are already applied to PALA_STATE by realtime-sync.
    For those events we only rerender the visible warehouse UI; no reloadData/cloud fetch.
-   Relation/category invalidations keep the existing targeted loader fallback. */
+   Relation/category invalidations keep the existing targeted loader fallback.
+   Short bursts are coalesced to keep the UI responsive during bulk changes. */
 (function(global){
   'use strict';
 
@@ -9,7 +10,7 @@
   const INVALIDATIONS=new Set([
     'pala_warehouse_categories','tent_wet_status','tent_parts','booking_tents','booking_inventory'
   ]);
-  let renderQueued=false;
+  let renderTimer=null;
   let reloadQueued=false;
   let running=false;
   let rerun=false;
@@ -51,13 +52,12 @@
   }
 
   function queueRender(){
-    if(renderQueued)return;
-    renderQueued=true;
-    requestAnimationFrame(async()=>{
-      renderQueued=false;
+    if(renderTimer)return;
+    renderTimer=setTimeout(async()=>{
+      renderTimer=null;
       const handled=await renderWarehouse();
       if(!handled)queueReload();
-    });
+    },60);
   }
 
   async function reloadWarehouse(){
@@ -94,7 +94,7 @@
       queueReload();return true;
     }));
     INVALIDATIONS.forEach(source=>realtime.on(source,()=>{queueReload();return true;}));
-    global.__palaWarehouseRealtimeV209=true;
+    global.__palaWarehouseRealtimeV365=true;
     return true;
   }
 
