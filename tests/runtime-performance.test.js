@@ -69,14 +69,46 @@ for (const table of ['booking_tents', 'booking_inventory']) {
     await pending;
   });
 }
-test('returning to the app refreshes missed changes while duplicate channel events stay suppressed', () => {
+test('overlapping full reload requests share one in-flight network reload', async () => {
+  let runs = 0, release;
+  const c = context({
+    tents: {}, inventory: [], bookings: [], staffingShifts: [], staffingAssignments: [], employees: [], workshopJobs: [], workshopTasks: [],
+    reloadData() { runs++; return new Promise(resolve => { release = resolve; }); }
+  });
+  vm.runInContext(read('pala-legacy-bridge.js'), c);
+  const first = c.reloadData();
+  const second = c.reloadData();
+  assert.equal(first, second);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(runs, 1);
+  release('ok');
+  assert.equal(await first, 'ok');
+  assert.equal(await second, 'ok');
+  assert.equal(c.PALALegacyBridge.reloadBusy, false);
+});
+test('returning to the app refreshes missed changes while duplicate focus and channel events stay suppressed', () => {
   let tick, calls = 0, stops = 0, live = true;
   const c = context({ PALARealtime: { get status() { return live ? 'SUBSCRIBED' : 'CLOSED'; } }, setupCloudSync() {}, stopCloudSync() { stops++; }, scheduleCloudSync() { calls++; }, setInterval(fn) { tick = fn; return 1; }, clearInterval() {}, addEventListener() {}, setTimeout() {} });
   vm.runInContext(read('pala-sync-control.js'), c); tick();
   assert.equal(stops, 1);
   c.scheduleCloudSync(); assert.equal(calls, 1);
+  c.scheduleCloudSync(); assert.equal(calls, 1);
   c.scheduleCloudSync({ table: 'pala_sync_events' }); assert.equal(calls, 1);
   live = false; c.scheduleCloudSync({ table: 'pala_sync_events' }); assert.equal(calls, 2);
+});
+test('calendar month scope has a single owner and does not schedule a duplicate frame render', () => {
+  const defaults = read('calendar-list-defaults.js');
+  const monthScope = read('calendar-list-month-scope.js');
+  assert.equal(defaults.includes('window.showCalendar=async function'), false);
+  assert.equal(monthScope.includes('requestAnimationFrame(renderSelectedMonthV363)'), false);
+});
+test('gesture and editor helpers avoid repeated full-document rescans', () => {
+  const swipe = read('swipe-navigation.js');
+  assert.equal((swipe.match(/scanNavigationFunctions\(document\)/g)||[]).length, 1, 'only the one-time boot scan is allowed');
+  const selectCleanup = read('select-search-cleanup.js');
+  assert.equal(selectCleanup.includes('cleanup();\n      // PALAEditor'), false);
+  const mobileSelect = read('editor-mobile-select-reliability.js');
+  assert.equal(mobileSelect.includes('schedule(document)'), false);
 });
 test('active application scripts parse successfully', () => {
   for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
