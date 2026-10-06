@@ -1,11 +1,59 @@
-/* PALA v310 · stable damage overview and calendar-only damage cards. */
+/* PALA v362 · stable damage overview and calendar-only damage cards. */
 (()=>{
 'use strict';
-if(window.__palaWorkshopDamageOverviewV310)return;
-window.__palaWorkshopDamageOverviewV310=true;
+if(window.__palaWorkshopDamageOverviewV362)return;
+window.__palaWorkshopDamageOverviewV362=true;
 
-function damageCanEditV310(task){
+let pendingMissingDamageV362=0;
+let pendingMissingDamageTimerV362=null;
+
+function damageCanEditV362(task){
   return !!task&&(isAdminLoggedIn()||+task.created_by_employee_id===+employeeId);
+}
+
+function findWorkshopDamageV362(id){
+  const legacy=Array.isArray(window.workshopTasks)
+    ? window.workshopTasks.find(row=>+row.id===+id)
+    : null;
+  if(legacy)return legacy;
+  try{
+    return window.PALA_STATE?.get?.('workshopTasks',id)||null;
+  }catch(_){
+    return null;
+  }
+}
+
+function clearDamageRouteV362(id){
+  const params=new URLSearchParams(location.search);
+  if(+params.get('damageView')!==+id)return false;
+  params.delete('damageView');
+  const query=params.toString();
+  history.replaceState(null,'',location.pathname+(query?'?'+query:'')+(location.hash||''));
+  return true;
+}
+
+function recoverMissingDamageV362(id){
+  id=+id||0;
+  if(!id)return;
+  if(pendingMissingDamageV362===id&&pendingMissingDamageTimerV362)return;
+  if(pendingMissingDamageTimerV362)clearTimeout(pendingMissingDamageTimerV362);
+  pendingMissingDamageV362=id;
+  pendingMissingDamageTimerV362=setTimeout(()=>{
+    pendingMissingDamageTimerV362=null;
+    const pendingId=pendingMissingDamageV362;
+    pendingMissingDamageV362=0;
+    const task=findWorkshopDamageV362(pendingId);
+    if(task){
+      window.openWorkshopDamageOverview(pendingId,true);
+      return;
+    }
+    clearDamageRouteV362(pendingId);
+    try{
+      routeBeforeDamageV362.apply(window,[]);
+    }catch(error){
+      console.warn('[PALA] kunne ikke forlade ugyldig skadevisning',error);
+    }
+  },900);
 }
 
 window.calendarWorkshopTaskCardV310=function(task){
@@ -35,13 +83,18 @@ window.calendarWorkshopTaskCardV310=function(task){
   </article>`;
 };
 
-function damageReturnTargetV310(){
+function damageReturnTargetV362(){
   const saved=sessionStorage.getItem('pala_damage_overview_return_v310');
   return saved===null?'':saved;
 }
 
 window.closeWorkshopDamageOverview=function(){
-  const query=damageReturnTargetV310();
+  if(pendingMissingDamageTimerV362){
+    clearTimeout(pendingMissingDamageTimerV362);
+    pendingMissingDamageTimerV362=null;
+    pendingMissingDamageV362=0;
+  }
+  const query=damageReturnTargetV362();
   sessionStorage.removeItem('pala_damage_overview_return_v310');
   history.replaceState(null,'',location.pathname+query);
   return route();
@@ -49,20 +102,34 @@ window.closeWorkshopDamageOverview=function(){
 
 window.openWorkshopDamageOverview=function(id,fromRoute=false){
   if(!requireEmployee())return;
-  const task=(workshopTasks||[]).find(row=>+row.id===+id);
-  if(!task)return alert('Skaden findes ikke.');
+  id=+id||0;
+  const task=findWorkshopDamageV362(id);
+  if(!task){
+    // Realtime/data reloads can briefly make workshopTasks empty while the URL
+    // still contains damageView. Never block the app with a repeating alert.
+    recoverMissingDamageV362(id);
+    return;
+  }
+
+  if(pendingMissingDamageV362===id){
+    pendingMissingDamageV362=0;
+    if(pendingMissingDamageTimerV362){
+      clearTimeout(pendingMissingDamageTimerV362);
+      pendingMissingDamageTimerV362=null;
+    }
+  }
 
   if(!fromRoute){
     const params=new URLSearchParams(location.search);
     if(!params.has('damageView'))sessionStorage.setItem('pala_damage_overview_return_v310',location.search||'');
-    history.replaceState(null,'',location.pathname+'?damageView='+encodeURIComponent(+id));
+    history.replaceState(null,'',location.pathname+'?damageView='+encodeURIComponent(id));
   }
 
   const tent=tents?.[task.tent_id];
   const booking=(bookings||[]).find(row=>+row.id===+task.booking_id);
   const done=task.status==='completed';
-  const canEdit=damageCanEditV310(task);
-  const hasPhoto=typeof damagePhotoIds!=='undefined'&&damagePhotoIds.has(+id);
+  const canEdit=damageCanEditV362(task);
+  const hasPhoto=typeof damagePhotoIds!=='undefined'&&damagePhotoIds.has(id);
 
   document.querySelectorAll('.nav .btn').forEach(button=>button.classList.remove('active'));
 
@@ -71,8 +138,8 @@ window.openWorkshopDamageOverview=function(id,fromRoute=false){
       <div class="row">
         <button class="btn submenu-back" onclick="closeWorkshopDamageOverview()">${uiIcon('chevronLeft')} Tilbage</button>
         <div class="row" style="justify-content:flex-end;flex-wrap:wrap">
-          ${canEdit?`<button class="btn" onclick="editWorkshopDamage(${+id})">${uiIcon('edit')} Redigér skade</button>`:''}
-          <button class="btn ${done?'':'primary'}" onclick="toggleWorkshopTask(${+id},${done})">${uiIcon(done?'refresh':'check')} ${done?'Genåbn':'Markér udført'}</button>
+          ${canEdit?`<button class="btn" onclick="editWorkshopDamage(${id})">${uiIcon('edit')} Redigér skade</button>`:''}
+          <button class="btn ${done?'':'primary'}" onclick="toggleWorkshopTask(${id},${done})">${uiIcon(done?'refresh':'check')} ${done?'Genåbn':'Markér udført'}</button>
         </div>
       </div>
       <div class="detail-title">
@@ -101,7 +168,7 @@ window.openWorkshopDamageOverview=function(id,fromRoute=false){
       ${!task.tent_id&&!booking?'<p class="muted">Skaden er ikke knyttet til et telt eller job.</p>':''}
     </section>
 
-    ${hasPhoto?`<section class="card"><h3>Skadebillede</h3><button class="btn" onclick="openDamagePhoto(${+id})">${uiIcon('eye')} Se skadebillede</button></section>`:''}
+    ${hasPhoto?`<section class="card"><h3>Skadebillede</h3><button class="btn" onclick="openDamagePhoto(${id})">${uiIcon('eye')} Se skadebillede</button></section>`:''}
   `;
 };
 
@@ -111,12 +178,12 @@ window.openWorkshopTaskFromCalendarV120=function(id){
 };
 
 // Deep-link support for back/forward and refreshed damage overviews.
-const routeBeforeDamageV310=window.route;
+const routeBeforeDamageV362=window.route;
 window.route=function(){
   const params=new URLSearchParams(location.search);
   const damageView=+params.get('damageView')||0;
   if(damageView)return window.openWorkshopDamageOverview(damageView,true);
-  return routeBeforeDamageV310.apply(this,arguments);
+  return routeBeforeDamageV362.apply(this,arguments);
 };
 
 if(!document.getElementById('pala-damage-overview-v310-style')){
