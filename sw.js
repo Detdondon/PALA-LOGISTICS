@@ -1,5 +1,5 @@
-/* PALA service worker v364 · safe performance cache */
-const CACHE_NAME='pala-static-v364';
+/* PALA service worker v365 · safe performance cache */
+const CACHE_NAME='pala-static-v365';
 const CACHE_PREFIX='pala-';
 const STATIC_EXT=/\.(?:js|css|svg|png|jpg|jpeg|webp|gif|ico|ttf|otf|woff2?|webmanifest)$/i;
 
