@@ -1,8 +1,10 @@
-/* PALA v353 · keep warehouse category placement as a reliable native select */
+/* PALA v365 · keep warehouse category placement as a reliable native select without global DOM rescans */
 (()=>{
 'use strict';
-if(window.__palaSelectSearchCleanupV353)return;
-window.__palaSelectSearchCleanupV353=true;
+if(window.__palaSelectSearchCleanupV365)return;
+window.__palaSelectSearchCleanupV365=true;
+
+const TARGET='.stock-select-search,select#s_category_id';
 
 function restoreNativeCategorySelect(root=document){
   const selects=[];
@@ -35,24 +37,36 @@ function cleanup(root=document){
   restoreNativeCategorySelect(root);
 }
 
+function relevant(node){
+  return !!node?.matches?.(TARGET)||!!node?.querySelector?.(TARGET);
+}
+
 // Stop the legacy enhancer from adding new search boxes.
 try{window.installWarehouseSelectSearch=function(root=document){cleanup(root)}}catch(_e){}
 
 cleanup();
 const root=document.body;
 if(root){
+  const pending=new Set();
   let queued=false;
-  new MutationObserver(records=>{
-    if(!records.some(record=>record.addedNodes.length))return;
+  function schedule(node){
+    if(!node||node.nodeType!==1||!relevant(node))return;
+    pending.add(node);
     if(queued)return;
     queued=true;
     queueMicrotask(()=>{
       queued=false;
-      cleanup();
-      // PALAEditor may enhance a newly inserted select in the same mutation turn.
-      // Re-check on the next frame so s_category_id always ends as the native control.
-      requestAnimationFrame(()=>cleanup());
+      const roots=[...pending];pending.clear();
+      roots.forEach(node=>{if(node.isConnected)cleanup(node)});
+      // PALAEditor can enhance the same newly inserted select later in the turn.
+      // Re-check only the affected subtrees, never the entire document.
+      requestAnimationFrame(()=>roots.forEach(node=>{if(node.isConnected)cleanup(node)}));
     });
+  }
+  new MutationObserver(records=>{
+    for(const record of records){
+      for(const node of record.addedNodes)if(node.nodeType===1)schedule(node);
+    }
   }).observe(root,{childList:true,subtree:true});
 }
 })();
