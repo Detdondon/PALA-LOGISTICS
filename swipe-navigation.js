@@ -1,8 +1,8 @@
-/* PALA v357 · swipe back/forward navigation for the SPA. */
+/* PALA v365 · swipe back/forward navigation for the SPA without per-gesture full DOM scans. */
 (()=>{
 'use strict';
-if(window.__palaSwipeNavigationV357)return;
-window.__palaSwipeNavigationV357=true;
+if(window.__palaSwipeNavigationV365)return;
+window.__palaSwipeNavigationV365=true;
 
 const MAX_HISTORY=60;
 const navState={stack:[],index:-1,replaying:false,userGesture:false,depth:0,suppressClickUntil:0};
@@ -99,6 +99,10 @@ function scanNavigationFunctions(root=document){
     let match;while((match=rx.exec(source)))wrapName(match[1]);
   });
 }
+function scanActionTarget(target){
+  const action=target?.closest?.('[onclick]');
+  if(action)scanNavigationFunctions(action);
+}
 function commandAvailable(cmd){return !!cmd&&typeof window[cmd.name]==='function'&&primitiveArgs(cmd.args||[])}
 function replayAt(nextIndex){
   if(nextIndex<0||nextIndex>=navState.stack.length)return false;
@@ -145,7 +149,7 @@ let touch=null;
 document.addEventListener('touchstart',event=>{
   if(event.touches.length!==1||blockedStart(event.target)){touch=null;return}
   const t=event.touches[0];touch={x:t.clientX,y:t.clientY,time:performance.now(),target:event.target};
-  navState.userGesture=true;seedFromActiveNav();scanNavigationFunctions(document);
+  navState.userGesture=true;seedFromActiveNav();scanActionTarget(event.target);
 },{passive:true,capture:true});
 document.addEventListener('touchend',event=>{
   if(!touch||event.changedTouches.length!==1){touch=null;return}
@@ -158,7 +162,7 @@ document.addEventListener('touchend',event=>{
 document.addEventListener('touchcancel',()=>{touch=null;navState.userGesture=false},{passive:true,capture:true});
 document.addEventListener('click',event=>{
   if(performance.now()<navState.suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();return}
-  navState.userGesture=true;seedFromActiveNav();scanNavigationFunctions(event.target?.closest?.('[onclick]')||document);
+  navState.userGesture=true;seedFromActiveNav();scanActionTarget(event.target);
   setTimeout(()=>{navState.userGesture=false},500);
 },true);
 
