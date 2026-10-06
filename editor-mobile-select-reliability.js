@@ -1,8 +1,8 @@
-/* PALA v355 · reliable native single-select menus on touch devices. */
+/* PALA v365 · reliable native single-select menus on touch devices without global DOM rescans. */
 (()=>{
 'use strict';
-if(window.__palaEditorMobileSelectReliabilityV355)return;
-window.__palaEditorMobileSelectReliabilityV355=true;
+if(window.__palaEditorMobileSelectReliabilityV365)return;
+window.__palaEditorMobileSelectReliabilityV365=true;
 
 const ROOTS='#palaEditSheet,.order-editor-page,.workshop-form,.staff-form,.damage-form-card,.admin-special-card,.admin-inventory-editor,.new-tent-form,#ownPinDialog .dialog-card,#staffingExportDialog .dialog-card,#productionPlanExportDialog .dialog-card';
 const touchCapable=()=>{
@@ -26,17 +26,37 @@ function sweep(root=document){
   root?.querySelectorAll?.(ROOTS)?.forEach(node=>roots.push(node));
   roots.forEach(editor=>editor.querySelectorAll('select:not([multiple])').forEach(restore));
 }
-function schedule(root=document){
-  queueMicrotask(()=>requestAnimationFrame(()=>sweep(root)));
+
+const pending=new Set();
+let queued=false;
+function queueEditor(editor){
+  if(!editor||!editor.isConnected)return;
+  pending.add(editor);
+  if(queued)return;
+  queued=true;
+  queueMicrotask(()=>requestAnimationFrame(()=>{
+    queued=false;
+    const roots=[...pending];pending.clear();
+    roots.forEach(root=>{if(root.isConnected)sweep(root)});
+  }));
+}
+function collectEditors(node){
+  if(!node||node.nodeType!==1||!touchCapable())return;
+  if(node.matches?.(ROOTS))queueEditor(node);
+  node.querySelectorAll?.(ROOTS)?.forEach(queueEditor);
+  if(node.matches?.('select:not([multiple])'))queueEditor(node.closest?.(ROOTS));
+  node.querySelectorAll?.('select:not([multiple])')?.forEach(select=>queueEditor(select.closest(ROOTS)));
 }
 
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>schedule(document),{once:true});
-else schedule(document);
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>sweep(document),{once:true});
+else sweep(document);
 
 const body=document.body;
 if(body){
   new MutationObserver(records=>{
-    if(records.some(record=>record.addedNodes.length))schedule(document);
+    for(const record of records){
+      for(const node of record.addedNodes)collectEditors(node);
+    }
   }).observe(body,{childList:true,subtree:true});
 }
 
