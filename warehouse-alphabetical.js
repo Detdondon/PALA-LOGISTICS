@@ -1,10 +1,11 @@
-/* PALA v359 · alphabetic warehouse lists. */
+/* PALA v365 · alphabetic warehouse lists without global mutation rescans. */
 (()=>{
 'use strict';
-if(window.__palaWarehouseAlphabeticalV359)return;
-window.__palaWarehouseAlphabeticalV359=true;
+if(window.__palaWarehouseAlphabeticalV365)return;
+window.__palaWarehouseAlphabeticalV365=true;
 
 const compare=(a,b)=>String(a||'').localeCompare(String(b||''),'da',{sensitivity:'base',numeric:true});
+const WAREHOUSE_SELECTOR='.warehouse-list,.warehouse-list-v183,.warehouse-category-children-v183,.warehouse-root-list-v183,.warehouse-groups,.warehouse-tent-compact-list,.warehouse-tent-variants';
 
 function rowLabel(node){
   const preferred=node.querySelector?.('.warehouse-item-body strong,.warehouse-category-title-v183,.warehouse-group-title,summary strong');
@@ -25,30 +26,22 @@ function sortDirectChildren(host){
 }
 
 function sortWarehouse(root=document){
-  const selectors=[
-    '.warehouse-list',
-    '.warehouse-list-v183',
-    '.warehouse-category-children-v183',
-    '.warehouse-root-list-v183',
-    '.warehouse-groups',
-    '.warehouse-tent-compact-list',
-    '.warehouse-tent-variants'
-  ];
   const hosts=[];
-  selectors.forEach(selector=>{
-    if(root.matches?.(selector))hosts.push(root);
-    root.querySelectorAll?.(selector).forEach(host=>hosts.push(host));
-  });
+  if(root.matches?.(WAREHOUSE_SELECTOR))hosts.push(root);
+  root.querySelectorAll?.(WAREHOUSE_SELECTOR).forEach(host=>hosts.push(host));
   [...new Set(hosts)].forEach(sortDirectChildren);
 }
 
 let queued=false;
-function schedule(root=document){
+const pending=new Set();
+function schedule(root){
+  if(root)pending.add(root);
   if(queued)return;
   queued=true;
   requestAnimationFrame(()=>{
     queued=false;
-    sortWarehouse(root);
+    const roots=[...pending];pending.clear();
+    roots.forEach(node=>{if(node.isConnected)sortWarehouse(node)});
   });
 }
 
@@ -61,7 +54,12 @@ if(typeof baseShowTents==='function')window.showTents=async function(){
 
 const app=document.getElementById('app');
 if(app)new MutationObserver(records=>{
-  if(records.some(record=>record.type==='childList'&&record.addedNodes.length))schedule(app);
+  for(const record of records){
+    for(const node of record.addedNodes){
+      if(node.nodeType!==1)continue;
+      if(node.matches?.(WAREHOUSE_SELECTOR)||node.querySelector?.(WAREHOUSE_SELECTOR)){schedule(node);}
+    }
+  }
 }).observe(app,{childList:true,subtree:true});
 
 sortWarehouse(app||document);
