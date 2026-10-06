@@ -1,4 +1,4 @@
-/* PALA legacy data bridge v226 */
+/* PALA legacy data bridge v365 · direct state sync + single-flight network reloads */
 (function(global){
   'use strict';try{global.palaSupabase=sb;}catch(_){}
   function upsertArray(rows,row){if(!Array.isArray(rows)||!row||row.id==null)return false;const i=rows.findIndex(x=>String(x.id)===String(row.id));if(i>=0)rows[i]={...rows[i],...row};else rows.push(row);return true;}
@@ -16,6 +16,23 @@
   }
   function snapshot(){return {tents:Object.values(tents||{}),inventory:[...(inventory||[])],bookings:[...(bookings||[])],staffingShifts:[...(staffingShifts||[])],staffingAssignments:[...(staffingAssignments||[])],employees:[...(employees||[])],workshopJobs:[...(workshopJobs||[])],workshopTasks:[...(workshopTasks||[])]};}
   function syncState(source='legacy'){const state=global.PALA_STATE;if(!state)return false;const data=snapshot();Object.entries(data).forEach(([name,rows])=>state.replace(name,rows,{source}));return true;}
-  try{const originalReload=reloadData;global.reloadData=async function(){const result=await originalReload.apply(this,arguments);syncState('network');return result;};}catch(_){}
-  global.PALALegacyBridge={apply,snapshot,syncState};
+
+  // A number of UI/realtime paths can request a full refresh at almost the same
+  // moment (focus, visibility, relation invalidation, pull-to-refresh). Running
+  // several reloadData() calls in parallel is expensive and can leave the SPA
+  // feeling frozen. Share one in-flight reload instead.
+  let reloadPromise=null;
+  try{
+    const originalReload=reloadData;
+    global.reloadData=function(){
+      if(reloadPromise)return reloadPromise;
+      const self=this,args=arguments;
+      reloadPromise=Promise.resolve()
+        .then(()=>originalReload.apply(self,args))
+        .then(result=>{syncState('network');return result;})
+        .finally(()=>{reloadPromise=null;});
+      return reloadPromise;
+    };
+  }catch(_){}
+  global.PALALegacyBridge={apply,snapshot,syncState,get reloadBusy(){return !!reloadPromise;}};
 })(window);
