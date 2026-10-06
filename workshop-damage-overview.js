@@ -12,8 +12,8 @@ function damageCanEditV362(task){
 }
 
 function findWorkshopDamageV362(id){
-  const legacy=Array.isArray(window.workshopTasks)
-    ? window.workshopTasks.find(row=>+row.id===+id)
+  const legacy=(typeof workshopTasks!=='undefined'&&Array.isArray(workshopTasks))
+    ? workshopTasks.find(row=>+row.id===+id)
     : null;
   if(legacy)return legacy;
   try{
