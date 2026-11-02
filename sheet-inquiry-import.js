@@ -1,12 +1,10 @@
 /* PALA · Telt 2027 · manuel Google Sheets-læseimport, ingen skrivning til Google */
 (function(global){
   'use strict';
-  if(typeof global.adminTabs!=='function')return;
   var SHEET_ID='1hBILIVPhsCpkTXfnGmpVE7EX7jLQ6MQSqx-KTSBqqiw';
   var TAB_NAME='Telt 2027';
   var GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets.readonly';
   var CLIENT_ID_KEY='pala_telt_2027_google_oauth_client_id';
-  var originalAdminTabs=global.adminTabs;
   var inquiries=[],statusFilter='unconfirmed',query='',busy=false,statusMessage='';
   var googleLoader=null;
   var monthNumbers={april:4,maj:5,juni:6,juli:7,august:8,september:9,oktober:10,november:11,december:12};
@@ -155,12 +153,6 @@
       '<div style="margin-top:12px">'+(cards||'<p class="muted">Ingen forespørgsler matcher søgningen.</p>')+'</div>';
   }
 
-  global.adminTabs=function(active){
-    var html=originalAdminTabs(active);
-    var button='<button class="btn '+(active==='sheet'?'primary':'')+
-      '" onclick="showSheetInquiries()">Import: Telt 2027</button>';
-    return html.replace('<span class="small muted"',button+'<span class="small muted"');
-  };
   global.showSheetInquiries=async function(){
     if(!isAdminLoggedIn())return showAdminLogin();
     act('na');
