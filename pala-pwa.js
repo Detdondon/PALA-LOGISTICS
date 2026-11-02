@@ -1,4 +1,4 @@
-/* PALA PWA bootstrap v365 */
+/* PALA PWA bootstrap v366 */
 (function(){
   'use strict';
   if(!('serviceWorker'in navigator))return;
