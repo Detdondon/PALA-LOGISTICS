@@ -1,4 +1,4 @@
-/* PALA v193 · header admin mode access
+/* PALA v371 · header admin mode access
    Header order: search, notifications, admin mode, user. Admin mode uses the shared edit/pencil icon. */
 (()=>{
 'use strict';
@@ -31,15 +31,6 @@ window.openAdminMenuFromUserV184=async function(){
   queueMicrotask(applyAppSettingsHeading);
 };
 window.openAppSettingsFromUserV185=window.openAdminMenuFromUserV184;
-
-window.openSheetImportFromUserV367=async function(){
-  if(!adminEmployee())return;
-  if(typeof closeUserMenu==='function')closeUserMenu();
-  if(!adminModeOn()&&typeof toggleAdminMode==='function')await toggleAdminMode(true);
-  if(typeof closeUserMenu==='function')closeUserMenu();
-  if(typeof window.showSheetInquiries==='function')window.showSheetInquiries();
-};
-
 
 function orderHeaderActions(actions,userMenu){
   if(!actions||!userMenu)return;
@@ -94,17 +85,6 @@ function applyHeaderAdminLayout(){
   if(popover){
     const role=adminEmployee()?(adminModeOn()?'Administrator · Adminmode aktiv':'Administrator'):'Medarbejder';
     popover.innerHTML=`<div class="user-menu-identity"><strong>${typeof esc==='function'?esc(employeeName):String(employeeName||'')}</strong><div class="user-menu-role ${adminModeOn()?'mode-on':''}">${role}</div></div>${adminEmployee()?`<button class="user-menu-action" onclick="openAppSettingsFromUserV185()" role="menuitem">${typeof uiIcon==='function'?uiIcon('settings','ui-icon'):''}<span>Appindstillinger</span></button>`:''}<button class="user-menu-action" onclick="employeeLogout()" role="menuitem">${typeof uiIcon==='function'?uiIcon('logout','ui-icon'):''}<span>Log ud</span></button>`;
-    if(adminEmployee()){
-      const importAction=document.createElement('button');
-      importAction.type='button';
-      importAction.className='user-menu-action';
-      importAction.setAttribute('role','menuitem');
-      importAction.setAttribute('onclick','openSheetImportFromUserV367()');
-      importAction.innerHTML=(typeof uiIcon==='function'?uiIcon('document','ui-icon'):'')+'<span>Import: Telt 2027</span>';
-      const signout=popover.querySelector('[onclick="employeeLogout()"]');
-      if(signout)popover.insertBefore(importAction,signout);
-      else popover.appendChild(importAction);
-    }
   }
   applyAppSettingsHeading();
 }
