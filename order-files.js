@@ -1,4 +1,4 @@
-/* PALA v243 · order file attachments
+/* PALA v370 · order file attachments
    Admins can upload/delete files on an order. All logged-in employees can open/download them. */
 (()=>{
 'use strict';
@@ -46,17 +46,28 @@ async function payload(id){
 function cardHost(){
   return document.getElementById('app');
 }
+// A slow file request must never insert its card into a later calendar view.
+let latestRenderRequest=0;
+function isCurrentOrderView(bookingId,root,anchor){
+  if(!root||!root.isConnected||root!==cardHost())return false;
+  if(new URLSearchParams(location.search).get('job')!==String(bookingId))return false;
+  return !!anchor&&root.firstElementChild===anchor&&!!anchor.querySelector('.job-detail-header');
+}
 async function render(bookingId){
-  const root=cardHost();
-  if(!root||!bookingId)return;
-  root.querySelector('.booking-files-v239')?.remove();
+  const root=cardHost(),id=+bookingId,anchor=root?.firstElementChild;
+  const requestId=++latestRenderRequest;
+  if(!Number.isInteger(id)||id<=0||!isCurrentOrderView(id,root,anchor))return;
 
   let docs=[];
-  try{docs=await metadata(bookingId)}
+  try{docs=await metadata(id)}
   catch(error){
-    console.warn('[PALA] ordre-filer kunne ikke hentes',error);
+    if(requestId===latestRenderRequest&&isCurrentOrderView(id,root,anchor))
+      console.warn('[PALA] ordre-filer kunne ikke hentes',error);
     return;
   }
+  // Both route and DOM anchor must still belong to the SAME order.
+  if(requestId!==latestRenderRequest||!isCurrentOrderView(id,root,anchor))return;
+  root.querySelector('.booking-files-v239')?.remove();
 
   const section=document.createElement('section');
   section.className='card booking-files-v239';
@@ -85,8 +96,7 @@ async function render(bookingId){
         </div>`).join(''):'<p class="muted booking-files-empty-v239">Ingen filer er tilknyttet ordren endnu.</p>'}
     </div>`;
 
-  const first=root.firstElementChild;
-  if(first)first.insertAdjacentElement('afterend',section);else root.appendChild(section);
+  anchor.insertAdjacentElement('afterend',section);
 
   const input=section.querySelector('[data-booking-file-input-v239]');
   section.querySelector('[data-booking-file-add-v239]')?.addEventListener('click',()=>input?.click());
