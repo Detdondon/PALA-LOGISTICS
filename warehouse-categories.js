@@ -202,7 +202,7 @@ function addWarehouseAdminActions(){
   let actions=row.querySelector('.warehouse-structure-actions-v183');
   if(!actions){
     actions=document.createElement('div');actions.className='warehouse-structure-actions-v183';
-    actions.innerHTML=`<button type="button" class="btn" onclick="openWarehouseBulkMove()">${typeof uiIcon==='function'?uiIcon('link'):''} Flyt poster</button><button type="button" class="btn" onclick="showAdminWarehouseCategories()">${typeof uiIcon==='function'?uiIcon('settings'):''} Lagerstruktur</button>`;
+    actions.innerHTML=`<button type="button" class="btn" onclick="showAdmin()">${typeof uiIcon==='function'?uiIcon('tent'):''} Telte & hardware</button><button type="button" class="btn" onclick="showAdminInventory()">${typeof uiIcon==='function'?uiIcon('box'):''} Inventar</button><button type="button" class="btn" onclick="showAdminWarehouseCategories()">${typeof uiIcon==='function'?uiIcon('settings'):''} Lagerstruktur</button><button type="button" class="btn" onclick="openWarehouseBulkMove()">${typeof uiIcon==='function'?uiIcon('link'):''} Flyt poster</button>`;
     row.appendChild(actions);
   }
   [...row.children].forEach(el=>{if(el!==actions&&el.tagName==='BUTTON'&&String(el.getAttribute('onclick')||'').includes('showAdmin('))el.remove()});
@@ -395,7 +395,7 @@ if(!document.getElementById('pala-warehouse-categories-v183-style')){
     .warehouse-category-body-v183{padding:0 8px 8px}.warehouse-category-children-v183{display:grid;grid-template-columns:minmax(0,1fr)!important;gap:6px;margin:6px 0 0 12px;padding-left:8px;border-left:2px solid #e8edf3}
     .warehouse-list-v183{display:grid;grid-template-columns:minmax(0,1fr)!important;grid-auto-flow:row!important;gap:5px;padding:7px 0}.warehouse-item-v183{min-height:58px;width:100%!important;border-right:0!important}.warehouse-item-chevron-v183{display:flex;align-items:center}.warehouse-stock.standard-permanent{color:#5f6f82;font-weight:650}
     #app .warehouse-item-v183.warehouse-search-match-v335{background:#fff9df!important;box-shadow:inset 3px 0 0 #e1b300!important}.warehouse-search-mark-v335{background:#ffe58a;color:inherit;border-radius:3px;padding:0 2px;font-weight:800}
-    .warehouse-empty-v183,.warehouse-manager-empty-v183{margin:6px 0;padding:8px 4px}.warehouse-structure-actions-v183{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+    .warehouse-empty-v183,.warehouse-manager-empty-v183{margin:6px 0;padding:8px 4px}.warehouse-structure-actions-v183{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;align-items:center;width:min(100%,440px)}.warehouse-structure-actions-v183 .btn{min-width:0;min-height:44px;white-space:normal;justify-content:center;text-align:center}
     .warehouse-manager-grid-v183{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.warehouse-manager-card-v183{background:#fff;border:1px solid var(--line,#e2e6ec);border-radius:14px;padding:12px}
     .warehouse-manager-head-v183{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}.warehouse-manager-tree-v183{display:grid;gap:4px}.warehouse-manager-tree-v183.nested{margin:4px 0 0 13px;padding-left:8px;border-left:1px solid #dfe6ef}
     .warehouse-manager-row-v183{display:grid;grid-template-columns:minmax(0,1fr) auto 30px 30px;gap:5px;align-items:center;padding:5px;border-radius:9px}.warehouse-manager-row-v183:hover{background:#f6f8fb}
