@@ -12,34 +12,51 @@ if(typeof baseAdminTabs==='function'){
     let html=baseAdminTabs.apply(this,arguments);
     if(typeof html!=='string')return html;
 
-    // Backup is added by the existing admin navigation layer. Remove it from
-    // that row and render all three utility actions in their own layout.
-    html=html.replace(/<button\b[^>]*onclick=["']showAdminBackup\(\)["'][^>]*>[\s\S]*?<\/button>/i,'');
+    // Keep the original warehouse navigation, including Lagerstruktur and Telt 2027.
+    // Move administrative actions into their own panel without changing handlers.
+    const take=pattern=>{
+      const match=html.match(pattern);
+      if(!match)return '';
+      html=html.replace(match[0],'');
+      return match[0];
+    };
+    const employees=take(/<button\b[^>]*onclick=["']showAdminEmployees\(\)["'][^>]*>[\s\S]*?<\/button>/i);
+    const backup=take(/<button\b[^>]*onclick=["']showAdminBackup\(\)["'][^>]*>[\s\S]*?<\/button>/i);
+    const logout=take(/<button\b[^>]*onclick=["']adminLogout\(\)["'][^>]*>[\s\S]*?<\/button>/i);
+    const identity=take(/<span\b[^>]*>\s*Logget ind:[\s\S]*?<\/span>/i);
 
     const staffing=typeof showStaffingExportDialog==='function'
-      ? `<button class="btn admin-plan-button-v179" data-admin-pdf-tool="staffing" onclick="showStaffingExportDialog()">${typeof uiIcon==='function'?uiIcon('document'):''}<span>Bemandingsplan</span></button>`
-      : '';
+      ? `<button class="btn admin-settings-action-v374" onclick="showStaffingExportDialog()">${typeof uiIcon==='function'?uiIcon('document'):''} Bemandingsplan</button>`:'';
     const production=typeof showProductionPlanExportDialog==='function'
-      ? `<button class="btn admin-plan-button-v179" data-admin-pdf-tool="production" onclick="showProductionPlanExportDialog()">${typeof uiIcon==='function'?uiIcon('document'):''}<span>Produktionsplan</span></button>`
-      : '';
-    const backup=typeof showAdminBackup==='function'
-      ? `<button class="btn admin-backup-button-v179 ${activeTab==='backup'?'primary':''}" data-admin-backup-tool="1" onclick="showAdminBackup()">${typeof uiIcon==='function'?uiIcon('document'):''}<span>Backup</span></button>`
-      : '';
+      ? `<button class="btn admin-settings-action-v374" onclick="showProductionPlanExportDialog()">${typeof uiIcon==='function'?uiIcon('document'):''} Produktionsplan</button>`:'';
 
-    if(!staffing&&!production&&!backup)return html;
-    return html+`<div class="admin-utility-tools-v179"><div class="admin-plan-row-v179">${staffing}${production}</div>${backup}</div>`;
+    return `<div class="app-settings-sections-v374">
+      <section class="app-settings-panel-v374 app-settings-general-v374" aria-label="Planlægning og administration">
+        <div class="app-settings-title-v374">Planlægning og administration</div>
+        <div class="app-settings-buttons-v374">${staffing}${production}${backup}${employees}</div>
+      </section>
+      <section class="app-settings-panel-v374 app-settings-warehouse-v374" aria-label="Lager">
+        <div class="app-settings-title-v374">Lager</div>
+        ${html}
+      </section>
+      <div class="app-settings-session-v374">${identity}${logout}</div>
+    </div>`;
   };
 }
 
-if(!document.getElementById('pala-admin-tools-v179-style')){
+if(!document.getElementById('pala-admin-settings-v374-style')){
   const style=document.createElement('style');
-  style.id='pala-admin-tools-v179-style';
+  style.id='pala-admin-settings-v374-style';
   style.textContent=`
-    .admin-utility-tools-v179{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin:0 0 14px!important}
-    .admin-plan-row-v179{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
-    .admin-plan-row-v179>.btn,.admin-backup-button-v179{width:100%!important;min-width:0!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;text-align:center!important;white-space:normal!important}
-    .admin-plan-row-v179>.btn .ui-icon,.admin-backup-button-v179 .ui-icon{flex:0 0 auto!important}
-    @media(max-width:420px){.admin-plan-row-v179{gap:6px!important}.admin-plan-row-v179>.btn,.admin-backup-button-v179{padding:11px 8px!important;font-size:12px!important}}
+    .app-settings-sections-v374{display:grid;gap:12px;margin:14px 0}
+    .app-settings-panel-v374{border:1px solid #dce4ed;border-radius:17px;background:#f8fafc;padding:15px}
+    .app-settings-title-v374{font-size:12px;font-weight:800;letter-spacing:.04em;color:#64748b;text-transform:uppercase;margin:0 0 11px}
+    .app-settings-buttons-v374{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .app-settings-buttons-v374>.btn,.app-settings-warehouse-v374>.row>.btn{display:flex;align-items:center;justify-content:center;text-align:center;gap:7px;min-width:0;min-height:48px;width:100%;white-space:normal}
+    .app-settings-warehouse-v374>.row{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px!important;margin:0!important;align-items:stretch}
+    .app-settings-session-v374{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;padding:0 3px}
+    @media(min-width:800px){.app-settings-general-v374>.app-settings-buttons-v374{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    @media(max-width:420px){.app-settings-panel-v374{padding:11px}.app-settings-buttons-v374,.app-settings-warehouse-v374>.row{gap:6px!important}.app-settings-buttons-v374>.btn,.app-settings-warehouse-v374>.row>.btn{font-size:12px;padding:9px 6px}}
   `;
   document.head.appendChild(style);
 }
