@@ -153,12 +153,17 @@ function groupedMonthHtmlV363(entries){
 }
 
 function renderSelectedMonthV363(){
+  const gridVisible=typeof calendarViewMode!=='undefined'&&calendarViewMode==='calendar';
+  const listVisible=typeof calendarViewMode!=='undefined'&&calendarViewMode==='list';
+  const gridHost=gridVisible?document.querySelector('.calendar-detail-list'):null;
+  const listHost=listVisible?document.querySelector('.view-list'):null;
+  // Background syncs and initial script setup must not construct hidden order cards.
+  if(!gridHost&&!listHost)return;
   const entries=selectedMonthEntriesV363();
   const {label}=selectedMonthWindowV363();
 
-  if(typeof calendarViewMode!=='undefined'&&calendarViewMode==='calendar'){
-    const host=document.querySelector('.calendar-detail-list');
-    if(host)host.innerHTML=groupedMonthHtmlV363(entries);
+  if(gridHost){
+    gridHost.innerHTML=groupedMonthHtmlV363(entries);
     const card=document.querySelector('.calendar-day-detail-card');
     const eyebrow=card?.querySelector(':scope > div > .small.muted');
     const title=card?.querySelector(':scope > div > .calendar-day-title');
@@ -166,9 +171,8 @@ function renderSelectedMonthV363(){
     if(title)title.textContent=label;
   }
 
-  if(typeof calendarViewMode!=='undefined'&&calendarViewMode==='list'){
-    const host=document.querySelector('.view-list');
-    if(host)host.innerHTML=groupedMonthHtmlV363(entries);
+  if(listHost){
+    listHost.innerHTML=groupedMonthHtmlV363(entries);
     const title=document.querySelector('.calendar-toolbar-title .small.muted');
     if(title)title.textContent=label;
   }
@@ -190,5 +194,5 @@ if(typeof baseShowCalendarV363==='function'){
   };
 }
 
-scheduleSelectedMonthRenderV365();
+if(document.querySelector('.calendar-detail-list')||document.querySelector('.view-list'))scheduleSelectedMonthRenderV365();
 })();
