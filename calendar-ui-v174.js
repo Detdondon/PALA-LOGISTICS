@@ -146,6 +146,6 @@ if(!document.getElementById('pala-calendar-ui-v174-style')){
 let queued=false;
 const schedule=()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;enhanceCalendar()})};
 const root=document.getElementById('app');
-if(root)new MutationObserver(schedule).observe(root,{childList:true,subtree:true,characterData:true});
+if(root)new MutationObserver(schedule).observe(root,{childList:true});
 schedule();
 })();
