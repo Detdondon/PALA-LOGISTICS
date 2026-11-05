@@ -27,7 +27,8 @@ window.openAdminMenuFromUserV184=async function(){
   if(typeof closeUserMenu==='function')closeUserMenu();
   if(!adminModeOn()&&typeof toggleAdminMode==='function')await toggleAdminMode(true);
   if(typeof closeUserMenu==='function')closeUserMenu();
-  if(typeof showAdmin==='function')showAdmin();
+  if(typeof showAppSettingsHomeV375==='function')showAppSettingsHomeV375();
+  else if(typeof showAdmin==='function')showAdmin();
   queueMicrotask(applyAppSettingsHeading);
 };
 window.openAppSettingsFromUserV185=window.openAdminMenuFromUserV184;
